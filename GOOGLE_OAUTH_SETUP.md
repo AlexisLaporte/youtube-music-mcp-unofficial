@@ -8,7 +8,7 @@ Dans votre projet Google Cloud Console, allez dans :
 ### 1. Origines JavaScript autorisées
 Ajoutez ces URLs :
 ```
-http://localhost:5173
+http://localhost:3000
 https://votre-domaine.com
 ```
 
@@ -16,6 +16,17 @@ https://votre-domaine.com
 Ajoutez cette URL Supabase Auth :
 ```
 https://ydbbrsxkbakuendojzhn.supabase.co/auth/v1/callback
+```
+
+### 3. Configuration OAuth Consent Screen (OBLIGATOIRE)
+Pour éviter l'erreur Google, configurez dans Google Cloud Console > OAuth consent screen :
+```
+Application name: YouTube Music Manager
+User support email: alexis.laporte@gmail.com
+Developer contact: alexis.laporte@gmail.com
+Application homepage: http://localhost:3000 (pour dev)
+Privacy Policy: http://localhost:3000/privacy
+Terms of Service: http://localhost:3000/terms
 ```
 
 ## Configuration Supabase Dashboard
@@ -34,6 +45,32 @@ https://ydbbrsxkbakuendojzhn.supabase.co/auth/v1/callback
 5. Dans "Authorized redirect URIs", ajoutez :
    `https://ydbbrsxkbakuendojzhn.supabase.co/auth/v1/callback`
 6. Sauvegardez
+
+## Solutions pour éviter l'erreur Google OAuth
+
+### Option 1: Domaine personnalisé (Recommandée)
+1. **Supabase Dashboard > Settings > Custom Domains**
+2. Ajoutez votre domaine : `auth.votre-domaine.com`
+3. Configurez les DNS selon les instructions Supabase
+4. Utilisez cette URI dans Google OAuth : 
+   ```
+   https://auth.votre-domaine.com/auth/v1/callback
+   ```
+
+### Option 2: Configuration de branding Google
+Dans Google Cloud Console > OAuth consent screen :
+1. **Application name** : YouTube Music Manager
+2. **User support email** : votre@email.com
+3. **Developer contact** : votre@email.com
+4. **Application homepage** : https://votre-domaine.com
+5. **Privacy Policy** : https://votre-domaine.com/privacy
+6. **Terms of Service** : https://votre-domaine.com/terms
+
+### Option 3: Mode développement temporaire
+Pour tester pendant le développement :
+1. Ajoutez votre email comme "Test user" dans OAuth consent screen
+2. Gardez l'application en mode "Testing"
+3. Utilisez : `http://localhost:3000` comme origine autorisée
 
 ## Important
 - Utilisez UNIQUEMENT l'URL Supabase Auth : `/auth/v1/callback`
