@@ -5,6 +5,9 @@ import { Plus, RefreshCw, Search, Filter } from 'lucide-react';
 import { PlaylistCard } from './PlaylistCard';
 import { apiService } from '@/services/apiService';
 import { YouTubePlaylist } from '@/types/youtube';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface DashboardProps {
   userName: string;
