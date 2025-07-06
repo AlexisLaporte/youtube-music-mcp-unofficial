@@ -1,8 +1,9 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Plus, RefreshCw, Search, Filter } from 'lucide-react';
+import { Plus, RefreshCw, Search, Filter, Heart } from 'lucide-react';
 import { PlaylistCard } from './PlaylistCard';
+import { LikedSongsAnalysis } from './LikedSongsAnalysis';
 import { apiService } from '@/services/apiService';
 import { YouTubePlaylist } from '@/types/youtube';
 
@@ -11,6 +12,7 @@ interface DashboardProps {
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({ userName }) => {
+  const [activeTab, setActiveTab] = useState<'playlists' | 'analysis'>('playlists');
   const [playlists, setPlaylists] = useState<YouTubePlaylist[]>([]);
   const [filteredPlaylists, setFilteredPlaylists] = useState<YouTubePlaylist[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -76,7 +78,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ userName }) => {
       );
       
       setNewPlaylist({ title: '', description: '', privacy: 'private' });
-      await loadPlaylists(); // Refresh the list
+      await loadPlaylists();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur lors de la création de la playlist');
     } finally {
@@ -102,7 +104,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ userName }) => {
     }
   };
 
-  if (isLoading) {
+  if (isLoading && activeTab === 'playlists') {
     return (
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center">
@@ -124,118 +126,154 @@ export const Dashboard: React.FC<DashboardProps> = ({ userName }) => {
         </p>
       </div>
 
-      {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-red-700">{error}</p>
-        </div>
-      )}
-
-      {/* Create Playlist Form */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Créer une nouvelle playlist</h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <input
-            type="text"
-            placeholder="Nom de la playlist"
-            value={newPlaylist.title}
-            onChange={(e) => setNewPlaylist(prev => ({ ...prev, title: e.target.value }))}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-          />
-          
-          <select
-            value={newPlaylist.privacy}
-            onChange={(e) => setNewPlaylist(prev => ({ ...prev, privacy: e.target.value as 'public' | 'private' | 'unlisted' }))}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-          >
-            <option value="private">Privée</option>
-            <option value="unlisted">Non répertoriée</option>
-            <option value="public">Publique</option>
-          </select>
-        </div>
-        
-        <textarea
-          placeholder="Description (optionnelle)"
-          value={newPlaylist.description}
-          onChange={(e) => setNewPlaylist(prev => ({ ...prev, description: e.target.value }))}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent mb-4"
-          rows={3}
-        />
-        
-        <button
-          onClick={createPlaylist}
-          disabled={!newPlaylist.title.trim() || isCreating}
-          className="bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600 text-white px-4 py-2 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-        >
-          <Plus className="h-4 w-4" />
-          <span>{isCreating ? 'Création...' : 'Créer la playlist'}</span>
-        </button>
-      </div>
-
-      {/* Search and Filter */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Rechercher dans vos playlists..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-            />
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <Filter className="h-4 w-4 text-gray-400" />
-            <select
-              value={privacyFilter}
-              onChange={(e) => setPrivacyFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+      {/* Navigation Tabs */}
+      <div className="mb-8">
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8">
+            <button
+              onClick={() => setActiveTab('playlists')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'playlists'
+                  ? 'border-red-500 text-red-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
             >
-              <option value="all">Toutes</option>
-              <option value="private">Privées</option>
-              <option value="unlisted">Non répertoriées</option>
-              <option value="public">Publiques</option>
-            </select>
-          </div>
-          
-          <button
-            onClick={loadPlaylists}
-            className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
-          >
-            <RefreshCw className="h-4 w-4" />
-            <span>Actualiser</span>
-          </button>
+              <Plus className="h-4 w-4 inline mr-2" />
+              Gestion des playlists
+            </button>
+            <button
+              onClick={() => setActiveTab('analysis')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'analysis'
+                  ? 'border-red-500 text-red-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <Heart className="h-4 w-4 inline mr-2" />
+              Analyse des morceaux likés
+            </button>
+          </nav>
         </div>
       </div>
 
-      {/* Playlists Grid */}
-      {filteredPlaylists.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="bg-gray-50 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-            <Plus className="h-8 w-8 text-gray-400" />
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            {searchTerm || privacyFilter !== 'all' ? 'Aucune playlist trouvée' : 'Aucune playlist'}
-          </h3>
-          <p className="text-gray-600">
-            {searchTerm || privacyFilter !== 'all' 
-              ? 'Essayez de modifier vos critères de recherche'
-              : 'Créez votre première playlist pour commencer'
-            }
-          </p>
-        </div>
+      {activeTab === 'analysis' ? (
+        <LikedSongsAnalysis />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredPlaylists.map((playlist) => (
-            <PlaylistCard
-              key={playlist.id}
-              playlist={playlist}
-              onDelete={deletePlaylist}
-              isDeleting={deletingId === playlist.id}
+        <div>
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-700">{error}</p>
+            </div>
+          )}
+
+          {/* Create Playlist Form */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Créer une nouvelle playlist</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <input
+                type="text"
+                placeholder="Nom de la playlist"
+                value={newPlaylist.title}
+                onChange={(e) => setNewPlaylist(prev => ({ ...prev, title: e.target.value }))}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              />
+              
+              <select
+                value={newPlaylist.privacy}
+                onChange={(e) => setNewPlaylist(prev => ({ ...prev, privacy: e.target.value as 'public' | 'private' | 'unlisted' }))}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              >
+                <option value="private">Privée</option>
+                <option value="unlisted">Non répertoriée</option>
+                <option value="public">Publique</option>
+              </select>
+            </div>
+            
+            <textarea
+              placeholder="Description (optionnelle)"
+              value={newPlaylist.description}
+              onChange={(e) => setNewPlaylist(prev => ({ ...prev, description: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent mb-4"
+              rows={3}
             />
-          ))}
+            
+            <button
+              onClick={createPlaylist}
+              disabled={!newPlaylist.title.trim() || isCreating}
+              className="bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600 text-white px-4 py-2 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+            >
+              <Plus className="h-4 w-4" />
+              <span>{isCreating ? 'Création...' : 'Créer la playlist'}</span>
+            </button>
+          </div>
+
+          {/* Search and Filter */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Rechercher dans vos playlists..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                />
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Filter className="h-4 w-4 text-gray-400" />
+                <select
+                  value={privacyFilter}
+                  onChange={(e) => setPrivacyFilter(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                >
+                  <option value="all">Toutes</option>
+                  <option value="private">Privées</option>
+                  <option value="unlisted">Non répertoriées</option>
+                  <option value="public">Publiques</option>
+                </select>
+              </div>
+              
+              <button
+                onClick={loadPlaylists}
+                className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
+              >
+                <RefreshCw className="h-4 w-4" />
+                <span>Actualiser</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Playlists Grid */}
+          {filteredPlaylists.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="bg-gray-50 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <Plus className="h-8 w-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                {searchTerm || privacyFilter !== 'all' ? 'Aucune playlist trouvée' : 'Aucune playlist'}
+              </h3>
+              <p className="text-gray-600">
+                {searchTerm || privacyFilter !== 'all' 
+                  ? 'Essayez de modifier vos critères de recherche'
+                  : 'Créez votre première playlist pour commencer'
+                }
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredPlaylists.map((playlist) => (
+                <PlaylistCard
+                  key={playlist.id}
+                  playlist={playlist}
+                  onDelete={deletePlaylist}
+                  isDeleting={deletingId === playlist.id}
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
     </main>

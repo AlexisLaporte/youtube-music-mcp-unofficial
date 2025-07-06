@@ -18,3 +18,33 @@ export interface YouTubePlaylist {
   privacy: 'public' | 'private' | 'unlisted';
   publishedAt?: string;
 }
+
+export interface YouTubeTrack {
+  id: string;
+  title: string;
+  artist: string;
+  duration: string;
+  thumbnail?: string;
+  videoId: string;
+  addedAt?: string;
+}
+
+export interface PlaylistAnalysis {
+  likedSongs: YouTubeTrack[];
+  crossReferences: {
+    track: YouTubeTrack;
+    foundInPlaylists: {
+      playlist: YouTubePlaylist;
+      position: number;
+    }[];
+  }[];
+  statistics: {
+    totalLikedSongs: number;
+    songsFoundInPlaylists: number;
+    songsNotFoundInPlaylists: number;
+    mostCommonPlaylists: {
+      playlist: YouTubePlaylist;
+      songCount: number;
+    }[];
+  };
+}

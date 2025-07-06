@@ -1,16 +1,35 @@
 import { createClient } from '@/lib/supabase'
-import { AuthStatus, YouTubePlaylist } from '@/types/youtube'
+import { AuthStatus, YouTubePlaylist, YouTubeTrack, PlaylistAnalysis } from '@/types/youtube'
 
 class ApiService {
   private supabase = createClient()
 
+  // Getter public pour accéder au client Supabase
+  get supabaseClient() {
+    return this.supabase
+  }
+
   async checkAuthStatus(): Promise<AuthStatus> {
     try {
-      const { data: { session }, error } = await this.supabase.auth.getSession()
+      // D'abord essayer de récupérer la session courante
+      let { data: { session }, error } = await this.supabase.auth.getSession()
       
       if (error) {
         console.error('Auth error:', error)
         return { isConnected: false, error: error.message }
+      }
+
+      // Si pas de session, essayer de rafraîchir
+      if (!session || !session.user) {
+        console.log('No session found, attempting to refresh...')
+        const { data: refreshData, error: refreshError } = await this.supabase.auth.refreshSession()
+        
+        if (refreshError) {
+          console.log('No refresh session available:', refreshError.message)
+          return { isConnected: false }
+        }
+        
+        session = refreshData.session
       }
 
       if (!session || !session.user) {
@@ -51,7 +70,7 @@ class ApiService {
         redirectTo: `${window.location.origin}`,
         queryParams: {
           access_type: 'offline',
-          prompt: 'consent',
+          prompt: 'select_account',
         },
         scopes: 'openid email profile https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/youtube'
       }
@@ -204,6 +223,195 @@ class ApiService {
     } catch (error) {
       console.error('Error deleting playlist:', error)
       return false
+    }
+  }
+
+  async getPlaylistTracks(playlistId: string): Promise<YouTubeTrack[]> {
+    try {
+      const { data: { session } } = await this.supabase.auth.getSession()
+      
+      if (!session || !session.user) {
+        throw new Error('Not authenticated')
+      }
+
+      const providerToken = session.user.user_metadata?.provider_token
+      if (!providerToken) {
+        throw new Error('YouTube token not available')
+      }
+
+      const response = await fetch(
+        `https://www.googleapis.com/youtube/v3/playlistItems?` +
+        `part=snippet,contentDetails&` +
+        `playlistId=${playlistId}&` +
+        `maxResults=50`,
+        {
+          headers: {
+            Authorization: `Bearer ${providerToken}`,
+          },
+        }
+      )
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('YouTube API error:', response.status, errorText)
+        throw new Error(`YouTube API error: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      
+      const tracks = data.items?.map((item: unknown) => {
+        const playlistItem = item as Record<string, unknown>
+        const snippet = playlistItem.snippet as Record<string, unknown>
+        const contentDetails = playlistItem.contentDetails as Record<string, unknown>
+        const resourceId = snippet.resourceId as Record<string, unknown>
+        const thumbnails = snippet.thumbnails as Record<string, unknown>
+        
+        return {
+          id: playlistItem.id,
+          title: snippet.title || 'Titre inconnu',
+          artist: snippet.videoOwnerChannelTitle || 'Artiste inconnu',
+          duration: contentDetails.duration || '0:00',
+          thumbnail: (thumbnails?.medium as Record<string, unknown>)?.url || (thumbnails?.default as Record<string, unknown>)?.url || '',
+          videoId: resourceId.videoId,
+          addedAt: snippet.publishedAt,
+        }
+      }) || []
+
+      return tracks
+    } catch (error) {
+      console.error('Error fetching playlist tracks:', error)
+      throw error
+    }
+  }
+
+  async getLikedSongs(): Promise<YouTubeTrack[]> {
+    try {
+      const { data: { session } } = await this.supabase.auth.getSession()
+      
+      if (!session || !session.user) {
+        throw new Error('Not authenticated')
+      }
+
+      const providerToken = session.user.user_metadata?.provider_token
+      if (!providerToken) {
+        throw new Error('YouTube token not available')
+      }
+
+      // YouTube API v3 endpoint pour les vidéos likées
+      const response = await fetch(
+        'https://www.googleapis.com/youtube/v3/videos?' +
+        'part=snippet,contentDetails&' +
+        'myRating=like&' +
+        'maxResults=50',
+        {
+          headers: {
+            Authorization: `Bearer ${providerToken}`,
+          },
+        }
+      )
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('YouTube API error:', response.status, errorText)
+        throw new Error(`YouTube API error: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      
+      const tracks = data.items?.map((item: unknown) => {
+        const video = item as Record<string, unknown>
+        const snippet = video.snippet as Record<string, unknown>
+        const contentDetails = video.contentDetails as Record<string, unknown>
+        const thumbnails = snippet.thumbnails as Record<string, unknown>
+        
+        return {
+          id: video.id,
+          title: snippet.title || 'Titre inconnu',
+          artist: snippet.channelTitle || 'Artiste inconnu',
+          duration: contentDetails.duration || '0:00',
+          thumbnail: (thumbnails?.medium as Record<string, unknown>)?.url || (thumbnails?.default as Record<string, unknown>)?.url || '',
+          videoId: video.id as string,
+          addedAt: snippet.publishedAt,
+        }
+      }) || []
+
+      return tracks
+    } catch (error) {
+      console.error('Error fetching liked songs:', error)
+      throw error
+    }
+  }
+
+  async analyzeLikedSongsInPlaylists(): Promise<PlaylistAnalysis> {
+    try {
+      // Récupérer les morceaux likés et toutes les playlists
+      const [likedSongs, playlists] = await Promise.all([
+        this.getLikedSongs(),
+        this.getPlaylists()
+      ])
+
+      // Récupérer les morceaux de toutes les playlists
+      const playlistsWithTracks = await Promise.all(
+        playlists.map(async (playlist) => {
+          const tracks = await this.getPlaylistTracks(playlist.id)
+          return { playlist, tracks }
+        })
+      )
+
+      // Analyser les cross-références
+      const crossReferences = likedSongs.map((likedTrack) => {
+        const foundInPlaylists: { playlist: YouTubePlaylist; position: number }[] = []
+
+        playlistsWithTracks.forEach(({ playlist, tracks }) => {
+          tracks.forEach((track, index) => {
+            if (track.videoId === likedTrack.videoId) {
+              foundInPlaylists.push({ playlist, position: index + 1 })
+            }
+          })
+        })
+
+        return {
+          track: likedTrack,
+          foundInPlaylists
+        }
+      })
+
+      // Calculer les statistiques
+      const songsFoundInPlaylists = crossReferences.filter(cr => cr.foundInPlaylists.length > 0).length
+      const songsNotFoundInPlaylists = likedSongs.length - songsFoundInPlaylists
+
+      // Compter les playlists les plus communes
+      const playlistCounts = new Map<string, { playlist: YouTubePlaylist; count: number }>()
+      
+      crossReferences.forEach(({ foundInPlaylists }) => {
+        foundInPlaylists.forEach(({ playlist }) => {
+          const existing = playlistCounts.get(playlist.id)
+          if (existing) {
+            existing.count++
+          } else {
+            playlistCounts.set(playlist.id, { playlist, count: 1 })
+          }
+        })
+      })
+
+      const mostCommonPlaylists = Array.from(playlistCounts.values())
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10)
+        .map(({ playlist, count }) => ({ playlist, songCount: count }))
+
+      return {
+        likedSongs,
+        crossReferences,
+        statistics: {
+          totalLikedSongs: likedSongs.length,
+          songsFoundInPlaylists,
+          songsNotFoundInPlaylists,
+          mostCommonPlaylists
+        }
+      }
+    } catch (error) {
+      console.error('Error analyzing liked songs:', error)
+      throw error
     }
   }
 }

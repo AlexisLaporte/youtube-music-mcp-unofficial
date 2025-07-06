@@ -12,7 +12,40 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Vérifier s'il y a une erreur d'auth callback dans l'URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const authError = urlParams.get('error');
+    
+    if (authError) {
+      console.error('Auth callback error:', authError);
+      setAuthStatus({ isConnected: false, error: 'Erreur lors de la connexion. Veuillez réessayer.' });
+      setIsLoading(false);
+      // Nettoyer l'URL
+      window.history.replaceState({}, document.title, '/');
+      return;
+    }
+
     checkAuthStatus();
+
+    // Écouter les changements d'auth
+    const { data: { subscription } } = apiService.supabaseClient.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email);
+        
+        if (event === 'SIGNED_IN' && session) {
+          console.log('User signed in, checking auth status...');
+          await checkAuthStatus();
+        } else if (event === 'SIGNED_OUT') {
+          console.log('User signed out');
+          setAuthStatus({ isConnected: false });
+        } else if (event === 'TOKEN_REFRESHED' && session) {
+          console.log('Token refreshed, updating auth status...');
+          await checkAuthStatus();
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const checkAuthStatus = async () => {
