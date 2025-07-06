@@ -91,7 +91,7 @@ export const LoginPrompt: React.FC<LoginPromptProps> = ({ onConnect, error }) =>
               Pourquoi choisir YouTube Music Manager ?
             </h2>
             <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-              Une suite complète d'outils pour transformer votre expérience musicale
+              Une suite complète d&apos;outils pour transformer votre expérience musicale
             </p>
           </div>
 
@@ -182,7 +182,7 @@ export const LoginPrompt: React.FC<LoginPromptProps> = ({ onConnect, error }) =>
                 ))}
               </div>
               <p className="text-slate-600 mb-6">
-                "Cette plateforme a complètement transformé ma façon d'organiser ma musique. Interface intuitive et fonctionnalités puissantes."
+                &quot;Cette plateforme a complètement transformé ma façon d&apos;organiser ma musique. Interface intuitive et fonctionnalités puissantes.&quot;
               </p>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
@@ -202,7 +202,7 @@ export const LoginPrompt: React.FC<LoginPromptProps> = ({ onConnect, error }) =>
                 ))}
               </div>
               <p className="text-slate-600 mb-6">
-                "Enfin un outil qui comprend vraiment les besoins des DJ. La synchronisation est parfaite et les performances exceptionnelles."
+                &quot;Enfin un outil qui comprend vraiment les besoins des DJ. La synchronisation est parfaite et les performances exceptionnelles.&quot;
               </p>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
@@ -222,7 +222,7 @@ export const LoginPrompt: React.FC<LoginPromptProps> = ({ onConnect, error }) =>
                 ))}
               </div>
               <p className="text-slate-600 mb-6">
-                "Un service client exceptionnel et une plateforme qui évolue constamment. Je recommande vivement !"
+                &quot;Un service client exceptionnel et une plateforme qui évolue constamment. Je recommande vivement !&quot;
               </p>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
@@ -278,7 +278,7 @@ export const LoginPrompt: React.FC<LoginPromptProps> = ({ onConnect, error }) =>
             <div>
               <h4 className="font-semibold mb-4">Légal</h4>
               <ul className="space-y-2 text-slate-400">
-                <li><a href="#" className="hover:text-white transition-colors">Conditions d'utilisation</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Conditions d&apos;utilisation</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Politique de confidentialité</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Mentions légales</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
