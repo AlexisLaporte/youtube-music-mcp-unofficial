@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
-import { Music, Heart, Play, Pause, ArrowLeft } from 'lucide-react';
+import { Music, Play, Pause, ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { apiService } from '@/services/apiService';

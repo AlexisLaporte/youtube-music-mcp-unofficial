@@ -462,7 +462,10 @@ class ApiService {
           throw new Error(`YouTube API error: ${response.statusText}`)
         }
 
-        const data: any = await response.json()
+        const data = await response.json() as {
+          items?: unknown[],
+          nextPageToken?: string
+        }
 
         const tracks = data.items?.map((item: unknown) => {
           const video = item as Record<string, unknown>
@@ -471,18 +474,18 @@ class ApiService {
           const thumbnails = snippet.thumbnails as Record<string, unknown>
 
           return {
-            id: video.id,
-            title: snippet.title || 'Titre inconnu',
-            artist: snippet.channelTitle || 'Artiste inconnu',
-            duration: contentDetails.duration || '0:00',
-            thumbnail: (thumbnails?.medium as Record<string, unknown>)?.url || (thumbnails?.default as Record<string, unknown>)?.url || '',
+            id: video.id as string,
+            title: (snippet.title || 'Titre inconnu') as string,
+            artist: (snippet.channelTitle || 'Artiste inconnu') as string,
+            duration: (contentDetails.duration || '0:00') as string,
+            thumbnail: ((thumbnails?.medium as Record<string, unknown>)?.url || (thumbnails?.default as Record<string, unknown>)?.url || '') as string,
             videoId: video.id as string,
-            addedAt: snippet.publishedAt,
-            categoryId: snippet.categoryId,
+            addedAt: snippet.publishedAt as string,
+            categoryId: snippet.categoryId as string,
           }
-        }).filter((track: any) => {
+        }).filter((track) => {
           // Filter music only: categoryId 10 = Music
-          return track.categoryId === '10'
+          return track?.categoryId === '10'
         }) || []
 
         allTracks = allTracks.concat(tracks)

@@ -77,7 +77,7 @@ export function HeroSection({ userName = 'Utilisateur' }: HeroSectionProps) {
                 <span className="text-red-pantone text-2xl">📊</span>
               </div>
               <h3 className="text-xl font-semibold text-white mb-2">Analyse</h3>
-              <p className="text-antiflash-white/70">Découvrez vos statistiques d'écoute</p>
+              <p className="text-antiflash-white/70">Découvrez vos statistiques d&apos;écoute</p>
             </div>
 
             <div className="text-center">

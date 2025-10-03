@@ -622,3 +622,21 @@ User session active: alexis.laporte@gmail.com
 }
 ⏳ Rendering loading screen
  GET / [32m200[39m in 19ms
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+User session active: alexis.laporte@gmail.com
+🔄 Render decision: {
+  isLoading: [33mtrue[39m,
+  isConnected: [33mfalse[39m,
+  hasUser: [33mfalse[39m,
+  userName: [90mundefined[39m,
+  error: [90mundefined[39m
+}
+⏳ Rendering loading screen
+ GET / [32m200[39m in 17ms
+ [32m[1m✓[22m[39m Compiled in 203ms (696 modules)

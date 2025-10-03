@@ -1,8 +1,7 @@
 'use client'
 
 import React, { useState } from 'react';
-import { Search, Heart, Download, RefreshCw, MoreVertical } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { Search, Heart, Download, RefreshCw } from 'lucide-react';
 import { apiService } from '@/services/apiService';
 import { PlaylistAnalysis, YouTubePlaylist } from '@/types/youtube';
 import { TrackCard } from './TrackCard';
@@ -11,7 +10,6 @@ import { MiniPlayer } from './MiniPlayer';
 type FilterTab = 'all' | 'unassigned';
 
 export const LikedSongsAnalysis: React.FC = () => {
-  const router = useRouter();
   const [analysis, setAnalysis] = useState<PlaylistAnalysis | null>(null);
   const [isFetching, setIsFetching] = useState(false);
   const [error, setError] = useState<string>('');
@@ -31,14 +29,14 @@ export const LikedSongsAnalysis: React.FC = () => {
     if (saved) {
       try {
         setAnalysis(JSON.parse(saved));
-      } catch (e) {
+      } catch {
         console.error('Failed to parse saved analysis');
       }
     }
     if (savedPlaylists) {
       try {
         setAllPlaylists(JSON.parse(savedPlaylists));
-      } catch (e) {
+      } catch {
         console.error('Failed to parse saved playlists');
       }
     }

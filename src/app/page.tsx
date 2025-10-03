@@ -4,14 +4,64 @@ import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Header';
 import { Dashboard } from '@/components/Dashboard';
 import { LoginPrompt } from '@/components/LoginPrompt';
-import { HeroSection } from '@/components/HeroSection';
 import { apiService } from '@/services/apiService';
 import { AuthStatus } from '@/types/youtube';
 
 export default function Home() {
   const [authStatus, setAuthStatus] = useState<AuthStatus>({ isConnected: false });
   const [isLoading, setIsLoading] = useState(true);
-  const [debugInfo, setDebugInfo] = useState<string[]>([]);
+
+  const handleOAuthCallback = React.useCallback(async (code: string) => {
+    console.log('🔄 Processing OAuth callback with code:', code.slice(0, 10) + '...');
+    setIsLoading(true);
+
+    try {
+      // Utiliser Supabase pour échanger le code contre une session
+      const { data, error } = await apiService.supabaseClient.auth.exchangeCodeForSession(code);
+
+      if (error) {
+        console.error('❌ Error exchanging code for session:', error);
+        console.error('❌ Full error object:', JSON.stringify(error, null, 2));
+        setAuthStatus({ isConnected: false, error: 'OAuth connection error' });
+        setIsLoading(false);
+        // Nettoyer l'URL
+        window.history.replaceState({}, document.title, '/');
+        return;
+      }
+
+      console.log('✅ OAuth exchange successful!');
+      console.log('📦 Full session data:', {
+        session: data.session,
+        provider_token: data.session?.provider_token,
+        provider_refresh_token: data.session?.provider_refresh_token,
+        user: data.session?.user
+      });
+
+      // Store provider tokens in localStorage
+      if (data.session?.provider_token) {
+        console.log('💾 Storing provider tokens...');
+        apiService.storeProviderTokens(
+          data.session.provider_token,
+          data.session.provider_refresh_token || undefined
+        );
+      } else {
+        console.error('❌ No provider_token in session!');
+      }
+
+      // Nettoyer l'URL
+      window.history.replaceState({}, document.title, '/');
+
+      // Vérifier le statut d'auth maintenant
+      await checkAuthStatus();
+
+    } catch (error) {
+      console.error('❌ Error in OAuth callback:', error);
+      setAuthStatus({ isConnected: false, error: 'OAuth processing error' });
+      setIsLoading(false);
+      // Nettoyer l'URL
+      window.history.replaceState({}, document.title, '/');
+    }
+  }, []);
 
   useEffect(() => {
     console.log('🚀 App starting - useEffect triggered');
@@ -75,7 +125,7 @@ export default function Home() {
           console.log('💾 Storing provider tokens from auth state change...');
           apiService.storeProviderTokens(
             session.provider_token,
-            session.provider_refresh_token
+            session.provider_refresh_token || undefined
           );
         }
 
@@ -94,59 +144,7 @@ export default function Home() {
     );
 
     return () => subscription.unsubscribe();
-  }, []);
-
-  const handleOAuthCallback = async (code: string) => {
-    console.log('🔄 Processing OAuth callback with code:', code.slice(0, 10) + '...');
-    setIsLoading(true);
-
-    try {
-      // Utiliser Supabase pour échanger le code contre une session
-      const { data, error } = await apiService.supabaseClient.auth.exchangeCodeForSession(code);
-
-      if (error) {
-        console.error('❌ Error exchanging code for session:', error);
-        console.error('❌ Full error object:', JSON.stringify(error, null, 2));
-        setAuthStatus({ isConnected: false, error: 'OAuth connection error' });
-        setIsLoading(false);
-        // Nettoyer l'URL
-        window.history.replaceState({}, document.title, '/');
-        return;
-      }
-
-      console.log('✅ OAuth exchange successful!');
-      console.log('📦 Full session data:', {
-        session: data.session,
-        provider_token: data.session?.provider_token,
-        provider_refresh_token: data.session?.provider_refresh_token,
-        user: data.session?.user
-      });
-
-      // Store provider tokens in localStorage
-      if (data.session?.provider_token) {
-        console.log('💾 Storing provider tokens...');
-        apiService.storeProviderTokens(
-          data.session.provider_token,
-          data.session.provider_refresh_token
-        );
-      } else {
-        console.error('❌ No provider_token in session!');
-      }
-
-      // Nettoyer l'URL
-      window.history.replaceState({}, document.title, '/');
-
-      // Vérifier le statut d'auth maintenant
-      await checkAuthStatus();
-
-    } catch (error) {
-      console.error('❌ Error in OAuth callback:', error);
-      setAuthStatus({ isConnected: false, error: 'OAuth processing error' });
-      setIsLoading(false);
-      // Nettoyer l'URL
-      window.history.replaceState({}, document.title, '/');
-    }
-  };
+  }, [handleOAuthCallback]);
 
   const checkAuthStatus = async () => {
     console.log('🔍 checkAuthStatus called');

@@ -18,7 +18,7 @@ export async function middleware(request: NextRequest) {
         get(name: string) {
           return request.cookies.get(name)?.value
         },
-        set(name: string, value: string, options: any) {
+        set(name: string, value: string, options: Record<string, unknown>) {
           // Only update response if not already set
           if (!response) {
             response = NextResponse.next({
@@ -38,7 +38,7 @@ export async function middleware(request: NextRequest) {
             ...options,
           })
         },
-        remove(name: string, options: any) {
+        remove(name: string, options: Record<string, unknown>) {
           // Only update response if not already set
           if (!response) {
             response = NextResponse.next({
@@ -102,7 +102,7 @@ export async function middleware(request: NextRequest) {
         redirectResponse.cookies.set(cookie.name, cookie.value, {
           httpOnly: cookie.httpOnly,
           secure: cookie.secure,
-          sameSite: cookie.sameSite as any,
+          sameSite: cookie.sameSite as 'strict' | 'lax' | 'none' | undefined,
           path: cookie.path,
           maxAge: cookie.maxAge
         })

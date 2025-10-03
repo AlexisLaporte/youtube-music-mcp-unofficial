@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react';
-import { Music, Play, Pause, Plus, MoreVertical } from 'lucide-react';
+import { Music, Play, Pause, Plus } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { YouTubeTrack, YouTubePlaylist } from '@/types/youtube';
