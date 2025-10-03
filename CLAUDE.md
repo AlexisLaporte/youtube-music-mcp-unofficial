@@ -1,0 +1,3 @@
+- tu peux voir les logs serveur (tail -f dev.log)
+- ne démarre jamais le server car il tourne déjà (npm run dev interdit)
+- ne reset jamais la base de données (npx supabase db reset interdit)

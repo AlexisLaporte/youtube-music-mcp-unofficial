@@ -1,0 +1,624 @@
+
+> youtube-music-manager-nextjs@0.1.0 dev-no-logs
+> next dev
+
+[1G[0K   [1m[38;2;173;127;168m▲ Next.js 15.3.5[39m[22m
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.1.17:3000
+   - Environments: .env.local, .env
+
+ [32m[1m✓[22m[39m Starting...
+ [32m[1m✓[22m[39m Ready in 1568ms
+ [32m[1m✓[22m[39m Compiled /middleware in 98ms
+ [37m[1m○[22m[39m Compiling /_not-found ...
+<w> [1m[33m[webpack.cache.PackFileCacheStrategy] Serializing big strings (100kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)[39m[22m
+ [31m[1m⨯[22m[39m ./src/app/globals.css:1:1
+[31m[1mSyntax error[22m[39m: /data/dev/other/ytmusic-manager/src/app/globals.css The `border-border` class does not exist. If `border-border` is a custom class, make sure it is defined within a `@layer` directive.
+
+[1m[31m>[39m[22m[90m 1 | [39m[36m@tailwind[39m base[33m;[39m
+ [90m   | [39m[1m[31m^[39m[22m
+ [90m 2 | [39m[36m@tailwind[39m components[33m;[39m
+ [90m 3 | [39m[36m@tailwind[39m utilities[33m;[39m
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+User session active: alexis.laporte@gmail.com
+<w> [1m[33m[webpack.cache.PackFileCacheStrategy] Skipped not serializable cache item 'Compilation/modules|/data/dev/other/ytmusic-manager/node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[10].use[2]!/data/dev/other/ytmusic-manager/node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[10].use[3]!/data/dev/other/ytmusic-manager/src/app/globals.css': No serializer registered for PostCSSSyntaxError[39m[22m
+<w> [1m[33mwhile serializing webpack/lib/cache/PackFileCacheStrategy.PackContentItems -> webpack/lib/NormalModule -> webpack/lib/ModuleBuildError -> PostCSSSyntaxError[39m[22m
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+User session active: alexis.laporte@gmail.com
+User session active: alexis.laporte@gmail.com
+ [31m[1m⨯[22m[39m ./src/app/globals.css:1:1
+[31m[1mSyntax error[22m[39m: /data/dev/other/ytmusic-manager/src/app/globals.css The `border-border` class does not exist. If `border-border` is a custom class, make sure it is defined within a `@layer` directive.
+
+[1m[31m>[39m[22m[90m 1 | [39m[36m@tailwind[39m base[33m;[39m
+ [90m   | [39m[1m[31m^[39m[22m
+ [90m 2 | [39m[36m@tailwind[39m components[33m;[39m
+ [90m 3 | [39m[36m@tailwind[39m utilities[33m;[39m
+ GET /_next/static/webpack/bc0ad41329f26f98.webpack.hot-update.json [31m500[39m in 5681ms
+ [33m[1m⚠[22m[39m Fast Refresh had to perform a full reload due to a runtime error.
+ GET / [31m500[39m in 358ms
+ GET / [31m500[39m in 3658ms
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+User session active: alexis.laporte@gmail.com
+ GET / [31m500[39m in 9ms
+🔧 Middleware triggered for: /.well-known/appspecific/com.chrome.devtools.json
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/.well-known/appspecific/com.chrome.devtools.json',
+  searchParams: ''
+}
+User session active: alexis.laporte@gmail.com
+ GET /.well-known/appspecific/com.chrome.devtools.json [31m500[39m in 6ms
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+ GET / [31m500[39m in 25ms
+ [31m[1m⨯[22m[39m ./src/app/globals.css:1:1
+[31m[1mSyntax error[22m[39m: /data/dev/other/ytmusic-manager/src/app/globals.css The `bg-background` class does not exist. If `bg-background` is a custom class, make sure it is defined within a `@layer` directive.
+
+[1m[31m>[39m[22m[90m 1 | [39m[36m@tailwind[39m base[33m;[39m
+ [90m   | [39m[1m[31m^[39m[22m
+ [90m 2 | [39m[36m@tailwind[39m components[33m;[39m
+ [90m 3 | [39m[36m@tailwind[39m utilities[33m;[39m
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+ GET / [31m500[39m in 20ms
+User session active: alexis.laporte@gmail.com
+ GET / [31m500[39m in 20ms
+🔧 Middleware triggered for: /.well-known/appspecific/com.chrome.devtools.json
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/.well-known/appspecific/com.chrome.devtools.json',
+  searchParams: ''
+}
+User session active: alexis.laporte@gmail.com
+ GET /.well-known/appspecific/com.chrome.devtools.json [31m500[39m in 19ms
+<w> [1m[33m[webpack.cache.PackFileCacheStrategy] Skipped not serializable cache item 'Compilation/modules|/data/dev/other/ytmusic-manager/node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[10].use[2]!/data/dev/other/ytmusic-manager/node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[10].use[3]!/data/dev/other/ytmusic-manager/src/app/globals.css': No serializer registered for PostCSSSyntaxError[39m[22m
+<w> [1m[33mwhile serializing webpack/lib/cache/PackFileCacheStrategy.PackContentItems -> webpack/lib/NormalModule -> webpack/lib/ModuleBuildError -> PostCSSSyntaxError[39m[22m
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+ GET / [31m500[39m in 21ms
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+ GET / [31m500[39m in 9ms
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+ GET / [31m500[39m in 6ms
+ [32m[1m✓[22m[39m Compiled /_error in 803ms (1297 modules)
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+User session active: alexis.laporte@gmail.com
+🔄 Render decision: {
+  isLoading: [33mtrue[39m,
+  isConnected: [33mfalse[39m,
+  hasUser: [33mfalse[39m,
+  userName: [90mundefined[39m,
+  error: [90mundefined[39m
+}
+⏳ Rendering loading screen
+🔄 Render decision: {
+  isLoading: [33mtrue[39m,
+  isConnected: [33mfalse[39m,
+  hasUser: [33mfalse[39m,
+  userName: [90mundefined[39m,
+  error: [90mundefined[39m
+}
+⏳ Rendering loading screen
+ [33m[1m⚠[22m[39m Fast Refresh had to perform a full reload due to a runtime error.
+ [33m[1m⚠[22m[39m Fast Refresh had to perform a full reload due to a runtime error.
+ GET / [32m200[39m in 556ms
+ GET / [32m200[39m in 538ms
+🔧 Middleware triggered for: /.well-known/appspecific/com.chrome.devtools.json
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/.well-known/appspecific/com.chrome.devtools.json',
+  searchParams: ''
+}
+User session active: alexis.laporte@gmail.com
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+ [32m[1m✓[22m[39m Compiled in 1150ms (1283 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json [33m404[39m in 436ms
+🔄 Render decision: {
+  isLoading: [33mtrue[39m,
+  isConnected: [33mfalse[39m,
+  hasUser: [33mfalse[39m,
+  userName: [90mundefined[39m,
+  error: [90mundefined[39m
+}
+⏳ Rendering loading screen
+ GET / [32m200[39m in 467ms
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+User session active: alexis.laporte@gmail.com
+🔄 Render decision: {
+  isLoading: [33mtrue[39m,
+  isConnected: [33mfalse[39m,
+  hasUser: [33mfalse[39m,
+  userName: [90mundefined[39m,
+  error: [90mundefined[39m
+}
+⏳ Rendering loading screen
+ GET / [32m200[39m in 49ms
+🔧 Middleware triggered for: /.well-known/appspecific/com.chrome.devtools.json
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/.well-known/appspecific/com.chrome.devtools.json',
+  searchParams: ''
+}
+User session active: alexis.laporte@gmail.com
+ GET /.well-known/appspecific/com.chrome.devtools.json [33m404[39m in 38ms
+ [32m[1m✓[22m[39m Compiled in 613ms (1283 modules)
+🔧 Middleware triggered for: /playlist/PLfI3_d05Yzk91w9K4tOBtaPDKm8EdxvG9
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/playlist/PLfI3_d05Yzk91w9K4tOBtaPDKm8EdxvG9',
+  searchParams: ''
+}
+User session active: alexis.laporte@gmail.com
+ [32m[1m✓[22m[39m Compiled /playlist/[id] in 484ms (1295 modules)
+Error: Route "/playlist/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at PlaylistPage (src/app/playlist/[id]/page.tsx:4:42)
+[0m [90m 2 |[39m[0m
+[0m [90m 3 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mPlaylistPage[39m({ params }[33m:[39m { params[33m:[39m { id[33m:[39m string } }) {[0m
+[0m[31m[1m>[22m[39m[90m 4 |[39m   [36mreturn[39m [33m<[39m[33mPlaylistView[39m playlistId[33m=[39m{params[33m.[39mid} [33m/[39m[33m>[39m[33m;[39m[0m
+[0m [90m   |[39m                                          [31m[1m^[22m[39m[0m
+[0m [90m 5 |[39m }[0m
+[0m [90m 6 |[39m[0m
+ GET /playlist/PLfI3_d05Yzk91w9K4tOBtaPDKm8EdxvG9 [32m200[39m in 1283ms
+ [32m[1m✓[22m[39m Compiled in 420ms (1309 modules)
+🔧 Middleware triggered for: /playlist/PLfI3_d05Yzk91w9K4tOBtaPDKm8EdxvG9
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/playlist/PLfI3_d05Yzk91w9K4tOBtaPDKm8EdxvG9',
+  searchParams: ''
+}
+User session active: alexis.laporte@gmail.com
+Error: Route "/playlist/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at PlaylistPage (src/app/playlist/[id]/page.tsx:4:42)
+[0m [90m 2 |[39m[0m
+[0m [90m 3 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mPlaylistPage[39m({ params }[33m:[39m { params[33m:[39m { id[33m:[39m string } }) {[0m
+[0m[31m[1m>[22m[39m[90m 4 |[39m   [36mreturn[39m [33m<[39m[33mPlaylistView[39m playlistId[33m=[39m{params[33m.[39mid} [33m/[39m[33m>[39m[33m;[39m[0m
+[0m [90m   |[39m                                          [31m[1m^[22m[39m[0m
+[0m [90m 5 |[39m }[0m
+[0m [90m 6 |[39m[0m
+ GET /playlist/PLfI3_d05Yzk91w9K4tOBtaPDKm8EdxvG9 [32m200[39m in 98ms
+ [32m[1m✓[22m[39m Compiled in 185ms (1295 modules)
+ [32m[1m✓[22m[39m Compiled in 174ms (1291 modules)
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+User session active: alexis.laporte@gmail.com
+🔄 Render decision: {
+  isLoading: [33mtrue[39m,
+  isConnected: [33mfalse[39m,
+  hasUser: [33mfalse[39m,
+  userName: [90mundefined[39m,
+  error: [90mundefined[39m
+}
+⏳ Rendering loading screen
+ GET / [32m200[39m in 159ms
+ [32m[1m✓[22m[39m Compiled in 262ms (1291 modules)
+ [32m[1m✓[22m[39m Compiled in 325ms (1305 modules)
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+User session active: alexis.laporte@gmail.com
+ GET / [32m200[39m in 31ms
+ [32m[1m✓[22m[39m Compiled in 267ms (1291 modules)
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: true,
+  codeLength: 36,
+  fullUrl: 'http://localhost:3000/?code=a2735516-501f-4095-a48a-07194cb986f7',
+  searchParams: 'code=a2735516-501f-4095-a48a-07194cb986f7'
+}
+🔄 OAuth callback detected, exchanging code for session...
+✅ Session exchange successful: {
+  userEmail: 'alexis.laporte@gmail.com',
+  hasProviderToken: true,
+  hasProviderRefreshToken: true,
+  tokenLength: 253
+}
+🔀 Redirecting to: http://localhost:3000/
+📦 Copying cookie to redirect: sb-ydbbrsxkbakuendojzhn-auth-token-code-verifier
+📦 Copying cookie to redirect: sb-ydbbrsxkbakuendojzhn-auth-token.0
+📦 Copying cookie to redirect: sb-ydbbrsxkbakuendojzhn-auth-token.1
+🍪 Setting provider_token cookie, length: 253
+🍪 Setting provider_refresh_token cookie
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+User session active: alexis.laporte@gmail.com
+🔄 Render decision: {
+  isLoading: [33mtrue[39m,
+  isConnected: [33mfalse[39m,
+  hasUser: [33mfalse[39m,
+  userName: [90mundefined[39m,
+  error: [90mundefined[39m
+}
+⏳ Rendering loading screen
+ GET / [32m200[39m in 99ms
+ [32m[1m✓[22m[39m Compiled in 213ms (1291 modules)
+ [32m[1m✓[22m[39m Compiled in 339ms (1305 modules)
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+User session active: alexis.laporte@gmail.com
+ GET / [32m200[39m in 45ms
+ [32m[1m✓[22m[39m Compiled in 205ms (1291 modules)
+ [32m[1m✓[22m[39m Compiled in 325ms (1305 modules)
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+User session active: alexis.laporte@gmail.com
+ GET / [32m200[39m in 28ms
+ [32m[1m✓[22m[39m Compiled in 283ms (1305 modules)
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+User session active: alexis.laporte@gmail.com
+ GET / [32m200[39m in 30ms
+ [32m[1m✓[22m[39m Compiled in 179ms (1291 modules)
+ [32m[1m✓[22m[39m Compiled in 220ms (1305 modules)
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+User session active: alexis.laporte@gmail.com
+ GET / [32m200[39m in 32ms
+ [32m[1m✓[22m[39m Compiled in 181ms (1291 modules)
+ [32m[1m✓[22m[39m Compiled in 263ms (1305 modules)
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+User session active: alexis.laporte@gmail.com
+ GET / [32m200[39m in 29ms
+ [32m[1m✓[22m[39m Compiled in 280ms (1305 modules)
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+User session active: alexis.laporte@gmail.com
+ GET / [32m200[39m in 29ms
+ [32m[1m✓[22m[39m Compiled in 313ms (1305 modules)
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+User session active: alexis.laporte@gmail.com
+ GET / [32m200[39m in 23ms
+ [32m[1m✓[22m[39m Compiled in 408ms (1305 modules)
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+User session active: alexis.laporte@gmail.com
+ GET / [32m200[39m in 24ms
+ [32m[1m✓[22m[39m Compiled in 221ms (1305 modules)
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+User session active: alexis.laporte@gmail.com
+ GET / [32m200[39m in 25ms
+ [32m[1m✓[22m[39m Compiled in 213ms (1305 modules)
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+User session active: alexis.laporte@gmail.com
+ GET / [32m200[39m in 24ms
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+User session active: alexis.laporte@gmail.com
+🔄 Render decision: {
+  isLoading: [33mtrue[39m,
+  isConnected: [33mfalse[39m,
+  hasUser: [33mfalse[39m,
+  userName: [90mundefined[39m,
+  error: [90mundefined[39m
+}
+⏳ Rendering loading screen
+ GET / [32m200[39m in 45ms
+ [32m[1m✓[22m[39m Compiled in 312ms (1305 modules)
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+User session active: alexis.laporte@gmail.com
+ GET / [32m200[39m in 30ms
+ [32m[1m✓[22m[39m Compiled in 229ms (1291 modules)
+ [32m[1m✓[22m[39m Compiled in 268ms (1305 modules)
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+User session active: alexis.laporte@gmail.com
+ GET / [32m200[39m in 45ms
+ [32m[1m✓[22m[39m Compiled in 238ms (1305 modules)
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+User session active: alexis.laporte@gmail.com
+ GET / [32m200[39m in 33ms
+ [32m[1m✓[22m[39m Compiled in 326ms (1305 modules)
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+User session active: alexis.laporte@gmail.com
+ GET / [32m200[39m in 41ms
+ [32m[1m✓[22m[39m Compiled in 429ms (1305 modules)
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+User session active: alexis.laporte@gmail.com
+ GET / [32m200[39m in 35ms
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+User session active: alexis.laporte@gmail.com
+🔄 Render decision: {
+  isLoading: [33mtrue[39m,
+  isConnected: [33mfalse[39m,
+  hasUser: [33mfalse[39m,
+  userName: [90mundefined[39m,
+  error: [90mundefined[39m
+}
+⏳ Rendering loading screen
+ GET / [32m200[39m in 84ms
+🔧 Middleware triggered for: /.well-known/appspecific/com.chrome.devtools.json
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/.well-known/appspecific/com.chrome.devtools.json',
+  searchParams: ''
+}
+User session active: alexis.laporte@gmail.com
+ [32m[1m✓[22m[39m Compiled /_not-found in 338ms (1295 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json [33m404[39m in 424ms
+ [32m[1m✓[22m[39m Compiled in 517ms (1305 modules)
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+User session active: alexis.laporte@gmail.com
+ GET / [32m200[39m in 56ms
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+User session active: alexis.laporte@gmail.com
+🔄 Render decision: {
+  isLoading: [33mtrue[39m,
+  isConnected: [33mfalse[39m,
+  hasUser: [33mfalse[39m,
+  userName: [90mundefined[39m,
+  error: [90mundefined[39m
+}
+⏳ Rendering loading screen
+ GET / [32m200[39m in 65ms
+ [32m[1m✓[22m[39m Compiled in 585ms (1291 modules)
+ [32m[1m✓[22m[39m Compiled in 160ms (1291 modules)
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+🔄 Render decision: {
+  isLoading: [33mtrue[39m,
+  isConnected: [33mfalse[39m,
+  hasUser: [33mfalse[39m,
+  userName: [90mundefined[39m,
+  error: [90mundefined[39m
+}
+⏳ Rendering loading screen
+ GET / [32m200[39m in 59ms
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: true,
+  codeLength: 36,
+  fullUrl: 'http://localhost:3000/?code=3cdce391-ae2e-4b48-b082-dffd7356c64b',
+  searchParams: 'code=3cdce391-ae2e-4b48-b082-dffd7356c64b'
+}
+🔄 OAuth callback detected, exchanging code for session...
+✅ Session exchange successful: {
+  userEmail: 'alexis.laporte@gmail.com',
+  hasProviderToken: true,
+  hasProviderRefreshToken: true,
+  tokenLength: 253
+}
+🔀 Redirecting to: http://localhost:3000/
+📦 Copying cookie to redirect: sb-ydbbrsxkbakuendojzhn-auth-token-code-verifier
+📦 Copying cookie to redirect: sb-ydbbrsxkbakuendojzhn-auth-token.0
+📦 Copying cookie to redirect: sb-ydbbrsxkbakuendojzhn-auth-token.1
+🍪 Setting provider_token cookie, length: 253
+🍪 Setting provider_refresh_token cookie
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+User session active: alexis.laporte@gmail.com
+🔄 Render decision: {
+  isLoading: [33mtrue[39m,
+  isConnected: [33mfalse[39m,
+  hasUser: [33mfalse[39m,
+  userName: [90mundefined[39m,
+  error: [90mundefined[39m
+}
+⏳ Rendering loading screen
+ GET / [32m200[39m in 19ms

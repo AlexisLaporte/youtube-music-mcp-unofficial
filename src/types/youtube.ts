@@ -29,6 +29,12 @@ export interface YouTubeTrack {
   addedAt?: string;
 }
 
+export interface PlaylistSuggestion {
+  playlist: YouTubePlaylist;
+  score: number;
+  reasons: string[];
+}
+
 export interface PlaylistAnalysis {
   likedSongs: YouTubeTrack[];
   crossReferences: {
@@ -37,6 +43,7 @@ export interface PlaylistAnalysis {
       playlist: YouTubePlaylist;
       position: number;
     }[];
+    suggestedPlaylists: PlaylistSuggestion[];
   }[];
   statistics: {
     totalLikedSongs: number;

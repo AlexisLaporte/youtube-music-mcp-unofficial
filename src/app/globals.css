@@ -1,24 +1,29 @@
-
-@import "tailwindcss";
-@import "tw-animate-css";
-
-@custom-variant dark (&:is(.dark *));
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
-  /* Professional SaaS Color Palette */
-  --slate-900: #0f172a;
-  --slate-800: #1e293b;
-  --slate-700: #334155;
-  --slate-600: #475569;
-  --slate-500: #64748b;
-  --slate-400: #94a3b8;
-  --slate-300: #cbd5e1;
-  --slate-200: #e2e8f0;
-  --slate-100: #f1f5f9;
-  --slate-50: #f8fafc;
-  --blue-600: #2563eb;
-  --blue-700: #1d4ed8;
-  --blue-500: #3b82f6;
+  /* Music-Inspired Color Palette */
+  --space-cadet: #2b2d42;
+  --cool-gray: #8d99ae;
+  --antiflash-white: #edf2f4;
+  --red-pantone: #ef233c;
+  --crimson: #d80032;
+  
+  /* Legacy support */
+  --slate-900: var(--space-cadet);
+  --slate-800: #1e1f33;
+  --slate-700: #3a3d5c;
+  --slate-600: #5a5e7a;
+  --slate-500: var(--cool-gray);
+  --slate-400: #a3adbf;
+  --slate-300: #c5cdd7;
+  --slate-200: #dde4e8;
+  --slate-100: var(--antiflash-white);
+  --slate-50: #f7fafb;
+  --blue-600: var(--red-pantone);
+  --blue-700: var(--crimson);
+  --blue-500: #f03554;
   --emerald-500: #10b981;
   --emerald-600: #059669;
   
@@ -82,18 +87,28 @@
     text-wrap: balance;
   }
 
-  /* Professional SaaS utilities */
+  /* Music-themed gradients */
   .bg-gradient-primary {
-    background: linear-gradient(135deg, var(--blue-600), var(--blue-500));
+    background: linear-gradient(135deg, var(--red-pantone), var(--crimson));
   }
   
-  /* Additional utility classes */
+  .gradient-musical {
+    background: linear-gradient(45deg, var(--space-cadet), var(--cool-gray), var(--red-pantone));
+  }
+  
   .gradient-primary {
-    background: linear-gradient(135deg, var(--blue-600), var(--blue-500));
+    background: linear-gradient(135deg, var(--red-pantone), var(--crimson));
   }
 
   .text-gradient-primary {
-    background: linear-gradient(135deg, var(--blue-600), var(--blue-500));
+    background: linear-gradient(135deg, var(--red-pantone), var(--crimson));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .text-gradient-musical {
+    background: linear-gradient(45deg, var(--space-cadet), var(--red-pantone));
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -394,10 +409,12 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    border-color: var(--border);
+    outline-color: color-mix(in srgb, var(--ring) 50%, transparent);
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: var(--background);
+    color: var(--foreground);
     font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -461,4 +478,5 @@
     font-size: 0.75rem;
     line-height: 1.4;
   }
+
 }
