@@ -48,9 +48,12 @@ class ApiService {
     try {
       // Check provider token first
       const providerToken = this.getProviderToken()
+      console.log('📦 Provider token check:', { hasToken: !!providerToken, tokenLength: providerToken?.length });
 
       // Check if we have a session first
-      const { data: { session } } = await this.supabase.auth.getSession()
+      console.log('🔄 Getting Supabase session...');
+      const { data: { session }, error: sessionError } = await this.supabase.auth.getSession()
+      console.log('📦 Session result:', { hasSession: !!session, sessionError });
 
       if (!session) {
         console.log('❌ No session found');
@@ -58,7 +61,9 @@ class ApiService {
       }
 
       // Now we can safely get the user
+      console.log('🔄 Getting user data...');
       const { data: { user }, error: userError } = await this.supabase.auth.getUser()
+      console.log('📦 User result:', { hasUser: !!user, userError });
 
       console.log('🔑 Auth check:', {
         hasUser: !!user,

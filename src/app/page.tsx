@@ -149,8 +149,18 @@ export default function Home() {
   const checkAuthStatus = async () => {
     console.log('🔍 checkAuthStatus called');
     setIsLoading(true);
+
+    // Add a timeout to prevent hanging forever
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('Auth check timeout after 10s')), 10000);
+    });
+
     try {
-      const status = await apiService.checkAuthStatus();
+      const status = await Promise.race([
+        apiService.checkAuthStatus(),
+        timeoutPromise
+      ]);
+
       console.log('📊 Auth status result:', {
         isConnected: status.isConnected,
         hasUser: !!status.user,
@@ -162,7 +172,8 @@ export default function Home() {
       setAuthStatus(status);
     } catch (error) {
       console.error('❌ Error checking auth status:', error);
-      setAuthStatus({ isConnected: false, error: 'Failed to check authentication' });
+      const errorMessage = error instanceof Error ? error.message : 'Failed to check authentication';
+      setAuthStatus({ isConnected: false, error: errorMessage });
     } finally {
       setIsLoading(false);
       console.log('✅ checkAuthStatus completed, isLoading set to false');
