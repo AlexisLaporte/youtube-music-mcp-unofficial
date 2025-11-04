@@ -55,7 +55,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-xl font-semibold text-gray-900 mb-3">⚠️ Limitations</h2>
             <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded">
-              <p className="font-medium text-yellow-900">Service fourni "en l&apos;état"</p>
+              <p className="font-medium text-yellow-900">Service fourni &quot;en l&apos;état&quot;</p>
               <ul className="text-sm text-yellow-800 mt-2 space-y-1">
                 <li>• Aucune garantie de disponibilité</li>
                 <li>• Pas de responsabilité en cas de perte de données</li>

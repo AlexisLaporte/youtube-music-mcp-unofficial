@@ -43,12 +43,12 @@ export default function PrivacyPage() {
             <div className="bg-gray-50 rounded-lg p-4">
               <p className="font-medium mb-2">Stockage local uniquement</p>
               <ul className="text-sm space-y-1 text-gray-600">
-                <li>• Tokens d'accès : localStorage (votre navigateur)</li>
+                <li>• Tokens d&apos;accès : localStorage (votre navigateur)</li>
                 <li>• Session : cookies HTTP-only sécurisés</li>
                 <li>• Cache playlists : localStorage (votre navigateur)</li>
               </ul>
               <p className="text-xs text-gray-500 mt-3">
-                ⚠️ Aucune donnée n'est stockée sur nos serveurs
+                ⚠️ Aucune donnée n&apos;est stockée sur nos serveurs
               </p>
             </div>
           </section>
@@ -88,7 +88,7 @@ export default function PrivacyPage() {
               <div className="border border-gray-200 rounded-lg p-3">
                 <p className="font-medium">Révocation</p>
                 <p className="text-sm text-gray-600">
-                  Révoquez l'accès depuis{' '}
+                  Révoquez l&apos;accès depuis{' '}
                   <a href="https://myaccount.google.com/permissions" className="text-blue-600 hover:underline" target="_blank" rel="noopener">
                     Google Account Permissions
                   </a>
