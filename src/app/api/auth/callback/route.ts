@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { kvService } from '@/lib/kv'
+import { createSession } from '@/lib/auth'
 import { cookies } from 'next/headers'
-import { sign } from 'jsonwebtoken'
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
@@ -53,9 +52,9 @@ export async function GET(request: NextRequest) {
     const userInfo = await userInfoResponse.json()
     const { id, email, name, picture } = userInfo
 
-    // Store session in KV
+    // Create session (stored in HTTP-only cookie)
     const expiresAt = Date.now() + expires_in * 1000
-    await kvService.setSession(id, {
+    await createSession({
       userId: id,
       email,
       name,
@@ -65,24 +64,8 @@ export async function GET(request: NextRequest) {
       expiresAt,
     })
 
-    // Create JWT session token
-    const sessionToken = sign(
-      { userId: id, email },
-      process.env.SESSION_SECRET!,
-      { expiresIn: '7d' }
-    )
-
-    // Set session cookie
+    // Set provider token cookies for client (localStorage transfer)
     const cookieStore = await cookies()
-    cookieStore.set('session', sessionToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: '/',
-    })
-
-    // Set provider token cookies for client
     cookieStore.set('youtube_access_token', access_token, {
       httpOnly: false,
       secure: process.env.NODE_ENV === 'production',

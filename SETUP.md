@@ -1,8 +1,8 @@
 # Setup Guide - YouTube Music Manager
 
-## Migration vers Vercel KV
+## Architecture
 
-Cette app utilise maintenant **Vercel KV** (Redis) pour stocker les sessions au lieu de Supabase.
+Cette app utilise **localStorage + cookies HTTP-only** pour les sessions, sans base de données.
 
 ## Configuration requise
 
@@ -43,30 +43,6 @@ openssl rand -base64 32
 
 Copier dans `.env.local` → `SESSION_SECRET`
 
-### 4. Vercel KV (pour développement local)
-
-**Option A: Utiliser Vercel KV en production uniquement**
-- Déployer sur Vercel
-- Les variables KV seront auto-configurées
-
-**Option B: Tester KV en local**
-```bash
-# Installer Vercel CLI
-npm i -g vercel
-
-# Se connecter
-vercel login
-
-# Lier le projet
-vercel link
-
-# Créer un KV store
-vercel kv create
-
-# Télécharger les variables d'env
-vercel env pull .env.local
-```
-
 ## Développement
 
 ```bash
@@ -79,28 +55,19 @@ L'app sera disponible sur http://localhost:3000
 ## Déploiement sur Vercel
 
 1. Connecter le repo GitHub sur Vercel
-2. Créer un Vercel KV store dans le dashboard
-3. Ajouter les variables d'environnement dans Vercel:
+2. Ajouter les variables d'environnement dans Vercel:
    - `GOOGLE_CLIENT_ID`
    - `GOOGLE_CLIENT_SECRET`
    - `NEXT_PUBLIC_GOOGLE_CLIENT_ID`
    - `SESSION_SECRET`
    - `NEXT_PUBLIC_SITE_URL` (votre domaine Vercel)
-4. Déployer !
-
-Les variables KV (`KV_REST_API_URL`, `KV_REST_API_TOKEN`, etc.) sont automatiquement configurées par Vercel.
+3. Déployer !
 
 ## Architecture
 
-- **Auth**: OAuth Google direct → JWT sessions → Vercel KV
+- **Auth**: OAuth Google → JWT sessions (cookies HTTP-only)
 - **Data**: YouTube Data API v3 (pas de base de données)
 - **Cache**: localStorage côté client
 - **State**: Zustand stores (auth, playlists, UI)
 
-## Changements depuis Supabase
-
-- ✅ Plus de dépendances Supabase
-- ✅ OAuth Google direct (plus rapide)
-- ✅ Sessions stockées dans Vercel KV (Redis)
-- ✅ Middleware simplifié
-- ✅ Architecture plus légère
+Pas besoin de base de données - tout est géré côté client avec localStorage et cookies sécurisés.
