@@ -8,8 +8,9 @@
    - Environments: .env.local, .env
 
  [32m[1m✓[22m[39m Starting...
- [32m[1m✓[22m[39m Ready in 1465ms
- [32m[1m✓[22m[39m Compiled /middleware in 234ms (179 modules)
+ [32m[1m✓[22m[39m Ready in 1455ms
+ [37m[1m○[22m[39m Compiling /middleware ...
+ [32m[1m✓[22m[39m Compiled /middleware in 593ms (179 modules)
 🔧 Middleware triggered for: /
 🔍 Checking for OAuth callback code: {
   hasCode: false,
@@ -17,76 +18,103 @@
   fullUrl: 'http://localhost:3000/',
   searchParams: ''
 }
-User session active: alexis.laporte@gmail.com
- [37m[1m○[22m[39m Compiling / ...
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:42)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:217:11)
+    at new Promise (<anonymous>)
+    at retryable (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:198:21)
+    at SupabaseAuthClient._refreshAccessToken (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1538:81)
+    at SupabaseAuthClient._callRefreshToken (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1649:48)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1014:51)
+    at async SupabaseAuthClient._useSession (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:954:28)
+    at async SupabaseAuthClient._emitInitialSession (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1399:16) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
 <w> [1m[33m[webpack.cache.PackFileCacheStrategy] Serializing big strings (100kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)[39m[22m
- [32m[1m✓[22m[39m Compiled / in 1846ms (959 modules)
-🔄 Render decision: {
-  isLoading: [33mtrue[39m,
-  isConnected: [33mfalse[39m,
-  hasUser: [33mfalse[39m,
-  userName: [90mundefined[39m,
-  error: [90mundefined[39m
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
 }
-⏳ Rendering loading screen
- GET / [32m200[39m in 2161ms
- [32m[1m✓[22m[39m Compiled in 181ms (445 modules)
-🔧 Middleware triggered for: /
-🔍 Checking for OAuth callback code: {
-  hasCode: true,
-  codeLength: 36,
-  fullUrl: 'http://localhost:3000/?code=4671ee84-ba02-46db-bd19-eecce8284470',
-  searchParams: 'code=4671ee84-ba02-46db-bd19-eecce8284470'
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
 }
-🔄 OAuth callback detected, exchanging code for session...
-✅ Session exchange successful: {
-  userEmail: 'alexis.laporte@gmail.com',
-  hasProviderToken: true,
-  hasProviderRefreshToken: true,
-  tokenLength: 253
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
 }
-🔀 Redirecting to: http://localhost:3000/
-📦 Copying cookie to redirect: sb-ydbbrsxkbakuendojzhn-auth-token-code-verifier
-📦 Copying cookie to redirect: sb-ydbbrsxkbakuendojzhn-auth-token.0
-📦 Copying cookie to redirect: sb-ydbbrsxkbakuendojzhn-auth-token.1
-🍪 Setting provider_token cookie, length: 253
-🍪 Setting provider_refresh_token cookie
-🔧 Middleware triggered for: /
-🔍 Checking for OAuth callback code: {
-  hasCode: false,
-  codeLength: undefined,
-  fullUrl: 'http://localhost:3000/',
-  searchParams: ''
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
 }
-User session active: alexis.laporte@gmail.com
-🔄 Render decision: {
-  isLoading: [33mtrue[39m,
-  isConnected: [33mfalse[39m,
-  hasUser: [33mfalse[39m,
-  userName: [90mundefined[39m,
-  error: [90mundefined[39m
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
 }
-⏳ Rendering loading screen
- GET / [32m200[39m in 27ms
-🔧 Middleware triggered for: /
-🔍 Checking for OAuth callback code: {
-  hasCode: false,
-  codeLength: undefined,
-  fullUrl: 'http://localhost:3000/',
-  searchParams: ''
+AuthRetryableFetchError: fetch failed {
+  __isAuthError: true,
+  status: 0,
+  code: undefined
 }
-User session active: alexis.laporte@gmail.com
-🔄 Render decision: {
-  isLoading: [33mtrue[39m,
-  isConnected: [33mfalse[39m,
-  hasUser: [33mfalse[39m,
-  userName: [90mundefined[39m,
-  error: [90mundefined[39m
+AuthRetryableFetchError: fetch failed {
+  __isAuthError: true,
+  status: 0,
+  code: undefined
 }
-⏳ Rendering loading screen
- GET / [32m200[39m in 24ms
- [32m[1m✓[22m[39m Compiled in 350ms (945 modules)
- [32m[1m✓[22m[39m Compiled in 426ms (959 modules)
+ [37m[1m○[22m[39m Compiling / ...
+ [32m[1m✓[22m[39m Compiled / in 11.5s (1058 modules)
+ GET / [32m200[39m in 12527ms
+ [32m[1m✓[22m[39m Compiled in 687ms (643 modules)
+ [32m[1m✓[22m[39m Compiled in 75ms (179 modules)
+<w> [1m[33m[webpack.cache.PackFileCacheStrategy] Serializing big strings (100kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)[39m[22m
 🔧 Middleware triggered for: /
 🔍 Checking for OAuth callback code: {
   hasCode: false,
@@ -94,5 +122,1100 @@ User session active: alexis.laporte@gmail.com
   fullUrl: 'http://localhost:3000/',
   searchParams: ''
 }
-User session active: alexis.laporte@gmail.com
- GET / [32m200[39m in 53ms
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:42)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:217:11)
+    at new Promise (<anonymous>)
+    at retryable (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:198:21)
+    at SupabaseAuthClient._refreshAccessToken (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1538:81)
+    at SupabaseAuthClient._callRefreshToken (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1649:48)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1014:51)
+    at async SupabaseAuthClient._useSession (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:954:28)
+    at async SupabaseAuthClient._emitInitialSession (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1399:16) {
+  
+}
+ GET / [32m200[39m in 65ms
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+ [32m[1m✓[22m[39m Compiled /_not-found in 339ms (1030 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json [33m404[39m in 434ms
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:42)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:217:11)
+    at new Promise (<anonymous>)
+    at retryable (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:198:21)
+    at SupabaseAuthClient._refreshAccessToken (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1538:81)
+    at SupabaseAuthClient._callRefreshToken (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1649:48)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1014:51)
+    at async SupabaseAuthClient._useSession (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:954:28)
+    at async SupabaseAuthClient._emitInitialSession (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1399:16) {
+  
+}
+ GET / [32m200[39m in 119ms
+ GET /.well-known/appspecific/com.chrome.devtools.json [33m404[39m in 34ms
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+AuthRetryableFetchError: fetch failed {
+  __isAuthError: true,
+  status: 0,
+  code: undefined
+}
+AuthRetryableFetchError: fetch failed {
+  __isAuthError: true,
+  status: 0,
+  code: undefined
+}
+ [32m[1m✓[22m[39m Compiled in 987ms (1026 modules)
+ [32m[1m✓[22m[39m Compiled in 864ms (1205 modules)
+ [32m[1m✓[22m[39m Compiled in 622ms (1205 modules)
+ [32m[1m✓[22m[39m Compiled in 229ms (1026 modules)
+ [32m[1m✓[22m[39m Compiled in 286ms (1026 modules)
+ [32m[1m✓[22m[39m Compiled in 635ms (1205 modules)
+ [32m[1m✓[22m[39m Compiled in 548ms (1219 modules)
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:42)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:217:11)
+    at new Promise (<anonymous>)
+    at retryable (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:198:21)
+    at SupabaseAuthClient._refreshAccessToken (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1538:81)
+    at SupabaseAuthClient._callRefreshToken (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1649:48)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1014:51)
+    at async SupabaseAuthClient._useSession (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:954:28)
+    at async SupabaseAuthClient._emitInitialSession (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1399:16) {
+  
+}
+ GET / [32m200[39m in 127ms
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:42)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:217:11)
+    at new Promise (<anonymous>)
+    at retryable (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:198:21)
+    at SupabaseAuthClient._refreshAccessToken (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1538:81)
+    at SupabaseAuthClient._callRefreshToken (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1649:48)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1014:51)
+    at async SupabaseAuthClient._useSession (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:954:28)
+    at async SupabaseAuthClient._emitInitialSession (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1399:16) {
+  
+}
+ GET / [32m200[39m in 49ms
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:42)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:217:11)
+    at new Promise (<anonymous>)
+    at retryable (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:198:21)
+    at SupabaseAuthClient._refreshAccessToken (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1538:81)
+    at SupabaseAuthClient._callRefreshToken (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1649:48)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1014:51)
+    at async SupabaseAuthClient._useSession (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:954:28)
+    at async SupabaseAuthClient._emitInitialSession (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1399:16) {
+  
+}
+ GET / [32m200[39m in 32ms
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at process.processTimers (node:internal/timers:520:9)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:42)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:217:11)
+    at new Promise (<anonymous>)
+    at retryable (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:198:21)
+    at SupabaseAuthClient._refreshAccessToken (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1538:81)
+    at SupabaseAuthClient._callRefreshToken (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1649:48)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1014:51)
+    at async SupabaseAuthClient._useSession (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:954:28)
+    at async SupabaseAuthClient._emitInitialSession (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1399:16) {
+  
+}
+ GET / [32m200[39m in 45ms
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:42)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:217:11)
+    at new Promise (<anonymous>)
+    at retryable (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:198:21)
+    at SupabaseAuthClient._refreshAccessToken (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1538:81)
+    at SupabaseAuthClient._callRefreshToken (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1649:48)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1014:51)
+    at async SupabaseAuthClient._useSession (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:954:28)
+    at async SupabaseAuthClient._emitInitialSession (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1399:16) {
+  
+}
+ GET / [32m200[39m in 55ms
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at process.processTimers (node:internal/timers:520:9)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:42)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:217:11)
+    at new Promise (<anonymous>)
+    at retryable (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:198:21)
+    at SupabaseAuthClient._refreshAccessToken (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1538:81)
+    at SupabaseAuthClient._callRefreshToken (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1649:48)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1014:51)
+    at async SupabaseAuthClient._useSession (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:954:28)
+    at async SupabaseAuthClient._emitInitialSession (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1399:16) {
+  
+}
+ GET / [32m200[39m in 39ms
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+ GET / [32m200[39m in 25ms
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:42)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:217:11)
+    at new Promise (<anonymous>)
+    at retryable (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:198:21)
+    at SupabaseAuthClient._refreshAccessToken (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1538:81)
+    at SupabaseAuthClient._callRefreshToken (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1649:48)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1014:51)
+    at async SupabaseAuthClient._useSession (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:954:28)
+    at async SupabaseAuthClient._emitInitialSession (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1399:16) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+🔧 Middleware triggered for: /
+🔍 Checking for OAuth callback code: {
+  hasCode: false,
+  codeLength: undefined,
+  fullUrl: 'http://localhost:3000/',
+  searchParams: ''
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:42)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:217:11)
+    at new Promise (<anonymous>)
+    at retryable (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:198:21)
+    at SupabaseAuthClient._refreshAccessToken (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1538:81)
+    at SupabaseAuthClient._callRefreshToken (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1649:48)
+    at SupabaseAuthClient.__loadSession (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1014:51)
+    at async SupabaseAuthClient._useSession (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:954:28)
+    at async SupabaseAuthClient._emitInitialSession (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1399:16) {
+  
+}
+ GET / [32m200[39m in 23ms
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+Error: fetch failed
+    at context.fetch (/data/dev/other/ytmusic-manager/node_modules/next/dist/server/web/sandbox/context.js:322:60)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:114:25)
+    at _handleRequest (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:115:24)
+    at _request (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:105:24)
+    at eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:1543:82)
+    at async eval (webpack-internal:///(middleware)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:204:36) {
+  
+}
+ [32m[1m✓[22m[39m Compiled in 1979ms (1026 modules)
+ [32m[1m✓[22m[39m Compiled in 205ms (108 modules)
+ [37m[1m○[22m[39m Compiling /api/auth/me ...
+ [32m[1m✓[22m[39m Compiled /api/auth/me in 1519ms (1133 modules)
+ GET /api/auth/me [33m401[39m in 1830ms
+ [32m[1m✓[22m[39m Compiled in 230ms (958 modules)
+<w> [1m[33m[webpack.cache.PackFileCacheStrategy] Serializing big strings (100kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)[39m[22m
+ [37m[1m [22m[39m Reload env: .env.local
+ [32m[1m✓[22m[39m Compiled in 5.5s (1098 modules)
+ [32m[1m✓[22m[39m Compiled in 179ms (379 modules)
+ GET / [32m200[39m in 125ms
+<w> [1m[33m[webpack.cache.PackFileCacheStrategy] Serializing big strings (100kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)[39m[22m
+ [32m[1m✓[22m[39m Compiled in 159ms (108 modules)
+ [32m[1m✓[22m[39m Compiled in 676ms (849 modules)
+ [37m[1m○[22m[39m Compiling /_not-found ...
+ [32m[1m✓[22m[39m Compiled /_not-found in 645ms (853 modules)
+[Error: ENOENT: no such file or directory, open '/data/dev/other/ytmusic-manager/.next/server/middleware-manifest.json'] {
+  errno: [33m-2[39m,
+  code: [32m'ENOENT'[39m,
+  syscall: [32m'open'[39m,
+  path: [32m'/data/dev/other/ytmusic-manager/.next/server/middleware-manifest.json'[39m
+}
+ [37m[1m○[22m[39m Compiling /_error ...
+ [32m[1m✓[22m[39m Compiled /_error in 4.3s (1187 modules)
+ [31m[1m⨯[22m[39m [Error: ENOENT: no such file or directory, open '/data/dev/other/ytmusic-manager/.next/server/middleware-manifest.json'] {
+  errno: [33m-2[39m,
+  code: [32m'ENOENT'[39m,
+  syscall: [32m'open'[39m,
+  path: [32m'/data/dev/other/ytmusic-manager/.next/server/middleware-manifest.json'[39m
+}
+ GET /_next/static/webpack/42f7bdabf198c8be.webpack.hot-update.json [31m500[39m in 6346ms
+ GET /_next/static/webpack/42f7bdabf198c8be.webpack.hot-update.json [31m500[39m in 5566ms
+ GET / [31m500[39m in 2364ms
+ [33m[1m⚠[22m[39m Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ [31m[1m⨯[22m[39m Error: Cannot find module './447.js'
+Require stack:
+- /data/dev/other/ytmusic-manager/.next/server/webpack-runtime.js
+- /data/dev/other/ytmusic-manager/.next/server/pages/_document.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/require.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/load-components.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/utils.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/swc/options.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/swc/index.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/analysis/parse-module.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/analysis/get-page-static-info.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/lib/router-server.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/lib/start-server.js
+    at __webpack_require__.f.require (.next/server/webpack-runtime.js:198:28)
+    at <unknown> (.next/server/webpack-runtime.js:111:40)
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:162:22)
+    at <unknown> (.next/server/app/page.js:1:20611)
+    at Object.<anonymous> (.next/server/app/page.js:1:20663) {
+  code: [32m'MODULE_NOT_FOUND'[39m,
+  requireStack: [36m[Array][39m,
+  page: [32m'/'[39m
+}
+ [31m[1m⨯[22m[39m Error: Cannot find module './447.js'
+Require stack:
+- /data/dev/other/ytmusic-manager/.next/server/webpack-runtime.js
+- /data/dev/other/ytmusic-manager/.next/server/pages/_document.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/require.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/load-components.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/utils.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/swc/options.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/swc/index.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/analysis/parse-module.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/analysis/get-page-static-info.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/lib/router-server.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/lib/start-server.js
+    at __webpack_require__.f.require (.next/server/webpack-runtime.js:198:28)
+    at <unknown> (.next/server/webpack-runtime.js:111:40)
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:162:22)
+    at <unknown> (.next/server/app/page.js:1:20611)
+    at Object.<anonymous> (.next/server/app/page.js:1:20663) {
+  code: [32m'MODULE_NOT_FOUND'[39m,
+  requireStack: [36m[Array][39m,
+  page: [32m'/'[39m
+}
+ GET / [31m500[39m in 706ms
+ GET / [31m500[39m in 704ms
+ [31m[1m⨯[22m[39m Error: Cannot find module './447.js'
+Require stack:
+- /data/dev/other/ytmusic-manager/.next/server/webpack-runtime.js
+- /data/dev/other/ytmusic-manager/.next/server/pages/_document.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/require.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/load-components.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/utils.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/swc/options.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/swc/index.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/analysis/parse-module.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/analysis/get-page-static-info.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/lib/router-server.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/lib/start-server.js
+    at __webpack_require__.f.require (.next/server/webpack-runtime.js:198:28)
+    at <unknown> (.next/server/webpack-runtime.js:111:40)
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:162:22)
+    at <unknown> (.next/server/app/_not-found/page.js:1:3184)
+    at Object.<anonymous> (.next/server/app/_not-found/page.js:1:3229) {
+  code: [32m'MODULE_NOT_FOUND'[39m,
+  requireStack: [36m[Array][39m
+}
+ [31m[1m⨯[22m[39m Error: Cannot find module './447.js'
+Require stack:
+- /data/dev/other/ytmusic-manager/.next/server/webpack-runtime.js
+- /data/dev/other/ytmusic-manager/.next/server/pages/_document.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/require.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/load-components.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/utils.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/swc/options.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/swc/index.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/analysis/parse-module.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/analysis/get-page-static-info.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/lib/router-server.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/lib/start-server.js
+    at __webpack_require__.f.require (.next/server/webpack-runtime.js:198:28)
+    at <unknown> (.next/server/webpack-runtime.js:111:40)
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:162:22)
+    at <unknown> (.next/server/app/_not-found/page.js:1:3184)
+    at Object.<anonymous> (.next/server/app/_not-found/page.js:1:3229) {
+  code: [32m'MODULE_NOT_FOUND'[39m,
+  requireStack: [36m[Array][39m
+}
+ [31m[1m⨯[22m[39m Error: Cannot find module './447.js'
+Require stack:
+- /data/dev/other/ytmusic-manager/.next/server/webpack-runtime.js
+- /data/dev/other/ytmusic-manager/.next/server/pages/_document.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/require.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/load-components.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/utils.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/swc/options.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/swc/index.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/analysis/parse-module.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/analysis/get-page-static-info.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/lib/router-server.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/lib/start-server.js
+    at __webpack_require__.f.require (.next/server/webpack-runtime.js:198:28)
+    at <unknown> (.next/server/webpack-runtime.js:111:40)
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:162:22)
+    at <unknown> (.next/server/app/_not-found/page.js:1:3184)
+    at Object.<anonymous> (.next/server/app/_not-found/page.js:1:3229) {
+  code: [32m'MODULE_NOT_FOUND'[39m,
+  requireStack: [36m[Array][39m
+}
+ [31m[1m⨯[22m[39m Error: Cannot find module './447.js'
+Require stack:
+- /data/dev/other/ytmusic-manager/.next/server/webpack-runtime.js
+- /data/dev/other/ytmusic-manager/.next/server/pages/_document.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/require.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/load-components.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/utils.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/swc/options.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/swc/index.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/analysis/parse-module.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/analysis/get-page-static-info.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/lib/router-server.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/lib/start-server.js
+    at __webpack_require__.f.require (.next/server/webpack-runtime.js:198:28)
+    at <unknown> (.next/server/webpack-runtime.js:111:40)
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:162:22)
+    at <unknown> (.next/server/app/_not-found/page.js:1:3184)
+    at Object.<anonymous> (.next/server/app/_not-found/page.js:1:3229) {
+  code: [32m'MODULE_NOT_FOUND'[39m,
+  requireStack: [36m[Array][39m
+}
+ GET /_next/static/chunks/main.js [31m500[39m in 33804ms
+ GET /_next/static/chunks/webpack.js [31m500[39m in 33809ms
+ GET /_next/static/chunks/react-refresh.js [31m500[39m in 34552ms
+ [31m[1m⨯[22m[39m Error: Cannot find module './447.js'
+Require stack:
+- /data/dev/other/ytmusic-manager/.next/server/webpack-runtime.js
+- /data/dev/other/ytmusic-manager/.next/server/pages/_document.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/require.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/load-components.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/utils.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/swc/options.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/swc/index.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/analysis/parse-module.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/analysis/get-page-static-info.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/lib/router-server.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/lib/start-server.js
+    at __webpack_require__.f.require (.next/server/webpack-runtime.js:198:28)
+    at <unknown> (.next/server/webpack-runtime.js:111:40)
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:162:22)
+    at <unknown> (.next/server/app/_not-found/page.js:1:3184)
+    at Object.<anonymous> (.next/server/app/_not-found/page.js:1:3229) {
+  code: [32m'MODULE_NOT_FOUND'[39m,
+  requireStack: [36m[Array][39m
+}
+ [31m[1m⨯[22m[39m Error: Cannot find module './447.js'
+Require stack:
+- /data/dev/other/ytmusic-manager/.next/server/webpack-runtime.js
+- /data/dev/other/ytmusic-manager/.next/server/pages/_document.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/require.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/load-components.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/utils.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/swc/options.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/swc/index.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/analysis/parse-module.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/analysis/get-page-static-info.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/lib/router-server.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/lib/start-server.js
+    at __webpack_require__.f.require (.next/server/webpack-runtime.js:198:28)
+    at <unknown> (.next/server/webpack-runtime.js:111:40)
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:162:22)
+    at <unknown> (.next/server/app/_not-found/page.js:1:3184)
+    at Object.<anonymous> (.next/server/app/_not-found/page.js:1:3229) {
+  code: [32m'MODULE_NOT_FOUND'[39m,
+  requireStack: [36m[Array][39m
+}
+ GET /.well-known/appspecific/com.chrome.devtools.json [31m500[39m in 36968ms
+ GET /_next/static/chunks/pages/_app.js [31m500[39m in 2564ms
+ [31m[1m⨯[22m[39m Error: Cannot find module './447.js'
+Require stack:
+- /data/dev/other/ytmusic-manager/.next/server/webpack-runtime.js
+- /data/dev/other/ytmusic-manager/.next/server/pages/_document.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/require.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/load-components.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/utils.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/swc/options.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/swc/index.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/analysis/parse-module.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/analysis/get-page-static-info.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/lib/router-server.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/lib/start-server.js
+    at __webpack_require__.f.require (.next/server/webpack-runtime.js:198:28)
+    at <unknown> (.next/server/webpack-runtime.js:111:40)
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:162:22)
+    at <unknown> (.next/server/app/_not-found/page.js:1:3184)
+    at Object.<anonymous> (.next/server/app/_not-found/page.js:1:3229) {
+  code: [32m'MODULE_NOT_FOUND'[39m,
+  requireStack: [36m[Array][39m
+}
+ GET /_next/static/chunks/pages/_error.js [31m500[39m in 2607ms
+ GET /_next/static/development/_buildManifest.js [31m500[39m in 339ms
+ [31m[1m⨯[22m[39m Error: Cannot find module './447.js'
+Require stack:
+- /data/dev/other/ytmusic-manager/.next/server/webpack-runtime.js
+- /data/dev/other/ytmusic-manager/.next/server/pages/_document.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/require.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/load-components.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/utils.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/swc/options.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/swc/index.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/analysis/parse-module.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/build/analysis/get-page-static-info.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/lib/router-server.js
+- /data/dev/other/ytmusic-manager/node_modules/next/dist/server/lib/start-server.js
+    at __webpack_require__.f.require (.next/server/webpack-runtime.js:198:28)
+    at <unknown> (.next/server/webpack-runtime.js:111:40)
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:162:22)
+    at <unknown> (.next/server/app/_not-found/page.js:1:3184)
+    at Object.<anonymous> (.next/server/app/_not-found/page.js:1:3229) {
+  code: [32m'MODULE_NOT_FOUND'[39m,
+  requireStack: [36m[Array][39m
+}
+ GET /_next/static/development/_ssgManifest.js [31m500[39m in 1390ms
+<w> [1m[33m[webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/data/dev/other/ytmusic-manager/.next/cache/webpack/client-development-fallback/0.pack.gz_' -> '/data/dev/other/ytmusic-manager/.next/cache/webpack/client-development-fallback/0.pack.gz'[39m[22m
+<w> [1m[33m[webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/data/dev/other/ytmusic-manager/.next/cache/webpack/client-development-fallback/0.pack.gz_' -> '/data/dev/other/ytmusic-manager/.next/cache/webpack/client-development-fallback/0.pack.gz'[39m[22m
+<w> [1m[33m[webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/data/dev/other/ytmusic-manager/.next/cache/webpack/client-development-fallback/0.pack.gz_' -> '/data/dev/other/ytmusic-manager/.next/cache/webpack/client-development-fallback/0.pack.gz'[39m[22m

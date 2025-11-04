@@ -1,12 +1,12 @@
 'use client'
 
 import React, { useEffect } from 'react'
-import { Header } from '@/components/Header'
-import { Dashboard } from '@/components/Dashboard'
-import { LoginPrompt } from '@/components/LoginPrompt'
 import { useAuthStore } from '@/stores/useAuthStore'
+import { Header } from '@/components/Header'
+import { LoginPrompt } from '@/components/LoginPrompt'
+import { PlaylistsView } from '@/components/PlaylistsView'
 
-export default function Home() {
+export default function PlaylistsPage() {
   const {
     isConnected,
     user,
@@ -47,7 +47,7 @@ export default function Home() {
         userEmail={user?.email}
         userAvatar={user?.profilePicture}
       />
-      <Dashboard userName={user?.name || 'User'} />
+      <PlaylistsView />
     </div>
   )
 }

@@ -1,0 +1,109 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { kvService } from '@/lib/kv'
+import { cookies } from 'next/headers'
+import { sign } from 'jsonwebtoken'
+
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams
+  const code = searchParams.get('code')
+  const error = searchParams.get('error')
+
+  if (error) {
+    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/?error=${error}`)
+  }
+
+  if (!code) {
+    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/?error=no_code`)
+  }
+
+  try {
+    // Exchange code for tokens
+    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        code,
+        client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+        redirect_uri: `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback`,
+        grant_type: 'authorization_code',
+      }),
+    })
+
+    if (!tokenResponse.ok) {
+      throw new Error('Failed to exchange code for tokens')
+    }
+
+    const tokens = await tokenResponse.json()
+    const { access_token, refresh_token, expires_in } = tokens
+
+    // Get user info from Google
+    const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+      headers: {
+        Authorization: `Bearer ${access_token}`,
+      },
+    })
+
+    if (!userInfoResponse.ok) {
+      throw new Error('Failed to get user info')
+    }
+
+    const userInfo = await userInfoResponse.json()
+    const { id, email, name, picture } = userInfo
+
+    // Store session in KV
+    const expiresAt = Date.now() + expires_in * 1000
+    await kvService.setSession(id, {
+      userId: id,
+      email,
+      name,
+      profilePicture: picture,
+      accessToken: access_token,
+      refreshToken: refresh_token,
+      expiresAt,
+    })
+
+    // Create JWT session token
+    const sessionToken = sign(
+      { userId: id, email },
+      process.env.SESSION_SECRET!,
+      { expiresIn: '7d' }
+    )
+
+    // Set session cookie
+    const cookieStore = await cookies()
+    cookieStore.set('session', sessionToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: '/',
+    })
+
+    // Set provider token cookies for client
+    cookieStore.set('youtube_access_token', access_token, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: expires_in,
+      path: '/',
+    })
+
+    if (refresh_token) {
+      cookieStore.set('youtube_refresh_token', refresh_token, {
+        httpOnly: false,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 30, // 30 days
+        path: '/',
+      })
+    }
+
+    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/`)
+  } catch (error) {
+    console.error('OAuth callback error:', error)
+    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/?error=auth_failed`)
+  }
+}

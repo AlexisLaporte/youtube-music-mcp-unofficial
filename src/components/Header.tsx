@@ -1,16 +1,18 @@
 'use client'
 
-import React from 'react';
-import { Music, LogOut, User } from 'lucide-react';
-import Image from 'next/image';
+import React from 'react'
+import { Music, LogOut, User, Heart, ListMusic } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 interface HeaderProps {
-  isConnected: boolean;
-  onConnect: () => void;
-  onDisconnect: () => void;
-  userName?: string;
-  userEmail?: string;
-  userAvatar?: string;
+  isConnected: boolean
+  onConnect: () => void
+  onDisconnect: () => void
+  userName?: string
+  userEmail?: string
+  userAvatar?: string
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -21,18 +23,49 @@ export const Header: React.FC<HeaderProps> = ({
   userEmail,
   userAvatar
 }) => {
+  const pathname = usePathname()
+
   return (
     <header className="bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center">
-              <Music className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-slate-900">YouTube Music Manager</h1>
-              <p className="text-sm text-slate-600 hidden sm:block">Gérez vos playlists YouTube facilement</p>
-            </div>
+          <div className="flex items-center gap-6">
+            <Link href="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
+              <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center">
+                <Music className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-slate-900">YouTube Music Manager</h1>
+                <p className="text-sm text-slate-600 hidden sm:block">Gérez vos playlists YouTube facilement</p>
+              </div>
+            </Link>
+
+            {isConnected && (
+              <nav className="hidden md:flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+                <Link
+                  href="/"
+                  className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    pathname === '/'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  <Heart className="h-4 w-4" />
+                  Liked Songs
+                </Link>
+                <Link
+                  href="/playlists"
+                  className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    pathname === '/playlists'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  <ListMusic className="h-4 w-4" />
+                  Playlists
+                </Link>
+              </nav>
+            )}
           </div>
 
           {isConnected ? (
