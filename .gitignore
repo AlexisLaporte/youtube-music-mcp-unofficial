@@ -33,7 +33,7 @@ yarn-error.log*
 next-env.d.ts
 
 # dev logs
-dev.log
+dev/dev.log
 
 # supabase
 /supabase

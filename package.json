@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "unbuffer npm run dev-no-logs 2>&1 | tee dev.log",
+    "dev": "unbuffer npm run dev-no-logs 2>&1 | tee dev/dev.log",
     "dev-no-logs": "next dev",
     "build": "next build",
     "start": "next start",
