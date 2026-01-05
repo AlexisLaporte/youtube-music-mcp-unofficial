@@ -11,6 +11,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Missing artist or track" }, { status: 400 });
   }
 
+  // Extract primary artist (before comma, feat, &, etc.)
+  const primaryArtist = artist
+    .split(/[,&]|\bfeat\.?\b|\bft\.?\b|\bx\b/i)[0]
+    .trim();
+
   if (!LASTFM_API_KEY) {
     return NextResponse.json({ error: "Last.fm API key not configured" }, { status: 500 });
   }
@@ -20,7 +25,7 @@ export async function GET(request: NextRequest) {
     const trackUrl = new URL("https://ws.audioscrobbler.com/2.0/");
     trackUrl.searchParams.set("method", "track.getInfo");
     trackUrl.searchParams.set("api_key", LASTFM_API_KEY);
-    trackUrl.searchParams.set("artist", artist);
+    trackUrl.searchParams.set("artist", primaryArtist);
     trackUrl.searchParams.set("track", track);
     trackUrl.searchParams.set("autocorrect", "1");
     trackUrl.searchParams.set("format", "json");
@@ -35,7 +40,7 @@ export async function GET(request: NextRequest) {
       const artistUrl = new URL("https://ws.audioscrobbler.com/2.0/");
       artistUrl.searchParams.set("method", "artist.getTopTags");
       artistUrl.searchParams.set("api_key", LASTFM_API_KEY);
-      artistUrl.searchParams.set("artist", artist);
+      artistUrl.searchParams.set("artist", primaryArtist);
       artistUrl.searchParams.set("autocorrect", "1");
       artistUrl.searchParams.set("format", "json");
 
