@@ -41,7 +41,7 @@ export const LoginPrompt: React.FC<LoginPromptProps> = ({ onConnect, error }) =>
               </h1>
 
               <p className="text-lg text-slate-300 mb-8 leading-relaxed">
-                Never forget your favorite music. See which liked songs aren't in any playlist yet, and organize them effortlessly.
+                Never forget your favorite music. See which liked songs are not in any playlist yet, and organize them effortlessly.
               </p>
 
               {/* CTA Button */}
@@ -140,7 +140,7 @@ export const LoginPrompt: React.FC<LoginPromptProps> = ({ onConnect, error }) =>
               {
                 icon: HeartIcon,
                 title: 'Find Orphan Songs',
-                description: 'Instantly see which liked songs aren\'t in any playlist yet.',
+                description: 'Instantly see which liked songs are not in any playlist yet.',
                 color: 'from-red-pantone to-crimson',
               },
               {
