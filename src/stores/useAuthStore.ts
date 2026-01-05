@@ -12,6 +12,7 @@ interface AuthState {
   providerToken: string | null
   isConnected: boolean
   isLoading: boolean
+  isInitialized: boolean
   error: string | null
 
   // Actions
@@ -33,6 +34,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   providerToken: null,
   isConnected: false,
   isLoading: true,
+  isInitialized: false,
   error: null,
 
   // Setters
@@ -54,6 +56,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   // Initialize auth state
   initialize: async () => {
+    if (get().isInitialized) {
+      return // Already initialized, skip
+    }
     console.log('🚀 Auth store initializing...')
     set({ isLoading: true })
 
@@ -100,7 +105,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           user: null,
           providerToken: null,
           error: null,
-          isLoading: false
+          isLoading: false,
+          isInitialized: true
         })
         return
       }
@@ -118,7 +124,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           user: data.user,
           providerToken,
           error: null,
-          isLoading: false
+          isLoading: false,
+          isInitialized: true
         })
       } else {
         set({
@@ -126,7 +133,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           user: null,
           providerToken: null,
           error: null,
-          isLoading: false
+          isLoading: false,
+          isInitialized: true
         })
       }
     } catch (error) {
@@ -136,7 +144,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         user: null,
         providerToken: null,
         error: error instanceof Error ? error.message : 'Failed to check authentication',
-        isLoading: false
+        isLoading: false,
+        isInitialized: true
       })
     }
   },
