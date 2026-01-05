@@ -7,6 +7,7 @@ import { HeartIcon as HeartOutlineIcon } from '@heroicons/react/24/outline'
 import { apiService, SearchResult } from '@/services/youtubeService'
 import { useMusicStore } from '@/stores/useMusicStore'
 import { useUIStore } from '@/stores/useUIStore'
+import { AnalysisBadge } from '@/components/AnalysisBadge'
 
 export function SearchPanel() {
   const [query, setQuery] = useState('')
@@ -146,11 +147,14 @@ export function SearchPanel() {
                     <div className="flex-1 min-w-0">
                       <h4 className="font-medium text-gray-900 truncate text-sm">{result.title}</h4>
                       <p className="text-xs text-gray-600 truncate">{result.artist}</p>
-                      {songInLibrary && songInLibrary.playlistIds.length > 0 && (
-                        <p className="text-xs text-gray-400 mt-0.5">
-                          In {songInLibrary.playlistIds.length} playlist{songInLibrary.playlistIds.length > 1 ? 's' : ''}
-                        </p>
-                      )}
+                      <div className="flex items-center gap-2 mt-0.5">
+                        {songInLibrary && songInLibrary.playlistIds.length > 0 && (
+                          <span className="text-xs text-gray-400">
+                            In {songInLibrary.playlistIds.length} playlist{songInLibrary.playlistIds.length > 1 ? 's' : ''}
+                          </span>
+                        )}
+                        <AnalysisBadge videoId={result.videoId} />
+                      </div>
                     </div>
 
                     {/* Actions */}

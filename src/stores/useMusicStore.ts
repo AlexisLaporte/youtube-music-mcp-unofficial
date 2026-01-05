@@ -234,27 +234,42 @@ export const useMusicStore = create<MusicState>()(
     const { songs, playlistSongs } = get()
     const song = songs.get(videoId)
 
-    // 1. Optimistic update
-    if (song && !song.playlistIds.includes(playlistId)) {
-      song.playlistIds.push(playlistId)
-      const newSongs = new Map(songs)
-      newSongs.set(videoId, { ...song })
-
-      const currentPlaylistSongs = playlistSongs.get(playlistId) || []
-      if (!currentPlaylistSongs.includes(videoId)) {
-        const newPlaylistSongs = new Map(playlistSongs)
-        newPlaylistSongs.set(playlistId, [...currentPlaylistSongs, videoId])
-        set({ songs: newSongs, playlistSongs: newPlaylistSongs })
-      } else {
-        set({ songs: newSongs })
-      }
-
-      console.log(`✅ Added ${videoId} to playlist ${playlistId} (optimistic)`)
+    if (!song) {
+      console.error(`❌ Cannot add song ${videoId} to playlist: song not found in store`)
+      return
     }
+
+    if (song.playlistIds.includes(playlistId)) {
+      console.log(`ℹ️ Song ${videoId} already in playlist ${playlistId}`)
+      return
+    }
+
+    // 1. Optimistic update with proper immutability
+    const updatedSong = {
+      ...song,
+      playlistIds: [...song.playlistIds, playlistId]
+    }
+    const newSongs = new Map(songs)
+    newSongs.set(videoId, updatedSong)
+
+    const currentPlaylistSongs = playlistSongs.get(playlistId) || []
+    const newPlaylistSongs = new Map(playlistSongs)
+    if (!currentPlaylistSongs.includes(videoId)) {
+      newPlaylistSongs.set(playlistId, [...currentPlaylistSongs, videoId])
+    }
+
+    set({ songs: newSongs, playlistSongs: newPlaylistSongs })
+    console.log(`✅ Added ${videoId} to playlist ${playlistId} (optimistic)`)
 
     // 2. API call in background
     apiService.addVideoToPlaylist(playlistId, videoId).catch(err => {
       console.error('❌ API sync failed for addSongToPlaylist:', err)
+      // Rollback on failure
+      const rollbackSongs = new Map(get().songs)
+      rollbackSongs.set(videoId, song)
+      const rollbackPlaylistSongs = new Map(get().playlistSongs)
+      rollbackPlaylistSongs.set(playlistId, currentPlaylistSongs)
+      set({ songs: rollbackSongs, playlistSongs: rollbackPlaylistSongs })
     })
   },
 

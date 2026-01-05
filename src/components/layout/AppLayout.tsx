@@ -88,7 +88,7 @@ export function AppLayout() {
       {activeModal === 'playlist-selector' && modalData?.videoId && (
         <PlaylistSelectorModal
           videoId={modalData.videoId as string}
-          playlists={getAllPlaylists().map(p => ({ id: p.id, title: p.title }))}
+          playlists={getAllPlaylists().map(p => ({ id: p.id, title: p.title, thumbnail: p.thumbnail }))}
           foundInPlaylistIds={getSong(modalData.videoId as string)?.playlistIds || []}
           onSelect={(playlistId) => {
             addSongToPlaylist(modalData.videoId as string, playlistId)

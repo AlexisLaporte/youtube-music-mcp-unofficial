@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useUIStore } from '@/stores/useUIStore'
 import { useMusicStore } from '@/stores/useMusicStore'
+// import { useAutoAnalysis } from '@/hooks/useAutoAnalysis'
 import { PlayerBar } from './PlayerBar'
 
 interface ClientLayoutProps {
@@ -17,6 +18,9 @@ export function ClientLayout({ children }: ClientLayoutProps) {
   const getSongsForPlaylist = useMusicStore(state => state.getSongsForPlaylist)
   const getLikedSongs = useMusicStore(state => state.getLikedSongs)
   const hasPlayer = !!playerVideoId
+
+  // Auto-start audio analysis for pending tracks (disabled - manual only)
+  // useAutoAnalysis()
 
   // Global space bar to start playback when no player is active
   useEffect(() => {

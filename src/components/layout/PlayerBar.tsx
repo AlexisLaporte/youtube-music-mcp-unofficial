@@ -298,172 +298,200 @@ export function PlayerBar() {
     .filter((p): p is NonNullable<typeof p> => p !== undefined) ?? []
 
   return (
-    <div className="border-t border-gray-200 bg-white shadow-lg">
-      {/* Hidden YouTube player container */}
-      <div ref={containerRef} className="hidden" />
+    <div className="relative">
+      {/* Gradient border top */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-red-pantone/30 to-transparent" />
 
-      {/* Player bar content */}
-      <div className="flex items-center gap-4 px-4 py-3">
-        {/* Thumbnail (clickable to expand) */}
-        <button
-          onClick={toggleNowPlayingMode}
-          className="relative flex-shrink-0 group"
-        >
-          {song?.thumbnail ? (
-            <img
-              src={song.thumbnail}
-              alt=""
-              className="w-14 h-14 rounded-lg object-cover shadow-md"
-            />
-          ) : (
-            <div className="w-14 h-14 rounded-lg bg-gray-200" />
-          )}
-          <div className="absolute inset-0 bg-black/40 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-            <ChevronUpIcon
-              className={`w-6 h-6 text-white transition-transform ${isNowPlayingMode ? 'rotate-180' : ''}`}
-            />
-          </div>
-        </button>
+      {/* Main player bar with glassmorphism */}
+      <div className="bg-white/80 backdrop-blur-xl border-t border-gray-200/50 shadow-[0_-4px_30px_rgba(0,0,0,0.08)]">
+        {/* Hidden YouTube player container */}
+        <div ref={containerRef} className="hidden" />
 
-        {/* Play/Pause button */}
-        <button
-          onClick={handlePlayPause}
-          className="w-12 h-12 flex items-center justify-center rounded-full bg-red-pantone text-white hover:bg-crimson hover:scale-105 transition-all flex-shrink-0 shadow-md"
-        >
-          {isPlaying ? (
-            <PauseIcon className="w-6 h-6" />
-          ) : (
-            <PlayIcon className="w-6 h-6 ml-0.5" />
-          )}
-        </button>
-
-        {/* Center section: Song info + Progress */}
-        <div className="flex-1 min-w-0 flex flex-col justify-center">
-          {/* Song info */}
-          <div className="flex items-center gap-2 mb-1">
-            <div className="min-w-0 flex-1">
-              <div className="font-medium text-gray-900 truncate">
-                {song?.title || 'Now playing...'}
-              </div>
-              <div className="text-sm text-gray-500 truncate">
-                {song?.artist || 'YouTube'}
-              </div>
-            </div>
-          </div>
-
-          {/* Progress bar (clickable) - larger hit area */}
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-gray-500 font-mono w-10 text-right">
-              {formatTime(currentTime)}
-            </span>
-            <div
-              ref={progressRef}
-              className="flex-1 h-6 flex items-center cursor-pointer group"
-              onClick={handleProgressClick}
-              onMouseDown={() => setIsDragging(true)}
-              onMouseMove={handleProgressDrag}
-              onMouseUp={handleDragEnd}
-              onMouseLeave={handleDragEnd}
-            >
-              <div className="w-full h-1.5 bg-gray-200 rounded-full relative group-hover:h-2 transition-all">
-                <div
-                  className="h-full bg-red-pantone rounded-full relative"
-                  style={{ width: `${progress}%` }}
-                >
-                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 bg-red-pantone rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-md -mr-2" />
-                </div>
-              </div>
-            </div>
-            <span className="text-xs text-gray-500 font-mono w-10">
-              {formatTime(duration)}
-            </span>
-          </div>
-        </div>
-
-        {/* Like button */}
-        <button
-          onClick={() => toggleLike(playerVideoId)}
-          className="p-2 rounded-full hover:bg-gray-100 transition-colors flex-shrink-0"
-          title={isLiked ? 'Remove from favorites' : 'Add to favorites'}
-        >
-          {isLiked ? (
-            <HeartSolidIcon className="w-6 h-6 text-red-pantone" />
-          ) : (
-            <HeartOutlineIcon className="w-6 h-6 text-gray-400 hover:text-red-pantone transition-colors" />
-          )}
-        </button>
-
-        {/* Playlist menu button */}
-        <div className="relative flex-shrink-0">
+        {/* Player bar content */}
+        <div className="flex items-center gap-4 px-5 py-3">
+          {/* Thumbnail (clickable to expand) */}
           <button
-            onClick={() => setShowPlaylistMenu(!showPlaylistMenu)}
-            className={`p-2 rounded-full transition-colors ${
-              showPlaylistMenu ? 'bg-gray-100' : 'hover:bg-gray-100'
-            }`}
-            title="Manage playlists"
+            onClick={toggleNowPlayingMode}
+            className="relative flex-shrink-0 group"
           >
-            <QueueListIcon className="w-5 h-5 text-gray-500" />
-            {songPlaylists.length > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-pantone text-white text-xs rounded-full flex items-center justify-center">
-                {songPlaylists.length}
-              </span>
+            {song?.thumbnail ? (
+              <img
+                src={song.thumbnail}
+                alt=""
+                className="w-14 h-14 rounded-xl object-cover shadow-lg ring-1 ring-black/5 transition-transform duration-200 group-hover:scale-105"
+              />
+            ) : (
+              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-gray-100 to-gray-200 shadow-lg" />
+            )}
+            <div className="absolute inset-0 bg-black/40 rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center backdrop-blur-sm">
+              <ChevronUpIcon
+                className={`w-6 h-6 text-white transition-transform duration-300 ${isNowPlayingMode ? 'rotate-180' : ''}`}
+              />
+            </div>
+            {/* Playing indicator dot */}
+            {isPlaying && (
+              <div className="absolute -top-1 -right-1 w-3 h-3">
+                <span className="absolute inset-0 bg-red-pantone rounded-full animate-ping opacity-75" />
+                <span className="absolute inset-0 bg-red-pantone rounded-full" />
+              </div>
             )}
           </button>
 
-          {/* Playlist dropdown */}
-          {showPlaylistMenu && (
-            <div data-playlist-menu className="absolute bottom-full right-0 mb-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden z-50">
-              <div className="p-2 border-b border-gray-100">
-                <button
-                  onClick={() => {
-                    openModal('playlist-selector', { videoId: playerVideoId })
-                    setShowPlaylistMenu(false)
-                  }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-                >
-                  <PlusIcon className="w-4 h-4" />
-                  Add to playlist
-                </button>
+          {/* Play/Pause button */}
+          <button
+            onClick={handlePlayPause}
+            className="w-12 h-12 flex items-center justify-center rounded-full bg-gradient-to-br from-red-pantone to-crimson text-white hover:shadow-lg hover:shadow-red-pantone/25 hover:scale-105 active:scale-95 transition-all duration-200 flex-shrink-0"
+          >
+            {isPlaying ? (
+              <PauseIcon className="w-5 h-5" />
+            ) : (
+              <PlayIcon className="w-5 h-5 ml-0.5" />
+            )}
+          </button>
+
+          {/* Center section: Song info + Progress */}
+          <div className="flex-1 min-w-0 flex flex-col justify-center">
+            {/* Song info */}
+            <div className="flex items-center gap-2 mb-1.5">
+              <div className="min-w-0 flex-1">
+                <div className="font-semibold text-gray-900 truncate text-sm">
+                  {song?.title || 'Now playing...'}
+                </div>
+                <div className="text-xs text-gray-500 truncate">
+                  {song?.artist || 'YouTube'}
+                </div>
               </div>
-              {songPlaylists.length > 0 && (
-                <div className="p-2 max-h-48 overflow-y-auto">
-                  <div className="text-xs text-gray-500 px-3 py-1 mb-1">In playlists</div>
-                  {songPlaylists.map(playlist => (
-                    <div
-                      key={playlist.id}
-                      className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 rounded-lg group"
+            </div>
+
+            {/* Progress bar (clickable) - larger hit area */}
+            <div className="flex items-center gap-3">
+              <span className="text-[11px] text-gray-400 font-medium tabular-nums w-9 text-right">
+                {formatTime(currentTime)}
+              </span>
+              <div
+                ref={progressRef}
+                className="flex-1 h-5 flex items-center cursor-pointer group"
+                onClick={handleProgressClick}
+                onMouseDown={() => setIsDragging(true)}
+                onMouseMove={handleProgressDrag}
+                onMouseUp={handleDragEnd}
+                onMouseLeave={handleDragEnd}
+              >
+                <div className="w-full h-1 bg-gray-200/80 rounded-full relative group-hover:h-1.5 transition-all duration-150">
+                  {/* Progress fill with gradient */}
+                  <div
+                    className="h-full bg-gradient-to-r from-red-pantone to-crimson rounded-full relative transition-all duration-75"
+                    style={{ width: `${progress}%` }}
+                  >
+                    {/* Glow effect */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-red-pantone to-crimson rounded-full blur-sm opacity-50" />
+                    {/* Scrubber handle */}
+                    <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-md border-2 border-red-pantone opacity-0 group-hover:opacity-100 scale-0 group-hover:scale-100 transition-all duration-150 -mr-1.5" />
+                  </div>
+                </div>
+              </div>
+              <span className="text-[11px] text-gray-400 font-medium tabular-nums w-9">
+                {formatTime(duration)}
+              </span>
+            </div>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex items-center gap-1">
+            {/* Like button */}
+            <button
+              onClick={() => toggleLike(playerVideoId)}
+              className={`p-2.5 rounded-full transition-all duration-200 ${
+                isLiked
+                  ? 'text-red-pantone hover:bg-red-50'
+                  : 'text-gray-400 hover:text-red-pantone hover:bg-gray-100'
+              }`}
+              title={isLiked ? 'Remove from favorites' : 'Add to favorites'}
+            >
+              {isLiked ? (
+                <HeartSolidIcon className="w-5 h-5" />
+              ) : (
+                <HeartOutlineIcon className="w-5 h-5" />
+              )}
+            </button>
+
+            {/* Playlist menu button */}
+            <div className="relative flex-shrink-0" data-playlist-menu>
+              <button
+                onClick={() => setShowPlaylistMenu(!showPlaylistMenu)}
+                className={`p-2.5 rounded-full transition-all duration-200 ${
+                  showPlaylistMenu
+                    ? 'bg-gray-100 text-gray-700'
+                    : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                }`}
+                title="Manage playlists"
+              >
+                <QueueListIcon className="w-5 h-5" />
+                {songPlaylists.length > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-gradient-to-br from-red-pantone to-crimson text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm">
+                    {songPlaylists.length}
+                  </span>
+                )}
+              </button>
+
+              {/* Playlist dropdown */}
+              {showPlaylistMenu && (
+                <div className="absolute bottom-full right-0 mb-3 w-72 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200/50 overflow-hidden z-50">
+                  <div className="p-2 border-b border-gray-100">
+                    <button
+                      onClick={() => {
+                        openModal('playlist-selector', { videoId: playerVideoId })
+                        setShowPlaylistMenu(false)
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
                     >
-                      {playlist.thumbnail ? (
-                        <img src={playlist.thumbnail} alt="" className="w-8 h-8 rounded object-cover" />
-                      ) : (
-                        <div className="w-8 h-8 rounded bg-gray-200" />
-                      )}
-                      <span className="flex-1 text-sm text-gray-700 truncate">{playlist.title}</span>
-                      <button
-                        onClick={() => {
-                          removeSongFromPlaylist(playerVideoId, playlist.id)
-                        }}
-                        className="p-1 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all"
-                        title={`Remove from ${playlist.title}`}
-                      >
-                        <XMarkOutlineIcon className="w-4 h-4" />
-                      </button>
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-red-pantone to-crimson flex items-center justify-center">
+                        <PlusIcon className="w-4 h-4 text-white" />
+                      </div>
+                      Add to playlist
+                    </button>
+                  </div>
+                  {songPlaylists.length > 0 && (
+                    <div className="p-2 max-h-56 overflow-y-auto">
+                      <div className="text-[11px] font-medium text-gray-400 uppercase tracking-wider px-4 py-2">In playlists</div>
+                      {songPlaylists.map(playlist => (
+                        <div
+                          key={playlist.id}
+                          className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 rounded-xl group transition-colors"
+                        >
+                          {playlist.thumbnail ? (
+                            <img src={playlist.thumbnail} alt="" className="w-10 h-10 rounded-lg object-cover shadow-sm" />
+                          ) : (
+                            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200" />
+                          )}
+                          <span className="flex-1 text-sm font-medium text-gray-700 truncate">{playlist.title}</span>
+                          <button
+                            onClick={() => {
+                              removeSongFromPlaylist(playerVideoId, playlist.id)
+                            }}
+                            className="p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all"
+                            title={`Remove from ${playlist.title}`}
+                          >
+                            <XMarkOutlineIcon className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
               )}
             </div>
-          )}
-        </div>
 
-        {/* Close button */}
-        <button
-          onClick={handleClose}
-          className="p-2 rounded-full hover:bg-gray-100 transition-colors flex-shrink-0"
-          title="Close player"
-        >
-          <XMarkIcon className="w-5 h-5 text-gray-500" />
-        </button>
+            {/* Close button */}
+            <button
+              onClick={handleClose}
+              className="p-2.5 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all duration-200 flex-shrink-0"
+              title="Close player"
+            >
+              <XMarkIcon className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   )

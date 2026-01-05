@@ -1,19 +1,28 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect, useCallback } from 'react'
 import { Playlist, Song } from '@/types/youtube'
 import { useMusicStore } from '@/stores/useMusicStore'
 import { useUIStore } from '@/stores/useUIStore'
-import { MusicalNoteIcon, TrashIcon, PencilIcon } from '@heroicons/react/24/outline'
+import { MusicalNoteIcon, TrashIcon, PencilIcon, BeakerIcon } from '@heroicons/react/24/outline'
 
 interface PlaylistDetailProps {
   playlist: Playlist
+}
+
+interface BatchStatus {
+  running: boolean
+  processedCount: number
+  lastVideoId: string | null
 }
 
 export function PlaylistDetail({ playlist }: PlaylistDetailProps) {
   const songsMap = useMusicStore(state => state.songs)
   const playlistSongsMap = useMusicStore(state => state.playlistSongs)
   const { openModal } = useUIStore()
+  const [isStarting, setIsStarting] = useState(false)
+  const [analyzeError, setAnalyzeError] = useState<string | null>(null)
+  const [batchStatus, setBatchStatus] = useState<BatchStatus | null>(null)
 
   const songs = useMemo(() => {
     const videoIds = playlistSongsMap.get(playlist.id) || []
@@ -25,6 +34,59 @@ export function PlaylistDetail({ playlist }: PlaylistDetailProps) {
   // Calculate stats
   const artists = new Set(songs.map(s => s.artist))
   const likedCount = songs.filter(s => s.isLiked).length
+
+  // Check batch status
+  const fetchBatchStatus = useCallback(async () => {
+    try {
+      const res = await fetch('/api/analysis/batch')
+      if (res.ok) {
+        const data = await res.json()
+        setBatchStatus(data)
+      }
+    } catch {
+      // Ignore
+    }
+  }, [])
+
+  // Poll batch status
+  useEffect(() => {
+    fetchBatchStatus()
+
+    const interval = setInterval(fetchBatchStatus, 3000)
+    return () => clearInterval(interval)
+  }, [fetchBatchStatus])
+
+  const analyzePlaylist = async () => {
+    if (songs.length === 0 || batchStatus?.running) return
+
+    setIsStarting(true)
+    setAnalyzeError(null)
+
+    try {
+      const videoIds = songs.map(s => s.videoId)
+      const res = await fetch('/api/analysis/batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ videoIds }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to start analysis')
+      }
+
+      if (data.status) {
+        setBatchStatus(data.status)
+      }
+    } catch (err) {
+      setAnalyzeError(err instanceof Error ? err.message : 'Failed to start')
+    } finally {
+      setIsStarting(false)
+    }
+  }
+
+  const isRunning = batchStatus?.running ?? false
 
   return (
     <div className="h-full overflow-y-auto">
@@ -97,7 +159,23 @@ export function PlaylistDetail({ playlist }: PlaylistDetailProps) {
         )}
 
         {/* Actions */}
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
+          <button
+            onClick={analyzePlaylist}
+            disabled={isStarting || isRunning || songs.length === 0}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+              isRunning
+                ? 'bg-green-600 text-white'
+                : 'bg-space-cadet text-white hover:bg-space-cadet/90 disabled:bg-gray-300 disabled:cursor-not-allowed'
+            }`}
+          >
+            <BeakerIcon className={`w-4 h-4 ${isRunning ? 'animate-pulse' : ''}`} />
+            {isStarting
+              ? 'Starting...'
+              : isRunning
+                ? `Analyzing... (${batchStatus?.processedCount || 0} done)`
+                : `Analyze ${songs.length} tracks`}
+          </button>
           <button
             onClick={() => openModal('edit-playlist', { playlistId: playlist.id, playlistTitle: playlist.title })}
             className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
@@ -113,6 +191,9 @@ export function PlaylistDetail({ playlist }: PlaylistDetailProps) {
             Delete
           </button>
         </div>
+        {analyzeError && (
+          <p className="mt-2 text-sm text-red-600">{analyzeError}</p>
+        )}
       </div>
     </div>
   )

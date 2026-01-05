@@ -1,11 +1,12 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Search, Sparkles } from 'lucide-react'
+import { Search, Sparkles, Music } from 'lucide-react'
 
 interface PlaylistOption {
   id: string
   title: string
+  thumbnail?: string
 }
 
 interface Suggestion {
@@ -111,21 +112,34 @@ export const PlaylistSelectorModal: React.FC<PlaylistSelectorModalProps> = ({
                         }
                       }}
                       disabled={isAlreadyIn}
-                      className={`w-full text-left px-4 py-3 rounded-lg text-sm transition-colors ${
+                      className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors flex items-center gap-3 ${
                         isAlreadyIn
                           ? 'text-gray-400 cursor-not-allowed bg-gray-50'
                           : 'hover:bg-amber-50 bg-amber-50/50 border border-amber-200'
                       }`}
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">{playlist.title} {isAlreadyIn && '✓'}</span>
-                        <span className="text-xs text-amber-600 font-medium">
-                          {Math.round(suggestion.score * 10)}%
-                        </span>
-                      </div>
-                      {suggestion.reason && (
-                        <div className="text-xs text-gray-500 mt-0.5">{suggestion.reason}</div>
+                      {playlist.thumbnail ? (
+                        <img
+                          src={playlist.thumbnail}
+                          alt=""
+                          className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center flex-shrink-0">
+                          <Music className="w-4 h-4 text-gray-400" />
+                        </div>
                       )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium truncate">{playlist.title} {isAlreadyIn && '✓'}</span>
+                          <span className="text-xs text-amber-600 font-medium ml-2 flex-shrink-0">
+                            {Math.round(suggestion.score * 10)}%
+                          </span>
+                        </div>
+                        {suggestion.reason && (
+                          <div className="text-xs text-gray-500 mt-0.5 truncate">{suggestion.reason}</div>
+                        )}
+                      </div>
                     </button>
                   )
                 })}
@@ -163,13 +177,25 @@ export const PlaylistSelectorModal: React.FC<PlaylistSelectorModalProps> = ({
                     }
                   }}
                   disabled={isAlreadyIn}
-                  className={`w-full text-left px-4 py-3 rounded-lg text-sm transition-colors ${
+                  className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors flex items-center gap-3 ${
                     isAlreadyIn
                       ? 'text-gray-400 cursor-not-allowed'
                       : 'hover:bg-gray-100 active:bg-gray-200'
                   }`}
                 >
-                  {playlist.title} {isAlreadyIn && '✓'}
+                  {playlist.thumbnail ? (
+                    <img
+                      src={playlist.thumbnail}
+                      alt=""
+                      className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center flex-shrink-0">
+                      <Music className="w-4 h-4 text-gray-400" />
+                    </div>
+                  )}
+                  <span className="truncate font-medium">{playlist.title}</span>
+                  {isAlreadyIn && <span className="text-green-500 flex-shrink-0">✓</span>}
                 </button>
               )
             })

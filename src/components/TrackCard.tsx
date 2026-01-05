@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Song } from '@/types/youtube';
 import { PlaylistBadges } from './PlaylistBadges';
+import { AnalysisBadge } from './AnalysisBadge';
 
 interface TrackCardProps {
   song: Song;
@@ -50,8 +51,9 @@ export const TrackCard: React.FC<TrackCardProps> = ({
           <p className="text-xs md:text-sm text-gray-600 truncate">
             {song.artist}
           </p>
-          <div className="mt-0.5">
+          <div className="mt-0.5 flex items-center gap-2">
             <PlaylistBadges videoId={song.videoId} maxVisible={2} />
+            <AnalysisBadge videoId={song.videoId} />
           </div>
         </div>
 

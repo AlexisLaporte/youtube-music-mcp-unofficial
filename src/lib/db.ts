@@ -16,8 +16,28 @@ function getDb(): Database.Database {
     db = new Database(DB_PATH);
     db.pragma('journal_mode = WAL');
     initSchema();
+    runMigrations();
   }
   return db;
+}
+
+function runMigrations() {
+  const database = db!;
+
+  // Migration: Add algorithm_version column if missing
+  try {
+    const columns = database.prepare("PRAGMA table_info(audio_analysis)").all() as { name: string }[];
+    const hasVersion = columns.some(col => col.name === 'algorithm_version');
+
+    if (!hasVersion && columns.length > 0) {
+      database.exec(`ALTER TABLE audio_analysis ADD COLUMN algorithm_version INTEGER DEFAULT 1`);
+      database.exec(`CREATE INDEX IF NOT EXISTS idx_analysis_version ON audio_analysis(algorithm_version)`);
+      console.log('[DB] Migration: added algorithm_version column');
+    }
+  } catch (err) {
+    // Column might already exist - that's fine
+    console.log('[DB] Migration check:', err instanceof Error ? err.message : err);
+  }
 }
 
 function initSchema() {
@@ -57,8 +77,11 @@ function initSchema() {
       energy REAL,
       danceability REAL,
       lastfm_tags JSON,
+      algorithm_version INTEGER DEFAULT 1,
       updated_at INTEGER NOT NULL
     );
+
+    CREATE INDEX IF NOT EXISTS idx_analysis_version ON audio_analysis(algorithm_version);
   `);
 }
 
@@ -84,6 +107,7 @@ export interface AudioAnalysis {
   energy: number | null;
   danceability: number | null;
   lastfmTags: string[] | null;
+  algorithmVersion?: number;
 }
 
 interface AudioAnalysisRow {
@@ -96,6 +120,7 @@ interface AudioAnalysisRow {
   energy: number | null;
   danceability: number | null;
   lastfm_tags: string | null;
+  algorithm_version: number | null;
   updated_at: number;
 }
 
@@ -190,15 +215,16 @@ export const cache = {
       scale: row.scale,
       energy: row.energy,
       danceability: row.danceability,
-      lastfmTags: row.lastfm_tags ? JSON.parse(row.lastfm_tags) : null
+      lastfmTags: row.lastfm_tags ? JSON.parse(row.lastfm_tags) : null,
+      algorithmVersion: row.algorithm_version ?? 1
     };
   },
 
   setAudioAnalysis(analysis: AudioAnalysis): void {
     getDb().prepare(`
       INSERT OR REPLACE INTO audio_analysis
-      (video_id, title, artist, bpm, key, scale, energy, danceability, lastfm_tags, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (video_id, title, artist, bpm, key, scale, energy, danceability, lastfm_tags, algorithm_version, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       analysis.videoId,
       analysis.title,
@@ -209,7 +235,118 @@ export const cache = {
       analysis.energy,
       analysis.danceability,
       analysis.lastfmTags ? JSON.stringify(analysis.lastfmTags) : null,
+      analysis.algorithmVersion ?? 1,
       Date.now()
     );
+  },
+
+  // Get all video IDs that need analysis (no analysis or outdated version)
+  getVideoIdsNeedingAnalysis(currentVersion: number): string[] {
+    const database = getDb();
+
+    // Get all video IDs from liked songs and playlists
+    const likedRows = database.prepare('SELECT data FROM liked_songs').all() as { data: string }[];
+    const trackRows = database.prepare('SELECT data FROM playlist_tracks').all() as { data: string }[];
+
+    const allVideoIds = new Set<string>();
+
+    // Extract video IDs from liked songs
+    for (const row of likedRows) {
+      try {
+        const songs = JSON.parse(row.data) as { videoId: string }[];
+        songs.forEach(s => allVideoIds.add(s.videoId));
+      } catch { /* ignore */ }
+    }
+
+    // Extract video IDs from playlist tracks
+    for (const row of trackRows) {
+      try {
+        const tracks = JSON.parse(row.data) as { videoId: string }[];
+        tracks.forEach(t => allVideoIds.add(t.videoId));
+      } catch { /* ignore */ }
+    }
+
+    // Filter out those already analyzed with current version
+    const analyzed = database.prepare(
+      'SELECT video_id FROM audio_analysis WHERE algorithm_version >= ? AND bpm IS NOT NULL'
+    ).all(currentVersion) as { video_id: string }[];
+
+    const analyzedSet = new Set(analyzed.map(r => r.video_id));
+
+    return Array.from(allVideoIds).filter(id => !analyzedSet.has(id));
+  },
+
+  getAnalysisStats() {
+    const database = getDb();
+
+    // Get all video IDs from liked songs and playlists
+    const likedRows = database.prepare('SELECT data FROM liked_songs').all() as { data: string }[];
+    const trackRows = database.prepare('SELECT data FROM playlist_tracks').all() as { data: string }[];
+
+    const allVideoIds = new Set<string>();
+
+    for (const row of likedRows) {
+      try {
+        const songs = JSON.parse(row.data) as { videoId: string }[];
+        songs.forEach(s => allVideoIds.add(s.videoId));
+      } catch { /* ignore */ }
+    }
+
+    for (const row of trackRows) {
+      try {
+        const tracks = JSON.parse(row.data) as { videoId: string }[];
+        tracks.forEach(t => allVideoIds.add(t.videoId));
+      } catch { /* ignore */ }
+    }
+
+    const totalTracks = allVideoIds.size;
+
+    // Get analysis counts
+    const analyzedCount = database
+      .prepare('SELECT COUNT(*) as count FROM audio_analysis WHERE bpm IS NOT NULL')
+      .get() as { count: number };
+
+    // Get version breakdown
+    const versionBreakdown = database
+      .prepare(
+        'SELECT algorithm_version, COUNT(*) as count FROM audio_analysis WHERE bpm IS NOT NULL GROUP BY algorithm_version ORDER BY algorithm_version DESC'
+      )
+      .all() as { algorithm_version: number | null; count: number }[];
+
+    // Get recent analyses
+    const recentAnalyses = database
+      .prepare(
+        'SELECT video_id, title, artist, bpm, algorithm_version, updated_at FROM audio_analysis WHERE bpm IS NOT NULL ORDER BY updated_at DESC LIMIT 20'
+      )
+      .all() as { video_id: string; title: string | null; artist: string | null; bpm: number | null; algorithm_version: number | null; updated_at: number }[];
+
+    // Get pending video IDs
+    const analyzedIds = new Set(
+      (database
+        .prepare('SELECT video_id FROM audio_analysis WHERE bpm IS NOT NULL')
+        .all() as { video_id: string }[]
+      ).map(r => r.video_id)
+    );
+
+    const pendingIds = Array.from(allVideoIds).filter(id => !analyzedIds.has(id));
+
+    return {
+      totalTracks,
+      analyzedCount: analyzedCount.count,
+      pendingCount: pendingIds.length,
+      versionBreakdown: versionBreakdown.map(v => ({
+        version: v.algorithm_version ?? 1,
+        count: v.count,
+      })),
+      recentAnalyses: recentAnalyses.map(r => ({
+        videoId: r.video_id,
+        title: r.title,
+        artist: r.artist,
+        bpm: r.bpm,
+        version: r.algorithm_version ?? 1,
+        updatedAt: r.updated_at,
+      })),
+      pendingIds: pendingIds.slice(0, 50),
+    };
   }
 };

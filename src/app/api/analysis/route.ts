@@ -71,6 +71,7 @@ export async function POST(request: NextRequest) {
       energy: body.energy ?? null,
       danceability: body.danceability ?? null,
       lastfmTags: body.lastfmTags || null,
+      algorithmVersion: body.algorithmVersion ?? 1,
     };
 
     if (!analysis.videoId || !/^[a-zA-Z0-9_-]{11}$/.test(analysis.videoId)) {

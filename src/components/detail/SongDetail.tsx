@@ -1,11 +1,12 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { Song } from '@/types/youtube'
 import { useMusicStore } from '@/stores/useMusicStore'
 import { useUIStore } from '@/stores/useUIStore'
 import { PlayIcon, PlusIcon, HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid'
-import { MusicalNoteIcon, ArrowTopRightOnSquareIcon, ArrowPathIcon, HeartIcon as HeartOutlineIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { MusicalNoteIcon, ArrowTopRightOnSquareIcon, ArrowPathIcon, XMarkIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import { AnalysisModal } from '@/components/AnalysisModal'
 import type { AnalysisResult } from '@/hooks/useEssentia'
 
@@ -34,6 +35,7 @@ interface AnalysisData {
 }
 
 export function SongDetail({ song, isNowPlaying }: SongDetailProps) {
+  const router = useRouter()
   const playlistsMap = useMusicStore(state => state.playlists)
   const songsMap = useMusicStore(state => state.songs)
   const toggleLike = useMusicStore(state => state.toggleLike)
@@ -99,58 +101,97 @@ export function SongDetail({ song, isNowPlaying }: SongDetailProps) {
   return (
     <div className="h-full overflow-y-auto">
       {/* Header with cover */}
-      <div className={`p-8 ${isNowPlaying ? 'bg-gradient-to-b from-red-pantone/20 to-gray-50' : 'bg-gray-50'}`}>
-        <div className="max-w-2xl mx-auto flex flex-col items-center text-center">
-          {song.thumbnail ? (
-            <img
-              src={song.thumbnail}
-              alt=""
-              className={`rounded-xl shadow-xl object-cover mb-6 ${isNowPlaying ? 'w-64 h-64' : 'w-48 h-48'}`}
-            />
-          ) : (
-            <div className={`rounded-xl bg-gray-200 flex items-center justify-center mb-6 ${isNowPlaying ? 'w-64 h-64' : 'w-48 h-48'}`}>
-              <MusicalNoteIcon className="w-20 h-20 text-gray-400" />
-            </div>
-          )}
+      <div className={`relative p-8 transition-all duration-500 ${isNowPlaying ? 'bg-gradient-to-b from-red-pantone/15 via-red-pantone/5 to-transparent' : 'bg-gradient-to-b from-gray-100/80 to-transparent'}`}>
+        {/* Animated background glow when playing */}
+        {isNowPlaying && (
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-red-pantone/10 rounded-full blur-3xl animate-pulse" />
+            <div className="absolute -top-1/4 -right-1/4 w-3/4 h-3/4 bg-crimson/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+          </div>
+        )}
 
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">{song.title}</h1>
-          <p className="text-lg text-gray-600 mb-4">{song.artist}</p>
-
-          <div className="flex items-center gap-3">
+        <div className="relative max-w-2xl mx-auto flex flex-col items-center text-center">
+          {/* Album art with consistent size */}
+          <div className="relative group mb-6">
+            {song.thumbnail ? (
+              <img
+                src={song.thumbnail}
+                alt=""
+                className="w-56 h-56 rounded-2xl shadow-2xl object-cover ring-1 ring-black/5"
+              />
+            ) : (
+              <div className="w-56 h-56 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center shadow-xl">
+                <MusicalNoteIcon className="w-20 h-20 text-gray-400" />
+              </div>
+            )}
+            {/* Play overlay on hover (only when not playing) */}
             {!isNowPlaying && (
               <button
                 onClick={() => playVideo(song.videoId)}
-                className="flex items-center gap-2 px-6 py-2.5 bg-red-pantone text-white rounded-full hover:bg-crimson transition-colors"
+                className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-300"
               >
-                <PlayIcon className="w-5 h-5" />
-                Play
+                <div className="w-16 h-16 flex items-center justify-center rounded-full bg-white/90 shadow-lg transform group-hover:scale-110 transition-transform">
+                  <PlayIcon className="w-8 h-8 text-red-pantone ml-1" />
+                </div>
               </button>
             )}
-            <button
-              onClick={() => toggleLike(song.videoId)}
-              className={`flex items-center justify-center w-11 h-11 rounded-full transition-colors ${
-                isLiked
-                  ? 'bg-red-50 text-red-pantone hover:bg-red-100'
-                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-red-pantone'
-              }`}
-              title={isLiked ? 'Remove from favorites' : 'Add to favorites'}
-            >
-              {isLiked ? (
-                <HeartSolidIcon className="w-6 h-6" />
-              ) : (
-                <HeartOutlineIcon className="w-6 h-6" />
-              )}
-            </button>
-            <button
-              onClick={() => openModal('playlist-selector', { videoId: song.videoId })}
-              className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors"
-            >
-              <PlusIcon className="w-5 h-5" />
-              Add to...
-            </button>
+            {/* Playing indicator */}
+            {isNowPlaying && (
+              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1 px-3 py-1 bg-red-pantone text-white text-xs font-medium rounded-full shadow-lg">
+                <span className="flex gap-0.5">
+                  <span className="w-0.5 h-3 bg-white rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <span className="w-0.5 h-3 bg-white rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <span className="w-0.5 h-3 bg-white rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                </span>
+                Now Playing
+              </div>
+            )}
           </div>
+
+          <h1 className="text-2xl font-bold text-gray-900 mb-1">{song.title}</h1>
+          <p className="text-lg text-gray-500">{song.artist}</p>
         </div>
       </div>
+
+      {/* Status indicators */}
+      {(playlists.length === 0 || isLiked) && (
+        <div className="mx-4 -mt-2 mb-4 space-y-2 max-w-2xl mx-auto">
+          {/* Liked indicator */}
+          {isLiked && (
+            <div className="flex items-center gap-3 p-3 bg-red-50 border border-red-100 rounded-xl">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-red-pantone to-crimson flex items-center justify-center flex-shrink-0">
+                <HeartSolidIcon className="w-4 h-4 text-white" />
+              </div>
+              <div className="flex-1">
+                <span className="text-sm font-medium text-red-700">In your Liked Songs</span>
+              </div>
+              <button
+                onClick={() => toggleLike(song.videoId)}
+                className="text-xs text-red-400 hover:text-red-600 transition-colors"
+              >
+                Remove
+              </button>
+            </div>
+          )}
+
+          {/* Warning: not in any playlist */}
+          {playlists.length === 0 && (
+            <button
+              onClick={() => openModal('playlist-selector', { videoId: song.videoId })}
+              className="w-full flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl hover:bg-amber-100 transition-colors group"
+            >
+              <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0 group-hover:bg-amber-200 transition-colors">
+                <ExclamationTriangleIcon className="w-5 h-5 text-amber-600" />
+              </div>
+              <div className="flex-1 text-left">
+                <div className="font-medium text-amber-800">Not in any playlist</div>
+                <div className="text-sm text-amber-600">Click to add this track to a playlist</div>
+              </div>
+              <PlusIcon className="w-5 h-5 text-amber-500 group-hover:text-amber-700 transition-colors" />
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Content */}
       <div className="max-w-2xl mx-auto p-6 space-y-8">
@@ -253,11 +294,16 @@ export function SongDetail({ song, isNowPlaying }: SongDetailProps) {
 
         {/* Playlists containing this song */}
         <section>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            In {playlists.length} playlist{playlists.length !== 1 ? 's' : ''}
-          </h2>
+          {(() => {
+            const totalCount = playlists.length + (isLiked ? 1 : 0)
+            return (
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                In {totalCount} playlist{totalCount !== 1 ? 's' : ''}
+              </h2>
+            )
+          })()}
 
-          {playlists.length === 0 ? (
+          {playlists.length === 0 && !isLiked ? (
             <div className="flex items-center justify-between">
               <p className="text-gray-500">This track is not in any playlist</p>
               <button
@@ -270,19 +316,44 @@ export function SongDetail({ song, isNowPlaying }: SongDetailProps) {
             </div>
           ) : (
             <div className="space-y-2">
+              {/* Liked Songs virtual playlist */}
+              {isLiked && (
+                <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200 group hover:border-gray-300 transition-colors">
+                  <button
+                    onClick={() => router.push('/')}
+                    className="flex items-center gap-3 flex-1 min-w-0"
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-red-pantone to-crimson flex items-center justify-center flex-shrink-0">
+                      <HeartSolidIcon className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="font-medium text-gray-900 truncate text-left">Liked Songs</div>
+                  </button>
+                  <button
+                    onClick={() => toggleLike(song.videoId)}
+                    className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all"
+                    title="Remove from Liked Songs"
+                  >
+                    <XMarkIcon className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+              {/* Regular playlists */}
               {playlists.map(playlist => (
                 <div
                   key={playlist.id}
-                  className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200 group"
+                  className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200 group hover:border-gray-300 transition-colors"
                 >
-                  {playlist.thumbnail ? (
-                    <img src={playlist.thumbnail} alt="" className="w-10 h-10 rounded object-cover" />
-                  ) : (
-                    <div className="w-10 h-10 rounded bg-gray-200" />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-gray-900 truncate">{playlist.title}</div>
-                  </div>
+                  <button
+                    onClick={() => router.push(`/playlist/${playlist.id}`)}
+                    className="flex items-center gap-3 flex-1 min-w-0"
+                  >
+                    {playlist.thumbnail ? (
+                      <img src={playlist.thumbnail} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex-shrink-0" />
+                    )}
+                    <div className="font-medium text-gray-900 truncate text-left">{playlist.title}</div>
+                  </button>
                   <button
                     onClick={() => removeSongFromPlaylist(song.videoId, playlist.id)}
                     className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all"
@@ -292,6 +363,16 @@ export function SongDetail({ song, isNowPlaying }: SongDetailProps) {
                   </button>
                 </div>
               ))}
+              {/* Add to playlist button */}
+              <button
+                onClick={() => openModal('playlist-selector', { videoId: song.videoId })}
+                className="w-full flex items-center gap-3 p-3 rounded-lg border border-dashed border-gray-300 text-gray-500 hover:border-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-all"
+              >
+                <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+                  <PlusIcon className="w-5 h-5 text-gray-400" />
+                </div>
+                <span className="font-medium text-sm">Add to playlist</span>
+              </button>
             </div>
           )}
         </section>
