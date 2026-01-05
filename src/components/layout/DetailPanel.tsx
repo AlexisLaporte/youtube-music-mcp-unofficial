@@ -50,8 +50,8 @@ export function DetailPanel() {
         <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-red-pantone to-crimson flex items-center justify-center mb-6">
           <MusicalNoteIcon className="w-10 h-10 text-white" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Liked Songs</h2>
-        <p className="text-gray-500 max-w-md">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Liked Songs</h2>
+        <p className="text-gray-500 dark:text-slate-400 max-w-md">
           Select a track to view its details and audio analysis.
         </p>
       </div>
@@ -61,11 +61,11 @@ export function DetailPanel() {
   // Nothing selected
   return (
     <div className="h-full flex flex-col items-center justify-center p-8 text-center">
-      <div className="w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center mb-6">
-        <MusicalNoteIcon className="w-10 h-10 text-gray-400" />
+      <div className="w-20 h-20 rounded-2xl bg-gray-100 dark:bg-slate-700 flex items-center justify-center mb-6">
+        <MusicalNoteIcon className="w-10 h-10 text-gray-400 dark:text-slate-400" />
       </div>
-      <h2 className="text-xl font-semibold text-gray-900 mb-2">Welcome</h2>
-      <p className="text-gray-500 max-w-md">
+      <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Welcome</h2>
+      <p className="text-gray-500 dark:text-slate-400 max-w-md">
         Select a playlist to get started.
       </p>
     </div>

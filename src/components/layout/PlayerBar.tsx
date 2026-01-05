@@ -1,10 +1,12 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { useMusicStore } from '@/stores/useMusicStore'
 import { useUIStore } from '@/stores/useUIStore'
-import { XMarkIcon, ChevronUpIcon, PlayIcon, PauseIcon, HeartIcon as HeartSolidIcon, PlusIcon } from '@heroicons/react/24/solid'
-import { HeartIcon as HeartOutlineIcon, QueueListIcon, XMarkIcon as XMarkOutlineIcon } from '@heroicons/react/24/outline'
+import { XMarkIcon, ChevronUpIcon, PlayIcon, PauseIcon, HeartIcon as HeartSolidIcon, PlusIcon, BackwardIcon, ForwardIcon } from '@heroicons/react/24/solid'
+import { HeartIcon as HeartOutlineIcon, QueueListIcon, XMarkIcon as XMarkOutlineIcon, ArrowPathRoundedSquareIcon } from '@heroicons/react/24/outline'
+import { Shuffle, Repeat1 } from 'lucide-react'
 
 declare global {
   interface Window {
@@ -54,13 +56,20 @@ function formatTime(seconds: number): string {
 }
 
 export function PlayerBar() {
-  const { playerVideoId, closePlayer, toggleNowPlayingMode, isNowPlayingMode, isPlayerPaused, pausePlayer, resumePlayer, openModal } = useUIStore()
+  const router = useRouter()
+  const {
+    playerVideoId, closePlayer, toggleNowPlayingMode, isNowPlayingMode,
+    isPlayerPaused, pausePlayer, resumePlayer, openModal,
+    playbackMode, cyclePlaybackMode, playNext, playPrevious,
+    playbackQueue, selectedPlaylistId
+  } = useUIStore()
   const songsMap = useMusicStore(state => state.songs)
   const playlistsMap = useMusicStore(state => state.playlists)
   const toggleLike = useMusicStore(state => state.toggleLike)
   const removeSongFromPlaylist = useMusicStore(state => state.removeSongFromPlaylist)
 
   const playerRef = useRef<YouTubePlayer | null>(null)
+  const playerReadyRef = useRef(false)  // Track if player is actually ready
   const containerRef = useRef<HTMLDivElement>(null)
   const progressRef = useRef<HTMLDivElement>(null)
   const [isApiReady, setIsApiReady] = useState(false)
@@ -68,7 +77,7 @@ export function PlayerBar() {
   const [duration, setDuration] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [showPlaylistMenu, setShowPlaylistMenu] = useState(false)
-  const animationRef = useRef<number | null>(null)
+  const seekUntilRef = useRef<number>(0)  // Ignore YouTube until this timestamp
   const isPlaying = !isPlayerPaused
 
   // Load YouTube IFrame API
@@ -96,13 +105,19 @@ export function PlayerBar() {
   useEffect(() => {
     if (!isApiReady || !playerVideoId || !containerRef.current) return
 
-    // Reset progress for new track
+    // Reset state for new track
     setCurrentTime(0)
     setDuration(0)
+    seekUntilRef.current = 0
+    playerReadyRef.current = false
 
     // Destroy existing player
     if (playerRef.current) {
-      playerRef.current.destroy()
+      try {
+        playerRef.current.destroy()
+      } catch {
+        // Player might already be destroyed
+      }
       playerRef.current = null
     }
 
@@ -124,66 +139,71 @@ export function PlayerBar() {
       },
       events: {
         onReady: (event) => {
+          playerReadyRef.current = true
           setDuration(event.target.getDuration())
-          resumePlayer()
+          useUIStore.getState().resumePlayer()
         },
         onStateChange: (event) => {
+          if (!playerReadyRef.current) return
+          const store = useUIStore.getState()
+
           const playing = event.data === window.YT.PlayerState.PLAYING
           if (playing) {
-            resumePlayer()
-            setDuration(playerRef.current?.getDuration() || 0)
+            store.resumePlayer()
+            if (playerRef.current && typeof playerRef.current.getDuration === 'function') {
+              setDuration(playerRef.current.getDuration())
+              const time = playerRef.current.getCurrentTime()
+              if (time < 1) {
+                setCurrentTime(0)
+              }
+            }
           } else if (event.data === window.YT.PlayerState.PAUSED) {
-            pausePlayer()
+            store.pausePlayer()
+          } else if (event.data === window.YT.PlayerState.ENDED) {
+            // Handle loop-one mode by seeking to beginning
+            if (store.playbackMode === 'loop-one' && playerRef.current && typeof playerRef.current.seekTo === 'function') {
+              setCurrentTime(0)
+              playerRef.current.seekTo(0, true)
+              playerRef.current.playVideo()
+            } else {
+              store.playNext()
+            }
           }
         }
       }
     })
 
     return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current)
-      }
+      playerReadyRef.current = false
     }
-  }, [isApiReady, playerVideoId, resumePlayer, pausePlayer])
+  }, [isApiReady, playerVideoId])
 
   // Sync with store pause state
   useEffect(() => {
-    if (!playerRef.current) return
-    try {
-      if (isPlayerPaused) {
-        playerRef.current.pauseVideo()
-      } else {
-        playerRef.current.playVideo()
-      }
-    } catch {
-      // Player might not be ready
+    if (!playerReadyRef.current || !playerRef.current) return
+    if (isPlayerPaused) {
+      playerRef.current.pauseVideo()
+    } else {
+      playerRef.current.playVideo()
     }
   }, [isPlayerPaused])
 
-  // Update progress
+  // Update progress - using setInterval for reliable React state updates
   useEffect(() => {
-    const updateProgress = () => {
-      if (playerRef.current && !isDragging) {
+    if (!playerVideoId) return
+
+    const intervalId = setInterval(() => {
+      if (playerReadyRef.current && playerRef.current && Date.now() > seekUntilRef.current) {
         try {
-          const time = playerRef.current.getCurrentTime()
-          setCurrentTime(time)
+          setCurrentTime(playerRef.current.getCurrentTime())
         } catch {
           // Player might not be ready
         }
       }
-      animationRef.current = requestAnimationFrame(updateProgress)
-    }
+    }, 100)  // 10 updates per second - smooth enough for progress bar
 
-    if (isPlaying) {
-      animationRef.current = requestAnimationFrame(updateProgress)
-    }
-
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current)
-      }
-    }
-  }, [isPlaying, isDragging])
+    return () => clearInterval(intervalId)
+  }, [playerVideoId])
 
   const handlePlayPause = useCallback(() => {
     if (!playerRef.current) return
@@ -195,8 +215,9 @@ export function PlayerBar() {
   }, [isPlaying, pausePlayer, resumePlayer])
 
   const handleSeek = useCallback((delta: number) => {
-    if (!playerRef.current || !duration) return
+    if (!playerReadyRef.current || !playerRef.current || !duration) return
     const newTime = Math.max(0, Math.min(duration, currentTime + delta))
+    seekUntilRef.current = Date.now() + 500
     playerRef.current.seekTo(newTime, true)
     setCurrentTime(newTime)
   }, [currentTime, duration])
@@ -251,13 +272,14 @@ export function PlayerBar() {
   }, [playerVideoId])
 
   const handleProgressClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (!progressRef.current || !playerRef.current || !duration) return
+    if (!playerReadyRef.current || !progressRef.current || !playerRef.current || !duration) return
 
     const rect = progressRef.current.getBoundingClientRect()
     const clickX = e.clientX - rect.left
     const percent = clickX / rect.width
     const seekTime = percent * duration
 
+    seekUntilRef.current = Date.now() + 500
     playerRef.current.seekTo(seekTime, true)
     setCurrentTime(seekTime)
   }, [duration])
@@ -274,7 +296,8 @@ export function PlayerBar() {
   }, [isDragging, duration])
 
   const handleDragEnd = useCallback(() => {
-    if (isDragging && playerRef.current) {
+    if (isDragging && playerReadyRef.current && playerRef.current) {
+      seekUntilRef.current = Date.now() + 500
       playerRef.current.seekTo(currentTime, true)
     }
     setIsDragging(false)
@@ -303,7 +326,7 @@ export function PlayerBar() {
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-red-pantone/30 to-transparent" />
 
       {/* Main player bar with glassmorphism */}
-      <div className="bg-white/80 backdrop-blur-xl border-t border-gray-200/50 shadow-[0_-4px_30px_rgba(0,0,0,0.08)]">
+      <div className="bg-white/80 dark:bg-slate-900/90 backdrop-blur-xl border-t border-gray-200/50 dark:border-slate-700/50 shadow-[0_-4px_30px_rgba(0,0,0,0.08)]">
         {/* Hidden YouTube player container */}
         <div ref={containerRef} className="hidden" />
 
@@ -321,7 +344,7 @@ export function PlayerBar() {
                 className="w-14 h-14 rounded-xl object-cover shadow-lg ring-1 ring-black/5 transition-transform duration-200 group-hover:scale-105"
               />
             ) : (
-              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-gray-100 to-gray-200 shadow-lg" />
+              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-slate-700 dark:to-slate-600 shadow-lg" />
             )}
             <div className="absolute inset-0 bg-black/40 rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center backdrop-blur-sm">
               <ChevronUpIcon
@@ -337,35 +360,90 @@ export function PlayerBar() {
             )}
           </button>
 
-          {/* Play/Pause button */}
-          <button
-            onClick={handlePlayPause}
-            className="w-12 h-12 flex items-center justify-center rounded-full bg-gradient-to-br from-red-pantone to-crimson text-white hover:shadow-lg hover:shadow-red-pantone/25 hover:scale-105 active:scale-95 transition-all duration-200 flex-shrink-0"
-          >
-            {isPlaying ? (
-              <PauseIcon className="w-5 h-5" />
-            ) : (
-              <PlayIcon className="w-5 h-5 ml-0.5" />
-            )}
-          </button>
+          {/* Playback controls */}
+          <div className="flex items-center gap-1">
+            {/* Playback mode button */}
+            <button
+              onClick={cyclePlaybackMode}
+              className={`p-2 rounded-full transition-all duration-200 ${
+                playbackMode !== 'normal'
+                  ? 'text-red-pantone bg-red-50 dark:bg-red-900/30'
+                  : 'text-gray-400 dark:text-slate-400 hover:text-gray-600 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700'
+              }`}
+              title={
+                playbackMode === 'normal' ? 'Normal playback' :
+                playbackMode === 'loop-all' ? 'Loop all' :
+                playbackMode === 'loop-one' ? 'Loop one' :
+                'Shuffle'
+              }
+            >
+              {playbackMode === 'shuffle' ? (
+                <Shuffle className="w-4 h-4" />
+              ) : playbackMode === 'loop-one' ? (
+                <Repeat1 className="w-4 h-4" />
+              ) : (
+                <ArrowPathRoundedSquareIcon className={`w-4 h-4 ${playbackMode === 'loop-all' ? '' : 'opacity-50'}`} />
+              )}
+            </button>
+
+            {/* Previous button */}
+            <button
+              onClick={playPrevious}
+              disabled={playbackQueue.length === 0}
+              className="p-2 rounded-full text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200"
+              title="Previous"
+            >
+              <BackwardIcon className="w-5 h-5" />
+            </button>
+
+            {/* Play/Pause button */}
+            <button
+              onClick={handlePlayPause}
+              className="w-12 h-12 flex items-center justify-center rounded-full bg-gradient-to-br from-red-pantone to-crimson text-white hover:shadow-lg hover:shadow-red-pantone/25 hover:scale-105 active:scale-95 transition-all duration-200 flex-shrink-0"
+            >
+              {isPlaying ? (
+                <PauseIcon className="w-5 h-5" />
+              ) : (
+                <PlayIcon className="w-5 h-5 ml-0.5" />
+              )}
+            </button>
+
+            {/* Next button */}
+            <button
+              onClick={playNext}
+              disabled={playbackQueue.length === 0}
+              className="p-2 rounded-full text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200"
+              title="Next"
+            >
+              <ForwardIcon className="w-5 h-5" />
+            </button>
+          </div>
 
           {/* Center section: Song info + Progress */}
           <div className="flex-1 min-w-0 flex flex-col justify-center">
-            {/* Song info */}
-            <div className="flex items-center gap-2 mb-1.5">
+            {/* Song info - clickable to navigate to song detail */}
+            <button
+              onClick={() => {
+                if (playerVideoId) {
+                  const playlistPath = selectedPlaylistId ? `/playlist/${selectedPlaylistId}` : ''
+                  router.push(`${playlistPath}/song/${playerVideoId}`)
+                }
+              }}
+              className="flex items-center gap-2 mb-1.5 text-left hover:opacity-80 transition-opacity"
+            >
               <div className="min-w-0 flex-1">
-                <div className="font-semibold text-gray-900 truncate text-sm">
+                <div className="font-semibold text-gray-900 dark:text-white truncate text-sm">
                   {song?.title || 'Now playing...'}
                 </div>
-                <div className="text-xs text-gray-500 truncate">
+                <div className="text-xs text-gray-500 dark:text-slate-400 truncate">
                   {song?.artist || 'YouTube'}
                 </div>
               </div>
-            </div>
+            </button>
 
             {/* Progress bar (clickable) - larger hit area */}
             <div className="flex items-center gap-3">
-              <span className="text-[11px] text-gray-400 font-medium tabular-nums w-9 text-right">
+              <span className="text-[11px] text-gray-400 dark:text-slate-500 font-medium tabular-nums w-9 text-right">
                 {formatTime(currentTime)}
               </span>
               <div
@@ -377,7 +455,7 @@ export function PlayerBar() {
                 onMouseUp={handleDragEnd}
                 onMouseLeave={handleDragEnd}
               >
-                <div className="w-full h-1 bg-gray-200/80 rounded-full relative group-hover:h-1.5 transition-all duration-150">
+                <div className="w-full h-1 bg-gray-200/80 dark:bg-slate-700 rounded-full relative group-hover:h-1.5 transition-all duration-150">
                   {/* Progress fill with gradient */}
                   <div
                     className="h-full bg-gradient-to-r from-red-pantone to-crimson rounded-full relative transition-all duration-75"
@@ -390,7 +468,7 @@ export function PlayerBar() {
                   </div>
                 </div>
               </div>
-              <span className="text-[11px] text-gray-400 font-medium tabular-nums w-9">
+              <span className="text-[11px] text-gray-400 dark:text-slate-500 font-medium tabular-nums w-9">
                 {formatTime(duration)}
               </span>
             </div>
@@ -403,8 +481,8 @@ export function PlayerBar() {
               onClick={() => toggleLike(playerVideoId)}
               className={`p-2.5 rounded-full transition-all duration-200 ${
                 isLiked
-                  ? 'text-red-pantone hover:bg-red-50'
-                  : 'text-gray-400 hover:text-red-pantone hover:bg-gray-100'
+                  ? 'text-red-pantone hover:bg-red-50 dark:hover:bg-red-900/30'
+                  : 'text-gray-400 dark:text-slate-400 hover:text-red-pantone hover:bg-gray-100 dark:hover:bg-slate-700'
               }`}
               title={isLiked ? 'Remove from favorites' : 'Add to favorites'}
             >
@@ -421,8 +499,8 @@ export function PlayerBar() {
                 onClick={() => setShowPlaylistMenu(!showPlaylistMenu)}
                 className={`p-2.5 rounded-full transition-all duration-200 ${
                   showPlaylistMenu
-                    ? 'bg-gray-100 text-gray-700'
-                    : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                    ? 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-200'
+                    : 'text-gray-400 dark:text-slate-400 hover:text-gray-600 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700'
                 }`}
                 title="Manage playlists"
               >
@@ -436,14 +514,14 @@ export function PlayerBar() {
 
               {/* Playlist dropdown */}
               {showPlaylistMenu && (
-                <div className="absolute bottom-full right-0 mb-3 w-72 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200/50 overflow-hidden z-50">
-                  <div className="p-2 border-b border-gray-100">
+                <div className="absolute bottom-full right-0 mb-3 w-72 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200/50 dark:border-slate-700/50 overflow-hidden z-50">
+                  <div className="p-2 border-b border-gray-100 dark:border-slate-700">
                     <button
                       onClick={() => {
                         openModal('playlist-selector', { videoId: playerVideoId })
                         setShowPlaylistMenu(false)
                       }}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700 rounded-xl transition-colors"
                     >
                       <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-red-pantone to-crimson flex items-center justify-center">
                         <PlusIcon className="w-4 h-4 text-white" />
@@ -453,23 +531,23 @@ export function PlayerBar() {
                   </div>
                   {songPlaylists.length > 0 && (
                     <div className="p-2 max-h-56 overflow-y-auto">
-                      <div className="text-[11px] font-medium text-gray-400 uppercase tracking-wider px-4 py-2">In playlists</div>
+                      <div className="text-[11px] font-medium text-gray-400 dark:text-slate-500 uppercase tracking-wider px-4 py-2">In playlists</div>
                       {songPlaylists.map(playlist => (
                         <div
                           key={playlist.id}
-                          className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 rounded-xl group transition-colors"
+                          className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-700 rounded-xl group transition-colors"
                         >
                           {playlist.thumbnail ? (
                             <img src={playlist.thumbnail} alt="" className="w-10 h-10 rounded-lg object-cover shadow-sm" />
                           ) : (
-                            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200" />
+                            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 dark:from-slate-700 dark:to-slate-600" />
                           )}
-                          <span className="flex-1 text-sm font-medium text-gray-700 truncate">{playlist.title}</span>
+                          <span className="flex-1 text-sm font-medium text-gray-700 dark:text-slate-200 truncate">{playlist.title}</span>
                           <button
                             onClick={() => {
                               removeSongFromPlaylist(playerVideoId, playlist.id)
                             }}
-                            className="p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all"
+                            className="p-1.5 rounded-lg text-gray-300 dark:text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 opacity-0 group-hover:opacity-100 transition-all"
                             title={`Remove from ${playlist.title}`}
                           >
                             <XMarkOutlineIcon className="w-4 h-4" />
@@ -485,7 +563,7 @@ export function PlayerBar() {
             {/* Close button */}
             <button
               onClick={handleClose}
-              className="p-2.5 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all duration-200 flex-shrink-0"
+              className="p-2.5 rounded-full text-gray-400 dark:text-slate-400 hover:text-gray-600 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 transition-all duration-200 flex-shrink-0"
               title="Close player"
             >
               <XMarkIcon className="w-5 h-5" />

@@ -28,14 +28,14 @@ export const CreatePlaylistModal: React.FC<CreatePlaylistModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl p-6 w-full max-w-md"
+        className="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-md"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Create Playlist</h2>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Create Playlist</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
               Title *
             </label>
             <input
@@ -46,12 +46,12 @@ export const CreatePlaylistModal: React.FC<CreatePlaylistModalProps> = ({
               placeholder="My Awesome Playlist"
               required
               autoFocus
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 focus:ring-2 focus:ring-red-500 focus:border-transparent"
             />
           </div>
 
           <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
               Description
             </label>
             <textarea
@@ -60,12 +60,12 @@ export const CreatePlaylistModal: React.FC<CreatePlaylistModalProps> = ({
               onChange={(e) => setDescription(e.target.value)}
               placeholder="A collection of my favorite tracks"
               rows={3}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
               Privacy
             </label>
             <div className="space-y-2">
@@ -79,7 +79,7 @@ export const CreatePlaylistModal: React.FC<CreatePlaylistModalProps> = ({
                     onChange={(e) => setPrivacy(e.target.value as 'public' | 'private' | 'unlisted')}
                     className="mr-2"
                   />
-                  <span className="text-sm text-gray-700 capitalize">{option}</span>
+                  <span className="text-sm text-gray-700 dark:text-slate-300 capitalize">{option}</span>
                 </label>
               ))}
             </div>
@@ -89,7 +89,7 @@ export const CreatePlaylistModal: React.FC<CreatePlaylistModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+              className="flex-1 px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
             >
               Cancel
             </button>

@@ -140,9 +140,9 @@ export default function AnalysisStatusPage() {
     : 0;
 
   return (
-    <div className="h-screen overflow-y-auto bg-gray-50">
+    <div className="h-screen overflow-y-auto bg-gray-50 dark:bg-slate-900">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700">
         <div className="max-w-5xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -150,8 +150,8 @@ export default function AnalysisStatusPage() {
                 <ChartBarIcon className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Analysis Status</h1>
-                <p className="text-sm text-gray-500">Track audio analysis progress</p>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">Analysis Status</h1>
+                <p className="text-sm text-gray-500 dark:text-slate-400">Track audio analysis progress</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -161,14 +161,14 @@ export default function AnalysisStatusPage() {
                   fetchBatchStatus();
                 }}
                 disabled={loading}
-                className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-50"
               >
                 <ArrowPathIcon className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
                 Refresh
               </button>
               <Link
                 href="/"
-                className="px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                className="px-4 py-2 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
               >
                 Back to app
               </Link>
@@ -179,7 +179,7 @@ export default function AnalysisStatusPage() {
 
       <div className="max-w-5xl mx-auto px-6 py-8">
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-400">
             {error}
           </div>
         )}
@@ -191,8 +191,8 @@ export default function AnalysisStatusPage() {
         ) : stats ? (
           <div className="space-y-8">
             {/* Batch control panel */}
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Batch Analysis</h2>
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Batch Analysis</h2>
 
               {batchStatus?.running ? (
                 <div className="space-y-4">
@@ -267,18 +267,18 @@ export default function AnalysisStatusPage() {
             </div>
 
             {/* Progress overview */}
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Progress</h2>
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Progress</h2>
 
               {/* Progress bar */}
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm text-gray-600 dark:text-slate-400">
                     {stats.analyzedCount} of {stats.totalTracks} tracks analyzed
                   </span>
-                  <span className="text-sm font-medium text-gray-900">{progressPercent}%</span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">{progressPercent}%</span>
                 </div>
-                <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-3 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-gradient-to-r from-space-cadet to-red-pantone rounded-full transition-all duration-500"
                     style={{ width: `${progressPercent}%` }}
@@ -314,13 +314,13 @@ export default function AnalysisStatusPage() {
 
             {/* Version breakdown */}
             {stats.versionBreakdown.length > 0 && (
-              <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Algorithm Versions</h2>
+              <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-6">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Algorithm Versions</h2>
                 <div className="space-y-3">
                   {stats.versionBreakdown.map((v) => (
                     <div key={v.version} className="flex items-center gap-4">
-                      <div className="w-20 text-sm text-gray-600">v{v.version}</div>
-                      <div className="flex-1 h-6 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="w-20 text-sm text-gray-600 dark:text-slate-400">v{v.version}</div>
+                      <div className="flex-1 h-6 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-space-cadet/70 rounded-full"
                           style={{
@@ -328,7 +328,7 @@ export default function AnalysisStatusPage() {
                           }}
                         />
                       </div>
-                      <div className="w-16 text-sm text-gray-900 text-right">{v.count}</div>
+                      <div className="w-16 text-sm text-gray-900 dark:text-white text-right">{v.count}</div>
                     </div>
                   ))}
                 </div>
@@ -336,29 +336,29 @@ export default function AnalysisStatusPage() {
             )}
 
             {/* Recent analyses */}
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Analyses</h2>
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Recent Analyses</h2>
               {stats.recentAnalyses.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">No analyses yet</p>
+                <p className="text-gray-500 dark:text-slate-500 text-center py-8">No analyses yet</p>
               ) : (
-                <div className="divide-y divide-gray-100">
+                <div className="divide-y divide-gray-100 dark:divide-slate-700">
                   {stats.recentAnalyses.map((analysis) => (
                     <div key={analysis.videoId} className="py-3 flex items-center gap-4">
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium text-gray-900 truncate">
+                        <div className="font-medium text-gray-900 dark:text-white truncate">
                           {analysis.title || analysis.videoId}
                         </div>
-                        <div className="text-sm text-gray-500 truncate">
+                        <div className="text-sm text-gray-500 dark:text-slate-400 truncate">
                           {analysis.artist || "Unknown artist"}
                         </div>
                       </div>
-                      <div className="text-sm text-gray-600 text-right">
+                      <div className="text-sm text-gray-600 dark:text-slate-400 text-right">
                         {analysis.bpm && <span className="font-mono">{analysis.bpm} BPM</span>}
                       </div>
-                      <div className="text-xs text-gray-400 w-20 text-right">
+                      <div className="text-xs text-gray-400 dark:text-slate-500 w-20 text-right">
                         {formatDate(analysis.updatedAt)}
                       </div>
-                      <div className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded">
+                      <div className="text-xs px-2 py-0.5 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400 rounded">
                         v{analysis.version}
                       </div>
                     </div>
@@ -369,9 +369,9 @@ export default function AnalysisStatusPage() {
 
             {/* Pending tracks */}
             {stats.pendingIds.length > 0 && (
-              <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-2">Pending Tracks</h2>
-                <p className="text-sm text-gray-500 mb-4">
+              <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-6">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Pending Tracks</h2>
+                <p className="text-sm text-gray-500 dark:text-slate-400 mb-4">
                   First {Math.min(50, stats.pendingIds.length)} of {stats.pendingCount} tracks
                   awaiting analysis
                 </p>
@@ -382,7 +382,7 @@ export default function AnalysisStatusPage() {
                       href={`https://music.youtube.com/watch?v=${id}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-2 py-1 text-xs font-mono bg-gray-100 text-gray-600 hover:bg-gray-200 rounded transition-colors"
+                      className="px-2 py-1 text-xs font-mono bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-600 rounded transition-colors"
                     >
                       {id}
                     </a>

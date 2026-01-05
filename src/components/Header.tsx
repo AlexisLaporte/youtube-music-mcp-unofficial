@@ -1,10 +1,10 @@
 'use client'
 
 import React from 'react'
-import { Music, LogOut, User, Heart, ListMusic, Search } from 'lucide-react'
-import Image from 'next/image'
+import { Music, Heart, ListMusic, Search } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { AccountPopover } from './AccountPopover'
 
 interface HeaderProps {
   isConnected: boolean
@@ -26,7 +26,7 @@ export const Header: React.FC<HeaderProps> = ({
   const pathname = usePathname()
 
   return (
-    <header className="bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200 sticky top-0 z-50">
+    <header className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-sm border-b border-slate-200 dark:border-slate-700 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center gap-6">
@@ -35,19 +35,19 @@ export const Header: React.FC<HeaderProps> = ({
                 <Music className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-slate-900">YouTube Music Manager</h1>
-                <p className="text-sm text-slate-600 hidden sm:block">Manage your YouTube playlists easily</p>
+                <h1 className="text-xl font-bold text-slate-900 dark:text-white">YouTube Music Manager</h1>
+                <p className="text-sm text-slate-600 dark:text-slate-400 hidden sm:block">Manage your YouTube playlists easily</p>
               </div>
             </Link>
 
             {isConnected && (
-              <nav className="hidden md:flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+              <nav className="hidden md:flex items-center gap-1 bg-gray-100 dark:bg-slate-800 rounded-lg p-1">
                 <Link
                   href="/"
                   className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                     pathname === '/'
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
+                      ? 'bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm'
+                      : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
                   }`}
                 >
                   <Heart className="h-4 w-4" />
@@ -57,8 +57,8 @@ export const Header: React.FC<HeaderProps> = ({
                   href="/playlists"
                   className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                     pathname === '/playlists'
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
+                      ? 'bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm'
+                      : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
                   }`}
                 >
                   <ListMusic className="h-4 w-4" />
@@ -68,8 +68,8 @@ export const Header: React.FC<HeaderProps> = ({
                   href="/search"
                   className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                     pathname === '/search'
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
+                      ? 'bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm'
+                      : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
                   }`}
                 >
                   <Search className="h-4 w-4" />
@@ -80,35 +80,12 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {isConnected ? (
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-3 bg-slate-50 px-4 py-2 rounded-lg border border-slate-200">
-                {userAvatar ? (
-                  <Image
-                    src={userAvatar}
-                    alt={userName || 'User'}
-                    width={32}
-                    height={32}
-                    className="rounded-full border-2 border-white shadow-sm"
-                  />
-                ) : (
-                  <div className="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center">
-                    <User className="h-4 w-4 text-slate-600" />
-                  </div>
-                )}
-                <div className="hidden sm:block">
-                  <p className="text-sm font-semibold text-slate-900">{userName}</p>
-                  <p className="text-xs text-slate-500">{userEmail}</p>
-                </div>
-              </div>
-              
-              <button
-                onClick={onDisconnect}
-                className="flex items-center space-x-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg transition-colors"
-              >
-                <LogOut className="h-4 w-4" />
-                <span className="hidden sm:block">Sign out</span>
-              </button>
-            </div>
+            <AccountPopover
+              userName={userName}
+              userEmail={userEmail}
+              userAvatar={userAvatar}
+              onDisconnect={onDisconnect}
+            />
           ) : (
             <button
               onClick={onConnect}

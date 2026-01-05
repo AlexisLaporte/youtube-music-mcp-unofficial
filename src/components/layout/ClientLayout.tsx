@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useUIStore } from '@/stores/useUIStore'
 import { useMusicStore } from '@/stores/useMusicStore'
+import { useThemeStore } from '@/stores/useThemeStore'
 // import { useAutoAnalysis } from '@/hooks/useAutoAnalysis'
 import { PlayerBar } from './PlayerBar'
 
@@ -21,6 +22,16 @@ export function ClientLayout({ children }: ClientLayoutProps) {
 
   // Auto-start audio analysis for pending tracks (disabled - manual only)
   // useAutoAnalysis()
+
+  // Apply theme to document
+  const theme = useThemeStore(state => state.theme)
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  }, [theme])
 
   // Global space bar to start playback when no player is active
   useEffect(() => {
@@ -61,7 +72,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
   }, [playerVideoId, selectedSongId, selectedPlaylistId, playVideo, getSongsForPlaylist, getLikedSongs])
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-screen flex flex-col bg-white dark:bg-slate-900 transition-colors">
       <div className="flex-1 overflow-hidden">
         {children}
       </div>

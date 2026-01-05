@@ -24,7 +24,7 @@ export const TrackCard: React.FC<TrackCardProps> = ({
   const router = useRouter();
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl transition-all duration-200 hover:border-red-300 hover:shadow-sm p-3">
+    <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl transition-all duration-200 hover:border-red-300 dark:hover:border-red-400/50 hover:shadow-sm p-3">
       <div className="flex items-center gap-3">
         {/* Thumbnail */}
         <div className="relative flex-shrink-0 w-12 h-12 md:w-14 md:h-14">
@@ -37,18 +37,18 @@ export const TrackCard: React.FC<TrackCardProps> = ({
               className="rounded-lg object-cover"
             />
           ) : (
-            <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center">
-              <Music className="h-5 w-5 text-gray-400" />
+            <div className="w-full h-full bg-gray-200 dark:bg-slate-700 rounded-lg flex items-center justify-center">
+              <Music className="h-5 w-5 text-gray-400 dark:text-slate-500" />
             </div>
           )}
         </div>
 
         {/* Track Info */}
         <div className="flex-1 min-w-0">
-          <h4 className="font-medium text-gray-900 truncate text-sm md:text-base">
+          <h4 className="font-medium text-gray-900 dark:text-white truncate text-sm md:text-base">
             {song.title}
           </h4>
-          <p className="text-xs md:text-sm text-gray-600 truncate">
+          <p className="text-xs md:text-sm text-gray-600 dark:text-slate-400 truncate">
             {song.artist}
           </p>
           <div className="mt-0.5 flex items-center gap-2">
@@ -73,7 +73,7 @@ export const TrackCard: React.FC<TrackCardProps> = ({
 
           <button
             onClick={() => router.push(`/analyze?v=${song.videoId}&title=${encodeURIComponent(song.title)}&artist=${encodeURIComponent(song.artist)}`)}
-            className="p-2 rounded-lg transition-colors text-gray-600 hover:text-purple-600 hover:bg-purple-50 active:scale-95 w-10 h-10"
+            className="p-2 rounded-lg transition-colors text-gray-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 active:scale-95 w-10 h-10"
             title="Analyser l'audio"
           >
             <BarChart3 className="h-5 w-5" />
@@ -81,7 +81,7 @@ export const TrackCard: React.FC<TrackCardProps> = ({
 
           <button
             onClick={() => onAddToPlaylist()}
-            className="p-2 rounded-lg transition-colors text-gray-600 hover:text-gray-900 hover:bg-gray-100 active:scale-95 w-10 h-10 md:w-auto md:px-3"
+            className="p-2 rounded-lg transition-colors text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-700 active:scale-95 w-10 h-10 md:w-auto md:px-3"
             title="Add to playlist"
           >
             <Plus className="h-5 w-5" />

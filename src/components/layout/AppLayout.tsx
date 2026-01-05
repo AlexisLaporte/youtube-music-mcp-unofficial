@@ -42,23 +42,23 @@ export function AppLayout() {
   }
 
   return (
-    <div className="h-full flex flex-col bg-gray-50">
+    <div className="h-full flex flex-col bg-gray-50 dark:bg-slate-900">
       {/* Main content area */}
       <div className="flex-1 flex overflow-hidden">
         {/* Desktop: 3 columns */}
         <div className="hidden md:flex flex-1">
           {/* Col 1: Playlists */}
-          <aside className="w-60 flex-shrink-0 border-r border-gray-200 bg-white overflow-y-auto">
+          <aside className="w-60 flex-shrink-0 border-r border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-y-auto">
             <PlaylistSidebar />
           </aside>
 
           {/* Col 2: Songs */}
-          <div className="w-80 flex-shrink-0 border-r border-gray-200 bg-white overflow-hidden">
+          <div className="w-80 flex-shrink-0 border-r border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden">
             <SongList />
           </div>
 
           {/* Col 3: Detail */}
-          <main className="flex-1 overflow-y-auto bg-gray-50">
+          <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-slate-900">
             <DetailPanel />
           </main>
         </div>

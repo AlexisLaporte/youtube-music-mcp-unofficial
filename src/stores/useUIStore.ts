@@ -21,6 +21,7 @@ interface ModalData {
 type SortBy = 'date' | 'artist' | 'title' | 'playlistCount'
 type SortOrder = 'asc' | 'desc'
 type MobileTab = 'playlists' | 'songs' | 'detail'
+type PlaybackMode = 'normal' | 'shuffle' | 'loop-one' | 'loop-all'
 
 interface UIState {
   // Navigation (3-column layout)
@@ -38,6 +39,9 @@ interface UIState {
   playerVideoId: string | null
   isPlayerVisible: boolean
   isPlayerPaused: boolean
+  playbackMode: PlaybackMode
+  playbackQueue: string[]  // Array of videoIds
+  playbackQueueIndex: number
 
   // View modes
   view: 'list' | 'grid'
@@ -76,10 +80,15 @@ interface UIState {
 
   // Actions - Player
   playVideo: (videoId: string) => void
+  playVideoInQueue: (videoId: string, queue: string[]) => void
   pausePlayer: () => void
   resumePlayer: () => void
   togglePlayPause: () => void
   closePlayer: () => void
+  setPlaybackMode: (mode: PlaybackMode) => void
+  cyclePlaybackMode: () => void
+  playNext: () => void
+  playPrevious: () => void
 
   // Actions - View
   setView: (view: 'list' | 'grid') => void
@@ -126,6 +135,9 @@ export const useUIStore = create<UIState>((set) => ({
   playerVideoId: null,
   isPlayerVisible: false,
   isPlayerPaused: false,
+  playbackMode: 'normal',
+  playbackQueue: [],
+  playbackQueueIndex: -1,
   view: 'list',
   filterMode: 'all',
   searchQuery: '',
@@ -189,30 +201,150 @@ export const useUIStore = create<UIState>((set) => ({
   // Player actions
   playVideo: (videoId) => {
     console.log('▶️ Playing video:', videoId)
-    set({ playerVideoId: videoId, isPlayerVisible: true, isPlayerPaused: false })
+    set(state => {
+      // If already in a queue, find the index
+      const queueIndex = state.playbackQueue.indexOf(videoId)
+      return {
+        playerVideoId: videoId,
+        isPlayerVisible: true,
+        isPlayerPaused: false,
+        playbackQueueIndex: queueIndex >= 0 ? queueIndex : state.playbackQueueIndex
+      }
+    })
+  },
+
+  playVideoInQueue: (videoId, queue) => {
+    console.log('▶️ Playing video in queue:', videoId, `(${queue.length} tracks)`)
+    const queueIndex = queue.indexOf(videoId)
+    set({
+      playerVideoId: videoId,
+      isPlayerVisible: true,
+      isPlayerPaused: false,
+      playbackQueue: queue,
+      playbackQueueIndex: queueIndex >= 0 ? queueIndex : 0
+    })
   },
 
   pausePlayer: () => {
-    console.log('⏸️ Pausing player')
-    set({ isPlayerPaused: true })
+    set(state => state.isPlayerPaused ? {} : { isPlayerPaused: true })
   },
 
   resumePlayer: () => {
-    console.log('▶️ Resuming player')
-    set({ isPlayerPaused: false })
+    set(state => state.isPlayerPaused ? { isPlayerPaused: false } : {})
   },
 
   togglePlayPause: () => {
-    set(state => {
-      const newPaused = !state.isPlayerPaused
-      console.log(newPaused ? '⏸️ Pausing' : '▶️ Resuming')
-      return { isPlayerPaused: newPaused }
-    })
+    set(state => ({ isPlayerPaused: !state.isPlayerPaused }))
   },
 
   closePlayer: () => {
     console.log('⏹️ Closing player')
-    set({ playerVideoId: null, isPlayerVisible: false, isPlayerPaused: false })
+    set({ playerVideoId: null, isPlayerVisible: false, isPlayerPaused: false, playbackQueue: [], playbackQueueIndex: -1 })
+  },
+
+  setPlaybackMode: (mode) => {
+    console.log('🔀 Setting playback mode:', mode)
+    set({ playbackMode: mode })
+  },
+
+  cyclePlaybackMode: () => {
+    set(state => {
+      const modes: PlaybackMode[] = ['normal', 'loop-all', 'loop-one', 'shuffle']
+      const currentIndex = modes.indexOf(state.playbackMode)
+      const nextMode = modes[(currentIndex + 1) % modes.length]
+      console.log('🔀 Cycling playback mode:', state.playbackMode, '→', nextMode)
+      return { playbackMode: nextMode }
+    })
+  },
+
+  playNext: () => {
+    set(state => {
+      const { playbackQueue, playbackQueueIndex, playbackMode } = state
+
+      if (playbackQueue.length === 0) {
+        console.log('⏭️ No queue, stopping')
+        return {}
+      }
+
+      // Loop one: replay current
+      if (playbackMode === 'loop-one') {
+        console.log('🔁 Loop one: replaying current')
+        return { isPlayerPaused: false }
+      }
+
+      let nextIndex: number
+
+      if (playbackMode === 'shuffle') {
+        // Random next (excluding current)
+        const availableIndices = playbackQueue
+          .map((_, i) => i)
+          .filter(i => i !== playbackQueueIndex)
+        if (availableIndices.length === 0) {
+          nextIndex = playbackQueueIndex
+        } else {
+          nextIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)]
+        }
+        console.log('🔀 Shuffle: playing random track', nextIndex)
+      } else {
+        // Normal or loop-all: go to next
+        nextIndex = playbackQueueIndex + 1
+
+        if (nextIndex >= playbackQueue.length) {
+          if (playbackMode === 'loop-all') {
+            nextIndex = 0
+            console.log('🔁 Loop all: restarting from beginning')
+          } else {
+            console.log('⏹️ End of queue')
+            return { isPlayerPaused: true }
+          }
+        }
+      }
+
+      const nextVideoId = playbackQueue[nextIndex]
+      console.log('⏭️ Playing next:', nextVideoId)
+      return {
+        playerVideoId: nextVideoId,
+        playbackQueueIndex: nextIndex,
+        isPlayerPaused: false
+      }
+    })
+  },
+
+  playPrevious: () => {
+    set(state => {
+      const { playbackQueue, playbackQueueIndex, playbackMode } = state
+
+      if (playbackQueue.length === 0) {
+        return {}
+      }
+
+      let prevIndex: number
+
+      if (playbackMode === 'shuffle') {
+        // Random (same logic as next for shuffle)
+        const availableIndices = playbackQueue
+          .map((_, i) => i)
+          .filter(i => i !== playbackQueueIndex)
+        if (availableIndices.length === 0) {
+          prevIndex = playbackQueueIndex
+        } else {
+          prevIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)]
+        }
+      } else {
+        prevIndex = playbackQueueIndex - 1
+        if (prevIndex < 0) {
+          prevIndex = playbackMode === 'loop-all' ? playbackQueue.length - 1 : 0
+        }
+      }
+
+      const prevVideoId = playbackQueue[prevIndex]
+      console.log('⏮️ Playing previous:', prevVideoId)
+      return {
+        playerVideoId: prevVideoId,
+        playbackQueueIndex: prevIndex,
+        isPlayerPaused: false
+      }
+    })
   },
 
   // View actions
