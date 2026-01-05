@@ -15,7 +15,10 @@ const SESSION_COOKIE = 'session'
 const SECRET = process.env.SESSION_SECRET || 'dev-secret-change-in-production'
 
 export async function createSession(session: UserSession): Promise<string> {
-  const token = sign(session, SECRET, { expiresIn: '7d' })
+  // Strip JWT claims to avoid conflict with expiresIn
+  const { userId, email, name, profilePicture, accessToken, refreshToken, expiresAt } = session
+  const payload = { userId, email, name, profilePicture, accessToken, refreshToken, expiresAt }
+  const token = sign(payload, SECRET, { expiresIn: '7d' })
 
   const cookieStore = await cookies()
   cookieStore.set(SESSION_COOKIE, token, {
