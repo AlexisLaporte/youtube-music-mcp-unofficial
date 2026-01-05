@@ -70,7 +70,7 @@ class YouTubeService {
     return playlists
   }
 
-  async getLikedSongs(): Promise<YouTubeTrack[]> {
+  async getLikedSongs(musicOnly = true): Promise<YouTubeTrack[]> {
     console.log('❤️ Fetching liked songs...')
     const tracks: YouTubeTrack[] = []
     let pageToken = ''
@@ -79,8 +79,6 @@ class YouTubeService {
       const params = new URLSearchParams({
         part: 'snippet,contentDetails',
         myRating: 'like',
-        type: 'video',
-        videoCategoryId: '10', // Music category
         maxResults: '50',
       })
       if (pageToken) params.set('pageToken', pageToken)
@@ -88,11 +86,17 @@ class YouTubeService {
       const data = await this.fetchYouTube(`videos?${params}`)
 
       for (const item of data.items || []) {
+        // Filter: Music category (10) or Topic channels (YouTube Music auto-generated)
+        const isMusic = item.snippet.categoryId === '10'
+        const isTopicChannel = item.snippet.channelTitle?.endsWith(' - Topic')
+
+        if (musicOnly && !isMusic && !isTopicChannel) continue
+
         tracks.push({
           id: item.id,
           videoId: item.id,
           title: item.snippet.title,
-          artist: item.snippet.channelTitle,
+          artist: item.snippet.channelTitle?.replace(/ - Topic$/, '') || item.snippet.channelTitle,
           duration: this.parseDuration(item.contentDetails.duration),
           thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
         })
@@ -101,7 +105,7 @@ class YouTubeService {
       pageToken = data.nextPageToken || ''
     } while (pageToken)
 
-    console.log(`✅ Fetched ${tracks.length} liked songs`)
+    console.log(`✅ Fetched ${tracks.length} liked songs (music only: ${musicOnly})`)
     return tracks
   }
 
