@@ -18,7 +18,6 @@ export const LikedSongsAnalysis: React.FC = () => {
   const [allPlaylists, setAllPlaylists] = useState<YouTubePlaylist[]>([]);
   const [addingToPlaylist, setAddingToPlaylist] = useState<string | null>(null);
   const [playlistSearch, setPlaylistSearch] = useState('');
-  const [isAddingTrack, setIsAddingTrack] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<FilterTab>('all');
   const [showSearch, setShowSearch] = useState(false);
 
@@ -64,7 +63,6 @@ export const LikedSongsAnalysis: React.FC = () => {
 
   const addToPlaylist = async (videoId: string, playlistId: string) => {
     try {
-      setIsAddingTrack(`${videoId}-${playlistId}`);
       console.log(`Adding video ${videoId} to playlist ${playlistId}`);
 
       const success = await apiService.addVideoToPlaylist(playlistId, videoId);
@@ -124,7 +122,7 @@ export const LikedSongsAnalysis: React.FC = () => {
       console.error('Error in addToPlaylist:', err);
       setError(err instanceof Error ? err.message : 'Error adding to playlist');
     } finally {
-      setIsAddingTrack(null);
+      // Cleanup handled
     }
   };
 
@@ -310,13 +308,20 @@ export const LikedSongsAnalysis: React.FC = () => {
                 </p>
               </div>
             ) : (
-              filteredTracks.map(({ track, suggestedPlaylists }) => (
+              filteredTracks.map(({ track, foundInPlaylists }) => (
                 <TrackCard
                   key={track.id}
-                  track={track}
-                  suggestedPlaylists={suggestedPlaylists}
+                  song={{
+                    videoId: track.videoId,
+                    title: track.title,
+                    artist: track.artist,
+                    duration: track.duration,
+                    thumbnail: track.thumbnail,
+                    isLiked: true,
+                    playlistIds: foundInPlaylists.map(fp => fp.playlist.id),
+                    addedAt: track.addedAt,
+                  }}
                   isPlaying={currentlyPlaying === track.videoId}
-                  isAdding={isAddingTrack?.startsWith(track.videoId)}
                   onPlayToggle={() => setCurrentlyPlaying(currentlyPlaying === track.videoId ? null : track.videoId)}
                   onAddToPlaylist={(playlistId?: string) => {
                     if (playlistId) {

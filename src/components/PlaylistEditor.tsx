@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { Music, Play, ArrowLeft, Edit2, CheckSquare } from 'lucide-react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { usePlaylistsStore } from '@/stores/usePlaylistsStore'
+import { useMusicStore } from '@/stores/useMusicStore'
 import { useUIStore } from '@/stores/useUIStore'
 import { MiniPlayer } from './MiniPlayer'
 import { SplitPlaylistModal } from './SplitPlaylistModal'
@@ -16,14 +16,13 @@ interface PlaylistEditorProps {
 export const PlaylistEditor: React.FC<PlaylistEditorProps> = ({ playlistId }) => {
   const router = useRouter()
   const {
-    playlists,
-    playlistTracks,
-    selectedTracks,
-    fetchPlaylists,
-    fetchPlaylistTracks,
-    toggleTrackSelection,
-    clearTrackSelection
-  } = usePlaylistsStore()
+    getPlaylist,
+    getSongsForPlaylist,
+    smartSync,
+    createPlaylist,
+    addSongToPlaylist,
+    lastSyncAt
+  } = useMusicStore()
 
   const {
     playerVideoId,
@@ -32,26 +31,28 @@ export const PlaylistEditor: React.FC<PlaylistEditorProps> = ({ playlistId }) =>
     closePlayer,
     isBatchMode,
     toggleBatchMode,
-    exitBatchMode
+    exitBatchMode,
+    selectedTracks,
+    toggleTrackSelection,
+    clearTrackSelection
   } = useUIStore()
 
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string>('')
   const [showSplitModal, setShowSplitModal] = useState(false)
 
-  const playlist = playlists.find(p => p.id === playlistId)
-  const tracks = playlistTracks[playlistId] || []
-  const selectedTracksData = tracks.filter(t => selectedTracks.has(t.id))
+  const playlist = getPlaylist(playlistId)
+  const tracks = getSongsForPlaylist(playlistId)
+  const selectedTracksData = tracks.filter(t => selectedTracks.has(t.videoId))
 
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true)
       setError('')
       try {
-        if (playlists.length === 0) {
-          await fetchPlaylists()
+        if (!lastSyncAt) {
+          await smartSync()
         }
-        await fetchPlaylistTracks(playlistId)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Error loading playlist')
       } finally {
@@ -60,7 +61,7 @@ export const PlaylistEditor: React.FC<PlaylistEditorProps> = ({ playlistId }) =>
     }
 
     loadData()
-  }, [playlistId])
+  }, [playlistId, lastSyncAt, smartSync])
 
   if (isLoading) {
     return (
@@ -100,16 +101,16 @@ export const PlaylistEditor: React.FC<PlaylistEditorProps> = ({ playlistId }) =>
   ) => {
     try {
       // Create new playlist
-      const newPlaylistId = await usePlaylistsStore.getState().createPlaylist(title, description, privacy)
+      const newPlaylistId = await createPlaylist(title, description, privacy)
 
       // Add selected tracks to new playlist
-      const videoIds = selectedTracksData.map(t => t.videoId)
-      await usePlaylistsStore.getState().addTracksToPlaylist(newPlaylistId, videoIds)
+      for (const track of selectedTracksData) {
+        await addSongToPlaylist(track.videoId, newPlaylistId)
+      }
 
       // Remove from source if requested (when API is available)
       if (removeFromSource) {
         console.log('TODO: Remove tracks from source playlist')
-        // This will need a removeTracksFromPlaylist API method
       }
 
       // Clean up
@@ -224,12 +225,12 @@ export const PlaylistEditor: React.FC<PlaylistEditorProps> = ({ playlistId }) =>
               <p className="text-gray-600">This playlist is empty</p>
             </div>
           ) : (
-            tracks.map((track, index) => {
-              const isSelected = selectedTracks.has(track.id)
+            tracks.map((song, index) => {
+              const isSelected = selectedTracks.has(song.videoId)
 
               return (
                 <div
-                  key={`${track.id}-${index}`}
+                  key={`${song.videoId}-${index}`}
                   className={`border rounded-lg p-4 transition-all bg-white cursor-pointer ${
                     isSelected
                       ? 'border-red-500 ring-2 ring-red-500'
@@ -237,7 +238,7 @@ export const PlaylistEditor: React.FC<PlaylistEditorProps> = ({ playlistId }) =>
                   }`}
                   onClick={() => {
                     if (isBatchMode) {
-                      toggleTrackSelection(track.id)
+                      toggleTrackSelection(song.videoId)
                     }
                   }}
                 >
@@ -262,17 +263,17 @@ export const PlaylistEditor: React.FC<PlaylistEditorProps> = ({ playlistId }) =>
                     )}
 
                     {/* Thumbnail */}
-                    <div className="relative flex-shrink-0">
-                      {track.thumbnail ? (
+                    <div className="relative flex-shrink-0 w-[60px] h-[60px]">
+                      {song.thumbnail ? (
                         <Image
-                          src={track.thumbnail}
-                          alt={track.title}
-                          width={60}
-                          height={60}
-                          className="rounded-lg"
+                          src={song.thumbnail}
+                          alt={song.title}
+                          fill
+                          sizes="60px"
+                          className="rounded-lg object-cover"
                         />
                       ) : (
-                        <div className="w-15 h-15 bg-gray-200 rounded-lg flex items-center justify-center">
+                        <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center">
                           <Music className="h-6 w-6 text-gray-400" />
                         </div>
                       )}
@@ -280,10 +281,10 @@ export const PlaylistEditor: React.FC<PlaylistEditorProps> = ({ playlistId }) =>
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-gray-900 truncate">{track.title}</h4>
-                      <p className="text-sm text-gray-600">{track.artist}</p>
-                      {track.duration && (
-                        <p className="text-xs text-gray-500 mt-1">{track.duration}</p>
+                      <h4 className="font-medium text-gray-900 truncate">{song.title}</h4>
+                      <p className="text-sm text-gray-600">{song.artist}</p>
+                      {song.duration && (
+                        <p className="text-xs text-gray-500 mt-1">{song.duration}</p>
                       )}
                     </div>
 
@@ -292,10 +293,10 @@ export const PlaylistEditor: React.FC<PlaylistEditorProps> = ({ playlistId }) =>
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
-                          if (playerVideoId === track.videoId) {
+                          if (playerVideoId === song.videoId) {
                             closePlayer()
                           } else {
-                            playVideo(track.videoId)
+                            playVideo(song.videoId)
                           }
                         }}
                         className="flex-shrink-0 w-12 h-12 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center transition-colors"

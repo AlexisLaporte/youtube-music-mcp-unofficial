@@ -2,37 +2,39 @@
 
 import React, { useEffect, useState } from 'react'
 import { Plus, RefreshCw, Grid, List, CheckSquare } from 'lucide-react'
-import { usePlaylistsStore } from '@/stores/usePlaylistsStore'
+import { useMusicStore } from '@/stores/useMusicStore'
 import { useUIStore } from '@/stores/useUIStore'
 import { PlaylistGrid } from './PlaylistGrid'
 import { CreatePlaylistModal } from './CreatePlaylistModal'
 
 export const PlaylistsView: React.FC = () => {
   const {
-    playlists,
-    isLoadingPlaylists,
-    selectedPlaylists,
-    fetchPlaylists,
+    getAllPlaylists,
+    isSyncing,
+    fullSync,
     createPlaylist,
-    deletePlaylist,
-    togglePlaylistSelection,
-    clearPlaylistSelection
-  } = usePlaylistsStore()
+    deletePlaylist
+  } = useMusicStore()
 
   const {
     view,
     setView,
     isBatchMode,
     toggleBatchMode,
-    exitBatchMode
+    exitBatchMode,
+    selectedPlaylists,
+    togglePlaylistSelection,
+    clearPlaylistSelection
   } = useUIStore()
+
+  const playlists = getAllPlaylists()
 
   const [error, setError] = useState<string>('')
   const [showCreateModal, setShowCreateModal] = useState(false)
 
   useEffect(() => {
     if (playlists.length === 0) {
-      fetchPlaylists().catch(err => {
+      fullSync().catch(err => {
         setError(err instanceof Error ? err.message : 'Error loading playlists')
       })
     }
@@ -41,7 +43,7 @@ export const PlaylistsView: React.FC = () => {
   const handleRefresh = async () => {
     setError('')
     try {
-      await fetchPlaylists(true)
+      await fullSync()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error loading playlists')
     }
@@ -139,11 +141,11 @@ export const PlaylistsView: React.FC = () => {
               {/* Refresh */}
               <button
                 onClick={handleRefresh}
-                disabled={isLoadingPlaylists}
+                disabled={isSyncing}
                 className="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors disabled:opacity-50"
                 title="Refresh"
               >
-                <RefreshCw className={`h-5 w-5 ${isLoadingPlaylists ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`h-5 w-5 ${isSyncing ? 'animate-spin' : ''}`} />
               </button>
 
               {/* Create playlist */}
@@ -201,7 +203,7 @@ export const PlaylistsView: React.FC = () => {
         </div>
 
         {/* Loading */}
-        {isLoadingPlaylists && playlists.length === 0 ? (
+        {isSyncing && playlists.length === 0 ? (
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>

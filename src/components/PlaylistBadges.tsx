@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { usePlaylistsStore } from '@/stores/usePlaylistsStore'
+import { useMusicStore } from '@/stores/useMusicStore'
 
 interface PlaylistBadgesProps {
   videoId: string
@@ -20,15 +20,15 @@ export const PlaylistBadges: React.FC<PlaylistBadgesProps> = ({
   const router = useRouter()
   const [showAll, setShowAll] = useState(false)
 
-  const playlists = usePlaylistsStore(state => state.playlists)
-  const playlistTracks = usePlaylistsStore(state => state.playlistTracks)
+  const song = useMusicStore(state => state.songs.get(videoId))
+  const playlists = useMusicStore(state => state.playlists)
 
   const matchedPlaylists = useMemo(() => {
-    return playlists.filter(playlist => {
-      const tracks = playlistTracks[playlist.id]
-      return tracks?.some(t => t.videoId === videoId)
-    })
-  }, [playlists, playlistTracks, videoId])
+    if (!song) return []
+    return song.playlistIds
+      .map(id => playlists.get(id))
+      .filter((p): p is NonNullable<typeof p> => p !== undefined)
+  }, [song, playlists, song?.playlistIds])
 
   const count = matchedPlaylists.length
 

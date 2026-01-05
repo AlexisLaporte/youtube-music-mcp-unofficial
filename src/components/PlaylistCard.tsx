@@ -39,7 +39,7 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
+    return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -76,7 +76,7 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({
               onClick={() => onDelete(playlist.id)}
               disabled={isDeleting}
               className="ml-3 p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-xl transition-all duration-200 disabled:opacity-50 hover:scale-110"
-              title="Supprimer la playlist"
+              title="Delete playlist"
             >
               <Trash2 className="h-5 w-5" />
             </button>
@@ -93,7 +93,7 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({
           <div className="flex items-center space-x-2 bg-gradient-to-r from-red-50 to-orange-50 px-3 py-2 rounded-xl">
             <Music className="h-4 w-4 text-red-500" />
             <span className="font-medium text-gray-700">
-              {playlist.trackCount} titre{playlist.trackCount !== 1 ? 's' : ''}
+              {playlist.trackCount} track{playlist.trackCount !== 1 ? 's' : ''}
             </span>
           </div>
           
@@ -106,7 +106,7 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({
         {playlist.publishedAt && (
           <div className="flex items-center space-x-2 text-sm text-gray-500 mt-4 pt-4 border-t border-gray-100">
             <Calendar className="h-4 w-4 text-red-400" />
-            <span>Créée le {formatDate(playlist.publishedAt)}</span>
+            <span>Created on {formatDate(playlist.publishedAt)}</span>
           </div>
         )}
       </div>

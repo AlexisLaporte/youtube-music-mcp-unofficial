@@ -1,7 +1,11 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type EssentiaInstance = any;
 
 interface AudioFeatures {
   bpm: number | null;
@@ -32,24 +36,24 @@ interface LastFmInfo {
 
 declare global {
   interface Window {
-    Essentia: any;
-    EssentiaWASM: any;
+    Essentia: EssentiaInstance;
+    EssentiaWASM: EssentiaInstance;
   }
 }
 
-export default function AnalyzePage() {
+function AnalyzeContent() {
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [isEssentiaReady, setIsEssentiaReady] = useState(false);
   const [features, setFeatures] = useState<AudioFeatures | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sourceName, setSourceName] = useState<string | null>(null);
-  const [loadingStatus, setLoadingStatus] = useState("Chargement d'Essentia.js...");
+  const [loadingStatus, setLoadingStatus] = useState("Loading Essentia.js...");
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [autoAnalyzeTriggered, setAutoAnalyzeTriggered] = useState(false);
   const [lastFmInfo, setLastFmInfo] = useState<LastFmInfo | null>(null);
   const [trackMeta, setTrackMeta] = useState<{ title: string; artist: string } | null>(null);
-  const essentiaRef = useRef<any>(null);
+  const essentiaRef = useRef<EssentiaInstance>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchLastFmTags = async (artist: string, track: string): Promise<string[] | null> => {
@@ -84,6 +88,7 @@ export default function AnalyzePage() {
       // Check cache first
       checkCacheAndAnalyze(videoId, title, artist);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, isEssentiaReady, autoAnalyzeTriggered]);
 
   const checkCacheAndAnalyze = async (videoId: string, urlTitle: string | null, urlArtist: string | null) => {
@@ -155,7 +160,7 @@ export default function AnalyzePage() {
         wasmScript.onload = resolve;
       });
 
-      setLoadingStatus("Chargement du module principal...");
+      setLoadingStatus("Loading main module...");
 
       const essentiaScript = document.createElement("script");
       essentiaScript.src = "https://cdn.jsdelivr.net/npm/essentia.js@0.1.3/dist/essentia.js-core.js";
@@ -165,14 +170,14 @@ export default function AnalyzePage() {
         essentiaScript.onload = resolve;
       });
 
-      setLoadingStatus("Initialisation...");
+      setLoadingStatus("Initializing...");
 
       const wasm = await window.EssentiaWASM();
       essentiaRef.current = new window.Essentia(wasm);
       setIsEssentiaReady(true);
     } catch (err) {
       console.error("Failed to load Essentia:", err);
-      setError("Impossible de charger Essentia.js");
+      setError("Failed to load Essentia.js");
     }
   };
 
@@ -458,9 +463,9 @@ export default function AnalyzePage() {
 
         {/* Back link */}
         <div className="mt-12">
-          <a href="/" className="text-zinc-400 hover:text-white transition-colors">
+          <Link href="/" className="text-zinc-400 hover:text-white transition-colors">
             ← Retour
-          </a>
+          </Link>
         </div>
       </div>
     </div>
@@ -475,5 +480,17 @@ function FeatureCard({ label, value }: { label: string; value: string | number |
         {value !== null ? value : <span className="text-zinc-600">—</span>}
       </p>
     </div>
+  );
+}
+
+export default function AnalyzePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-zinc-700 border-t-white" />
+      </div>
+    }>
+      <AnalyzeContent />
+    </Suspense>
   );
 }

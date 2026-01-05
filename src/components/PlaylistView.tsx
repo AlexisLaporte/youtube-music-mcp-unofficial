@@ -29,7 +29,7 @@ export const PlaylistView: React.FC<PlaylistViewProps> = ({ playlistId }) => {
         const currentPlaylist = playlists.find(p => p.id === playlistId);
 
         if (!currentPlaylist) {
-          setError('Playlist non trouvée');
+          setError('Playlist not found');
           return;
         }
 
@@ -39,7 +39,7 @@ export const PlaylistView: React.FC<PlaylistViewProps> = ({ playlistId }) => {
         const playlistTracks = await apiService.getPlaylistTracks(playlistId);
         setTracks(playlistTracks);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Erreur lors du chargement');
+        setError(err instanceof Error ? err.message : 'Error loading playlist');
       } finally {
         setIsLoading(false);
       }
@@ -53,7 +53,7 @@ export const PlaylistView: React.FC<PlaylistViewProps> = ({ playlistId }) => {
       <div className="h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Chargement de la playlist...</p>
+          <p className="text-gray-600">Loading playlist...</p>
         </div>
       </div>
     );
@@ -64,7 +64,7 @@ export const PlaylistView: React.FC<PlaylistViewProps> = ({ playlistId }) => {
     return (
       <div className="h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center max-w-md">
-          <p className="text-red-700 mb-4">{error || 'Playlist non trouvée'}</p>
+          <p className="text-red-700 mb-4">{error || 'Playlist not found'}</p>
           {isAuthError && (
             <p className="text-gray-600 mb-4">
               Your YouTube session has expired. Please reconnect to YouTube Music.
@@ -76,7 +76,7 @@ export const PlaylistView: React.FC<PlaylistViewProps> = ({ playlistId }) => {
               className="text-red-600 hover:text-red-700 flex items-center gap-2"
             >
               <ArrowLeft className="h-4 w-4" />
-              {isAuthError ? 'Back to home' : 'Retour'}
+              {isAuthError ? 'Back to home' : 'Go back'}
             </button>
             {isAuthError && (
               <button
@@ -102,7 +102,7 @@ export const PlaylistView: React.FC<PlaylistViewProps> = ({ playlistId }) => {
           <button
             onClick={() => router.push('/')}
             className="text-gray-600 hover:text-gray-900 p-2 rounded-lg hover:bg-gray-100 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0"
-            title="Retour"
+            title="Back"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
@@ -113,7 +113,7 @@ export const PlaylistView: React.FC<PlaylistViewProps> = ({ playlistId }) => {
             )}
           </div>
           <div className="text-sm text-gray-600">
-            {tracks.length} morceau{tracks.length > 1 ? 'x' : ''}
+            {tracks.length} track{tracks.length !== 1 ? 's' : ''}
           </div>
         </div>
       </div>
@@ -124,7 +124,7 @@ export const PlaylistView: React.FC<PlaylistViewProps> = ({ playlistId }) => {
           {tracks.length === 0 ? (
             <div className="text-center py-12">
               <Music className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">Cette playlist est vide</p>
+              <p className="text-gray-600">This playlist is empty</p>
             </div>
           ) : (
             tracks.map((track, index) => (
@@ -135,17 +135,17 @@ export const PlaylistView: React.FC<PlaylistViewProps> = ({ playlistId }) => {
                 {/* Desktop Layout */}
                 <div className="hidden md:grid md:grid-cols-[60px_56px_1fr] md:gap-4 md:items-start">
                   {/* Thumbnail */}
-                  <div className="relative flex-shrink-0">
+                  <div className="relative flex-shrink-0 w-[60px] h-[60px]">
                     {track.thumbnail ? (
                       <Image
                         src={track.thumbnail}
                         alt={track.title}
-                        width={60}
-                        height={60}
-                        className="rounded-lg"
+                        fill
+                        sizes="60px"
+                        className="rounded-lg object-cover"
                       />
                     ) : (
-                      <div className="w-15 h-15 bg-gray-200 rounded-lg flex items-center justify-center">
+                      <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center">
                         <Music className="h-6 w-6 text-gray-400" />
                       </div>
                     )}
@@ -155,7 +155,7 @@ export const PlaylistView: React.FC<PlaylistViewProps> = ({ playlistId }) => {
                   <button
                     onClick={() => setCurrentlyPlaying(currentlyPlaying === track.videoId ? null : track.videoId)}
                     className="flex-shrink-0 w-14 h-14 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center transition-colors"
-                    title={currentlyPlaying === track.videoId ? 'Pause' : 'Lecture'}
+                    title={currentlyPlaying === track.videoId ? 'Pause' : 'Play'}
                   >
                     {currentlyPlaying === track.videoId ? (
                       <Pause className="h-6 w-6 text-white" />
@@ -178,17 +178,17 @@ export const PlaylistView: React.FC<PlaylistViewProps> = ({ playlistId }) => {
                 <div className="md:hidden space-y-3">
                   {/* Row 1: Thumbnail + Title/Artist */}
                   <div className="flex items-start gap-3">
-                    <div className="relative flex-shrink-0">
+                    <div className="relative flex-shrink-0 w-[60px] h-[60px]">
                       {track.thumbnail ? (
                         <Image
                           src={track.thumbnail}
                           alt={track.title}
-                          width={60}
-                          height={60}
-                          className="rounded-lg"
+                          fill
+                          sizes="60px"
+                          className="rounded-lg object-cover"
                         />
                       ) : (
-                        <div className="w-15 h-15 bg-gray-200 rounded-lg flex items-center justify-center">
+                        <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center">
                           <Music className="h-6 w-6 text-gray-400" />
                         </div>
                       )}
@@ -207,7 +207,7 @@ export const PlaylistView: React.FC<PlaylistViewProps> = ({ playlistId }) => {
                   <button
                     onClick={() => setCurrentlyPlaying(currentlyPlaying === track.videoId ? null : track.videoId)}
                     className="w-14 h-14 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center transition-colors active:scale-95"
-                    title={currentlyPlaying === track.videoId ? 'Pause' : 'Lecture'}
+                    title={currentlyPlaying === track.videoId ? 'Pause' : 'Play'}
                   >
                     {currentlyPlaying === track.videoId ? (
                       <Pause className="h-7 w-7 text-white" />
@@ -229,7 +229,7 @@ export const PlaylistView: React.FC<PlaylistViewProps> = ({ playlistId }) => {
           <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
             <div className="p-3">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-900">En lecture</span>
+                <span className="text-sm font-medium text-gray-900">Now playing</span>
                 <button
                   onClick={() => setCurrentlyPlaying(null)}
                   className="text-gray-400 hover:text-gray-700 min-w-[44px] min-h-[44px] flex items-center justify-center"
@@ -256,7 +256,7 @@ export const PlaylistView: React.FC<PlaylistViewProps> = ({ playlistId }) => {
           <div className="hidden md:block fixed bottom-4 right-4 w-80 bg-white border border-gray-200 shadow-lg rounded-lg z-50">
             <div className="p-2">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-gray-600">En lecture</span>
+                <span className="text-xs text-gray-600">Now playing</span>
                 <button
                   onClick={() => setCurrentlyPlaying(null)}
                   className="text-gray-400 hover:text-gray-700 text-xs"

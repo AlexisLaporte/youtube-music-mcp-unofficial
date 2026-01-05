@@ -4,10 +4,11 @@ import React from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Music, Trash2 } from 'lucide-react'
-import { YouTubePlaylist } from '@/types/youtube'
+import { Playlist } from '@/types/youtube'
+import { useMusicStore } from '@/stores/useMusicStore'
 
 interface PlaylistGridProps {
-  playlists: YouTubePlaylist[]
+  playlists: Playlist[]
   selectedIds: Set<string>
   onToggleSelect?: (playlistId: string) => void
   onDelete?: (playlistId: string) => void
@@ -22,6 +23,7 @@ export const PlaylistGrid: React.FC<PlaylistGridProps> = ({
   isBatchMode = false
 }) => {
   const router = useRouter()
+  const playlistSongs = useMusicStore(state => state.playlistSongs)
 
   if (playlists.length === 0) {
     return (
@@ -105,7 +107,7 @@ export const PlaylistGrid: React.FC<PlaylistGridProps> = ({
 
               {/* Track count badge */}
               <div className="absolute bottom-2 right-2 px-2 py-0.5 bg-black bg-opacity-70 text-white text-xs rounded">
-                {playlist.trackCount} tracks
+                {(playlistSongs.get(playlist.id) || []).length} tracks
               </div>
             </div>
 

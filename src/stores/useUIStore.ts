@@ -20,15 +20,24 @@ interface ModalData {
 
 type SortBy = 'date' | 'artist' | 'title' | 'playlistCount'
 type SortOrder = 'asc' | 'desc'
+type MobileTab = 'playlists' | 'songs' | 'detail'
 
 interface UIState {
+  // Navigation (3-column layout)
+  selectedPlaylistId: string | 'liked' | null  // Col 1 selection
+  selectedSongId: string | null                 // Col 2 selection (for detail view)
+  isNowPlayingMode: boolean                     // Player bar expanded view
+  mobileTab: MobileTab                          // Mobile bottom tabs
+  isSearchMode: boolean                         // YouTube search mode active
+
   // Modals
   activeModal: ModalType
   modalData: ModalData
 
-  // Mini Player
+  // Player
   playerVideoId: string | null
   isPlayerVisible: boolean
+  isPlayerPaused: boolean
 
   // View modes
   view: 'list' | 'grid'
@@ -49,14 +58,27 @@ interface UIState {
 
   // Batch operations mode
   isBatchMode: boolean
+  selectedPlaylists: Set<string>
+  selectedTracks: Set<string>
 
   // Actions - Modals
   openModal: (type: ModalType, data?: ModalData) => void
   closeModal: () => void
   updateModalData: (data: Partial<ModalData>) => void
 
+  // Actions - Navigation
+  selectPlaylist: (playlistId: string | 'liked' | null) => void
+  selectSong: (songId: string | null) => void
+  toggleNowPlayingMode: () => void
+  setMobileTab: (tab: MobileTab) => void
+  enterSearchMode: () => void
+  exitSearchMode: () => void
+
   // Actions - Player
   playVideo: (videoId: string) => void
+  pausePlayer: () => void
+  resumePlayer: () => void
+  togglePlayPause: () => void
   closePlayer: () => void
 
   // Actions - View
@@ -82,14 +104,28 @@ interface UIState {
   // Actions - Batch mode
   toggleBatchMode: () => void
   exitBatchMode: () => void
+
+  // Actions - Batch selection
+  togglePlaylistSelection: (playlistId: string) => void
+  clearPlaylistSelection: () => void
+  toggleTrackSelection: (trackId: string) => void
+  clearTrackSelection: () => void
 }
 
 export const useUIStore = create<UIState>((set) => ({
-  // Initial state
+  // Initial state - Navigation
+  selectedPlaylistId: 'liked',  // Default to liked songs
+  selectedSongId: null,
+  isNowPlayingMode: false,
+  mobileTab: 'playlists',
+  isSearchMode: false,
+
+  // Initial state - Modals & Player
   activeModal: null,
   modalData: {},
   playerVideoId: null,
   isPlayerVisible: false,
+  isPlayerPaused: false,
   view: 'list',
   filterMode: 'all',
   searchQuery: '',
@@ -100,6 +136,8 @@ export const useUIStore = create<UIState>((set) => ({
   isMobileSearchVisible: false,
   isMobileMenuOpen: false,
   isBatchMode: false,
+  selectedPlaylists: new Set(),
+  selectedTracks: new Set(),
 
   // Modal actions
   openModal: (type, data = {}) => {
@@ -118,15 +156,63 @@ export const useUIStore = create<UIState>((set) => ({
     }))
   },
 
+  // Navigation actions
+  selectPlaylist: (playlistId) => {
+    set({
+      selectedPlaylistId: playlistId,
+      selectedSongId: null,
+      isNowPlayingMode: false,
+      isSearchMode: false  // Exit search mode when selecting a playlist
+    })
+  },
+
+  selectSong: (songId) => {
+    set({ selectedSongId: songId, isNowPlayingMode: false })
+  },
+
+  toggleNowPlayingMode: () => {
+    set(state => ({ isNowPlayingMode: !state.isNowPlayingMode }))
+  },
+
+  setMobileTab: (tab) => {
+    set({ mobileTab: tab })
+  },
+
+  enterSearchMode: () => {
+    set({ isSearchMode: true, selectedSongId: null, isNowPlayingMode: false })
+  },
+
+  exitSearchMode: () => {
+    set({ isSearchMode: false })
+  },
+
   // Player actions
   playVideo: (videoId) => {
     console.log('▶️ Playing video:', videoId)
-    set({ playerVideoId: videoId, isPlayerVisible: true })
+    set({ playerVideoId: videoId, isPlayerVisible: true, isPlayerPaused: false })
+  },
+
+  pausePlayer: () => {
+    console.log('⏸️ Pausing player')
+    set({ isPlayerPaused: true })
+  },
+
+  resumePlayer: () => {
+    console.log('▶️ Resuming player')
+    set({ isPlayerPaused: false })
+  },
+
+  togglePlayPause: () => {
+    set(state => {
+      const newPaused = !state.isPlayerPaused
+      console.log(newPaused ? '⏸️ Pausing' : '▶️ Resuming')
+      return { isPlayerPaused: newPaused }
+    })
   },
 
   closePlayer: () => {
     console.log('⏹️ Closing player')
-    set({ playerVideoId: null, isPlayerVisible: false })
+    set({ playerVideoId: null, isPlayerVisible: false, isPlayerPaused: false })
   },
 
   // View actions
@@ -202,5 +288,38 @@ export const useUIStore = create<UIState>((set) => ({
   exitBatchMode: () => {
     console.log('📦 Exiting batch mode')
     set({ isBatchMode: false })
+  },
+
+  // Batch selection actions
+  togglePlaylistSelection: (playlistId) => {
+    set(state => {
+      const newSet = new Set(state.selectedPlaylists)
+      if (newSet.has(playlistId)) {
+        newSet.delete(playlistId)
+      } else {
+        newSet.add(playlistId)
+      }
+      return { selectedPlaylists: newSet }
+    })
+  },
+
+  clearPlaylistSelection: () => {
+    set({ selectedPlaylists: new Set() })
+  },
+
+  toggleTrackSelection: (trackId) => {
+    set(state => {
+      const newSet = new Set(state.selectedTracks)
+      if (newSet.has(trackId)) {
+        newSet.delete(trackId)
+      } else {
+        newSet.add(trackId)
+      }
+      return { selectedTracks: newSet }
+    })
+  },
+
+  clearTrackSelection: () => {
+    set({ selectedTracks: new Set() })
   }
 }))

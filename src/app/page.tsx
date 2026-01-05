@@ -1,53 +1,7 @@
 'use client'
 
-import React, { useEffect } from 'react'
-import { Header } from '@/components/Header'
-import { Dashboard } from '@/components/Dashboard'
-import { LoginPrompt } from '@/components/LoginPrompt'
-import { useAuthStore } from '@/stores/useAuthStore'
+import { AppShell } from '@/components/layout/AppShell'
 
 export default function Home() {
-  const {
-    isConnected,
-    user,
-    isLoading,
-    error,
-    initialize,
-    signIn,
-    signOut
-  } = useAuthStore()
-
-  useEffect(() => {
-    initialize()
-  }, [initialize])
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-space-cadet via-cool-gray to-antiflash-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-antiflash-white/30 border-t-red-pantone mx-auto mb-6"></div>
-          <p className="text-antiflash-white text-lg font-medium">Checking authentication...</p>
-          <div className="mt-4 text-red-pantone text-2xl animate-pulse">♪</div>
-        </div>
-      </div>
-    )
-  }
-
-  if (!isConnected) {
-    return <LoginPrompt onConnect={signIn} error={error || undefined} />
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Header
-        isConnected={isConnected}
-        onConnect={signIn}
-        onDisconnect={signOut}
-        userName={user?.name}
-        userEmail={user?.email}
-        userAvatar={user?.profilePicture}
-      />
-      <Dashboard userName={user?.name || 'User'} />
-    </div>
-  )
+  return <AppShell playlistId="liked" />
 }

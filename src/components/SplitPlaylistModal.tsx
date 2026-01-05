@@ -1,11 +1,11 @@
 'use client'
 
 import React, { useState } from 'react'
-import { YouTubeTrack } from '@/types/youtube'
+import { Song } from '@/types/youtube'
 
 interface SplitPlaylistModalProps {
   sourcePlaylistTitle: string
-  selectedTracks: YouTubeTrack[]
+  selectedTracks: Song[]
   onConfirm: (
     title: string,
     description: string,

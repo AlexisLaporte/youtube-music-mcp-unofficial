@@ -36,7 +36,7 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
               <div>
                 <h1 className="text-xl font-bold text-slate-900">YouTube Music Manager</h1>
-                <p className="text-sm text-slate-600 hidden sm:block">Gérez vos playlists YouTube facilement</p>
+                <p className="text-sm text-slate-600 hidden sm:block">Manage your YouTube playlists easily</p>
               </div>
             </Link>
 
@@ -106,7 +106,7 @@ export const Header: React.FC<HeaderProps> = ({
                 className="flex items-center space-x-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg transition-colors"
               >
                 <LogOut className="h-4 w-4" />
-                <span className="hidden sm:block">Déconnexion</span>
+                <span className="hidden sm:block">Sign out</span>
               </button>
             </div>
           ) : (
@@ -114,7 +114,7 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={onConnect}
               className="bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600 text-white px-4 py-2 rounded-lg transition-all duration-200"
             >
-              Se connecter
+              Sign in
             </button>
           )}
         </div>

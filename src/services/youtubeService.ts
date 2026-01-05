@@ -150,6 +150,63 @@ class YouTubeService {
     return tracks
   }
 
+  async rateVideo(videoId: string, rating: 'like' | 'dislike' | 'none'): Promise<void> {
+    const token = this.getProviderToken()
+    if (!token) {
+      throw new Error('No YouTube access token available')
+    }
+
+    const params = new URLSearchParams({ id: videoId, rating })
+    const response = await fetch(`https://www.googleapis.com/youtube/v3/videos/rate?${params}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error(`Failed to rate video: ${response.statusText}`)
+    }
+  }
+
+  async removeVideoFromPlaylist(playlistId: string, videoId: string): Promise<void> {
+    // First, find the playlistItemId for this video
+    const params = new URLSearchParams({
+      part: 'id,snippet',
+      playlistId,
+      videoId,
+      maxResults: '1',
+    })
+
+    const data = await this.fetchYouTube(`playlistItems?${params}`)
+
+    if (!data.items || data.items.length === 0) {
+      throw new Error(`Video ${videoId} not found in playlist ${playlistId}`)
+    }
+
+    const playlistItemId = data.items[0].id
+
+    // Delete the playlist item
+    const token = this.getProviderToken()
+    if (!token) {
+      throw new Error('No YouTube access token available')
+    }
+
+    const deleteParams = new URLSearchParams({ id: playlistItemId })
+    const response = await fetch(`https://www.googleapis.com/youtube/v3/playlistItems?${deleteParams}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error(`Failed to remove video from playlist: ${response.statusText}`)
+    }
+
+    console.log(`✅ Removed video ${videoId} from playlist ${playlistId}`)
+  }
+
   async getPlaylistTracks(playlistId: string): Promise<YouTubeTrack[]> {
     console.log(`🎵 Fetching tracks for playlist ${playlistId}...`)
     const tracks: YouTubeTrack[] = []

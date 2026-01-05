@@ -2,17 +2,11 @@
 
 import React from 'react'
 import { TrackCard } from './TrackCard'
-import { YouTubeTrack, PlaylistSuggestion } from '@/types/youtube'
-
-interface TrackListItem {
-  track: YouTubeTrack
-  suggestedPlaylists: PlaylistSuggestion[]
-}
+import { Song } from '@/types/youtube'
 
 interface LikedSongsTrackListProps {
-  tracks: TrackListItem[]
+  tracks: Song[]
   currentlyPlaying: string | null
-  isAddingTrack: string | null
   onPlayToggle: (videoId: string) => void
   onAddToPlaylist: (videoId: string, playlistId?: string) => void
   searchQuery: string
@@ -21,7 +15,6 @@ interface LikedSongsTrackListProps {
 export const LikedSongsTrackList: React.FC<LikedSongsTrackListProps> = ({
   tracks,
   currentlyPlaying,
-  isAddingTrack,
   onPlayToggle,
   onAddToPlaylist,
   searchQuery
@@ -38,16 +31,14 @@ export const LikedSongsTrackList: React.FC<LikedSongsTrackListProps> = ({
 
   return (
     <div className="space-y-2">
-      {tracks.map(({ track, suggestedPlaylists }) => (
+      {tracks.map((song) => (
         <TrackCard
-          key={track.id}
-          track={track}
-          suggestedPlaylists={suggestedPlaylists}
-          isPlaying={currentlyPlaying === track.videoId}
-          isAdding={isAddingTrack?.startsWith(track.videoId)}
-          onPlayToggle={() => onPlayToggle(track.videoId)}
+          key={song.videoId}
+          song={song}
+          isPlaying={currentlyPlaying === song.videoId}
+          onPlayToggle={() => onPlayToggle(song.videoId)}
           onAddToPlaylist={(playlistId?: string) => {
-            onAddToPlaylist(track.videoId, playlistId)
+            onAddToPlaylist(song.videoId, playlistId)
           }}
         />
       ))}

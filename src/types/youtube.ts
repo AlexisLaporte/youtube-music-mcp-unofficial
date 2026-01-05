@@ -9,6 +9,31 @@ export interface AuthStatus {
   error?: string;
 }
 
+// ============ Nouveau modèle relationnel ============
+
+export interface Song {
+  videoId: string;
+  title: string;
+  artist: string;
+  duration: string;
+  thumbnail?: string;
+  isLiked: boolean;
+  playlistIds: string[];
+  addedAt?: string;
+}
+
+export interface Playlist {
+  id: string;
+  title: string;
+  description: string;
+  thumbnail?: string;
+  privacy: 'public' | 'private' | 'unlisted';
+  publishedAt?: string;
+}
+
+// ============ Ancien modèle (deprecated) ============
+
+/** @deprecated Use Playlist instead */
 export interface YouTubePlaylist {
   id: string;
   title: string;
@@ -19,6 +44,7 @@ export interface YouTubePlaylist {
   publishedAt?: string;
 }
 
+/** @deprecated Use Song instead */
 export interface YouTubeTrack {
   id: string;
   title: string;
