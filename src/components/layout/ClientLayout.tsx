@@ -73,7 +73,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
 
   return (
     <div className="h-screen flex flex-col bg-white dark:bg-slate-900 transition-colors">
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-auto">
         {children}
       </div>
       {hasPlayer && <PlayerBar />}
