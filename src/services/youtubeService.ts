@@ -1,5 +1,10 @@
 import { YouTubePlaylist, YouTubeTrack, PlaylistAnalysis } from '@/types/youtube'
 
+export interface SearchResult extends YouTubeTrack {
+  channelTitle: string
+  publishedAt: string
+}
+
 class YouTubeService {
   private readonly PROVIDER_TOKEN_KEY = 'youtube_provider_token'
 
@@ -68,6 +73,42 @@ class YouTubeService {
 
     console.log(`✅ Fetched ${playlists.length} playlists`)
     return playlists
+  }
+
+  async searchVideos(query: string, maxResults = 20): Promise<SearchResult[]> {
+    console.log(`🔍 Searching for: ${query}`)
+
+    const params = new URLSearchParams({
+      part: 'snippet',
+      type: 'video',
+      videoCategoryId: '10', // Music category
+      q: query,
+      maxResults: String(maxResults),
+    })
+
+    const data = await this.fetchYouTube(`search?${params}`)
+
+    const results: SearchResult[] = (data.items || []).map((item: {
+      id: { videoId: string }
+      snippet: {
+        title: string
+        channelTitle: string
+        thumbnails?: { medium?: { url: string }, default?: { url: string } }
+        publishedAt: string
+      }
+    }) => ({
+      id: item.id.videoId,
+      videoId: item.id.videoId,
+      title: item.snippet.title,
+      artist: item.snippet.channelTitle.replace(' - Topic', ''),
+      channelTitle: item.snippet.channelTitle,
+      duration: '', // Not available in search results
+      thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
+      publishedAt: item.snippet.publishedAt,
+    }))
+
+    console.log(`✅ Found ${results.length} results`)
+    return results
   }
 
   async getLikedSongs(musicOnly = true): Promise<YouTubeTrack[]> {

@@ -310,24 +310,18 @@ export const LikedSongsAnalysis: React.FC = () => {
                 </p>
               </div>
             ) : (
-              filteredTracks.map(({ track, foundInPlaylists, suggestedPlaylists }) => (
+              filteredTracks.map(({ track, suggestedPlaylists }) => (
                 <TrackCard
                   key={track.id}
                   track={track}
-                  foundInPlaylists={foundInPlaylists}
                   suggestedPlaylists={suggestedPlaylists}
                   isPlaying={currentlyPlaying === track.videoId}
                   isAdding={isAddingTrack?.startsWith(track.videoId)}
                   onPlayToggle={() => setCurrentlyPlaying(currentlyPlaying === track.videoId ? null : track.videoId)}
                   onAddToPlaylist={(playlistId?: string) => {
-                    console.log('onAddToPlaylist called with playlistId:', playlistId);
                     if (playlistId) {
-                      // Direct add to suggested playlist
-                      console.log(`Direct add: video ${track.videoId} to playlist ${playlistId}`);
                       addToPlaylist(track.videoId, playlistId);
                     } else {
-                      // Open playlist selector modal
-                      console.log('Opening playlist selector for video:', track.videoId);
                       setAddingToPlaylist(track.videoId);
                     }
                   }}

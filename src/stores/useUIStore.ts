@@ -18,6 +18,9 @@ interface ModalData {
   [key: string]: unknown
 }
 
+type SortBy = 'date' | 'artist' | 'title' | 'playlistCount'
+type SortOrder = 'asc' | 'desc'
+
 interface UIState {
   // Modals
   activeModal: ModalType
@@ -31,6 +34,14 @@ interface UIState {
   view: 'list' | 'grid'
   filterMode: 'all' | 'not-in-playlists'
   searchQuery: string
+
+  // Sorting
+  sortBy: SortBy
+  sortOrder: SortOrder
+
+  // Advanced filters
+  filterArtist: string | null
+  filterPlaylists: string[]
 
   // Mobile
   isMobileSearchVisible: boolean
@@ -53,6 +64,16 @@ interface UIState {
   setFilterMode: (mode: 'all' | 'not-in-playlists') => void
   setSearchQuery: (query: string) => void
 
+  // Actions - Sorting
+  setSortBy: (sortBy: SortBy) => void
+  setSortOrder: (order: SortOrder) => void
+  toggleSortOrder: () => void
+
+  // Actions - Advanced filters
+  setFilterArtist: (artist: string | null) => void
+  setFilterPlaylists: (playlistIds: string[]) => void
+  clearFilters: () => void
+
   // Actions - Mobile
   toggleMobileSearch: () => void
   toggleMobileMenu: () => void
@@ -72,6 +93,10 @@ export const useUIStore = create<UIState>((set) => ({
   view: 'list',
   filterMode: 'all',
   searchQuery: '',
+  sortBy: 'date',
+  sortOrder: 'desc',
+  filterArtist: null,
+  filterPlaylists: [],
   isMobileSearchVisible: false,
   isMobileMenuOpen: false,
   isBatchMode: false,
@@ -117,6 +142,39 @@ export const useUIStore = create<UIState>((set) => ({
 
   setSearchQuery: (query) => {
     set({ searchQuery: query })
+  },
+
+  // Sorting actions
+  setSortBy: (sortBy) => {
+    set({ sortBy })
+  },
+
+  setSortOrder: (order) => {
+    set({ sortOrder: order })
+  },
+
+  toggleSortOrder: () => {
+    set(state => ({ sortOrder: state.sortOrder === 'asc' ? 'desc' : 'asc' }))
+  },
+
+  // Advanced filter actions
+  setFilterArtist: (artist) => {
+    set({ filterArtist: artist })
+  },
+
+  setFilterPlaylists: (playlistIds) => {
+    set({ filterPlaylists: playlistIds })
+  },
+
+  clearFilters: () => {
+    set({
+      searchQuery: '',
+      filterMode: 'all',
+      filterArtist: null,
+      filterPlaylists: [],
+      sortBy: 'date',
+      sortOrder: 'desc'
+    })
   },
 
   // Mobile actions

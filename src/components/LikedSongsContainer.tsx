@@ -28,11 +28,17 @@ export const LikedSongsContainer: React.FC = () => {
     setSearchQuery,
     filterMode,
     setFilterMode,
+    sortBy,
+    sortOrder,
+    setSortBy,
+    toggleSortOrder,
     activeModal,
     modalData,
     openModal,
     closeModal
   } = useUIStore()
+
+  const getPlaylistsForVideo = usePlaylistsStore(state => state.getPlaylistsForVideo)
 
   const [error, setError] = useState<string>('')
   const [showSearch, setShowSearch] = useState(false)
@@ -119,18 +125,44 @@ export const LikedSongsContainer: React.FC = () => {
     URL.revokeObjectURL(url)
   }
 
-  // Filtered tracks
+  // Filtered and sorted tracks
   const filteredTracks = useMemo(() => {
     if (!analysis) return []
 
-    return analysis.crossReferences.filter((ref) => {
-      const matchesTab = filterMode === 'all' || (filterMode === 'not-in-playlists' && ref.foundInPlaylists.length === 0)
+    // Filter
+    const filtered = analysis.crossReferences.filter((ref) => {
+      const playlistCount = getPlaylistsForVideo(ref.track.videoId).length
+      const matchesTab = filterMode === 'all' || (filterMode === 'not-in-playlists' && playlistCount === 0)
       const matchesSearch = !searchQuery ||
         ref.track.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         ref.track.artist.toLowerCase().includes(searchQuery.toLowerCase())
       return matchesTab && matchesSearch
     })
-  }, [analysis, filterMode, searchQuery])
+
+    // Sort
+    const sorted = [...filtered].sort((a, b) => {
+      let comparison = 0
+      switch (sortBy) {
+        case 'date':
+          comparison = (a.track.addedAt || '').localeCompare(b.track.addedAt || '')
+          break
+        case 'artist':
+          comparison = a.track.artist.localeCompare(b.track.artist)
+          break
+        case 'title':
+          comparison = a.track.title.localeCompare(b.track.title)
+          break
+        case 'playlistCount':
+          const countA = getPlaylistsForVideo(a.track.videoId).length
+          const countB = getPlaylistsForVideo(b.track.videoId).length
+          comparison = countA - countB
+          break
+      }
+      return sortOrder === 'asc' ? comparison : -comparison
+    })
+
+    return sorted
+  }, [analysis, filterMode, searchQuery, sortBy, sortOrder, getPlaylistsForVideo])
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
@@ -154,6 +186,10 @@ export const LikedSongsContainer: React.FC = () => {
                 onSearchChange={setSearchQuery}
                 showSearch={showSearch}
                 notInPlaylistsCount={analysis.statistics.songsNotFoundInPlaylists}
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+                onSortByChange={setSortBy}
+                onToggleSortOrder={toggleSortOrder}
               />
             </div>
           )}

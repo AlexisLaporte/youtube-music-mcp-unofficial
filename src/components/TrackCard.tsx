@@ -1,17 +1,14 @@
 'use client'
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Music, Play, Pause, Plus, BarChart3 } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { YouTubeTrack, YouTubePlaylist } from '@/types/youtube';
+import { PlaylistBadges } from './PlaylistBadges';
 
 interface TrackCardProps {
   track: YouTubeTrack;
-  foundInPlaylists: {
-    playlist: YouTubePlaylist;
-    position: number;
-  }[];
   suggestedPlaylists?: {
     playlist: YouTubePlaylist;
     score: number;
@@ -25,7 +22,6 @@ interface TrackCardProps {
 
 export const TrackCard: React.FC<TrackCardProps> = ({
   track,
-  foundInPlaylists,
   suggestedPlaylists,
   isPlaying,
   isAdding = false,
@@ -33,10 +29,6 @@ export const TrackCard: React.FC<TrackCardProps> = ({
   onAddToPlaylist,
 }) => {
   const router = useRouter();
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  const playlistCount = foundInPlaylists.length;
-  const hasPlaylists = playlistCount > 0;
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl transition-all duration-200 hover:border-red-300 hover:shadow-sm p-3">
@@ -60,30 +52,17 @@ export const TrackCard: React.FC<TrackCardProps> = ({
         </div>
 
         {/* Track Info */}
-        <div
-          className="flex-1 min-w-0 cursor-pointer"
-          onClick={() => setIsExpanded(!isExpanded)}
-        >
+        <div className="flex-1 min-w-0">
           <h4 className="font-medium text-gray-900 truncate text-sm md:text-base">
             {track.title}
           </h4>
           <p className="text-xs md:text-sm text-gray-600 truncate">
             {track.artist}
           </p>
-          {/* Compact Playlist Info */}
-          {hasPlaylists && (
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="text-xs text-green-600 font-medium">
-                {playlistCount} PL
-              </span>
-              {!isExpanded && (
-                <span className="text-xs text-gray-400">• Tap for details</span>
-              )}
-            </div>
-          )}
-          {!hasPlaylists && (
-            <span className="text-xs text-orange-600">Not in any playlist</span>
-          )}
+          {/* Playlist Badges */}
+          <div className="mt-0.5">
+            <PlaylistBadges videoId={track.videoId} maxVisible={2} />
+          </div>
         </div>
 
         {/* Action Buttons */}
@@ -148,31 +127,6 @@ export const TrackCard: React.FC<TrackCardProps> = ({
         </div>
       )}
 
-      {/* Expanded Details - Collapsible */}
-      {isExpanded && (
-        <div className="mt-3 pt-3 border-t border-gray-100 space-y-2 animate-in slide-in-from-top-2 duration-200 px-3">
-          {/* Found in Playlists */}
-          {hasPlaylists && (
-            <div>
-              <p className="text-xs text-gray-500 mb-1.5">Found in:</p>
-              <div className="flex flex-wrap gap-1.5">
-                {foundInPlaylists.map(({ playlist, position }, idx) => (
-                  <button
-                    key={`${playlist.id}-${position}-${idx}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      router.push(`/playlist/${playlist.id}`);
-                    }}
-                    className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 transition-colors hover:bg-green-200"
-                  >
-                    {playlist.title} #{position}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 };

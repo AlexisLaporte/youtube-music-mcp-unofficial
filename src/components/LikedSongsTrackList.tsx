@@ -2,11 +2,10 @@
 
 import React from 'react'
 import { TrackCard } from './TrackCard'
-import { YouTubeTrack, YouTubePlaylist, PlaylistSuggestion } from '@/types/youtube'
+import { YouTubeTrack, PlaylistSuggestion } from '@/types/youtube'
 
 interface TrackListItem {
   track: YouTubeTrack
-  foundInPlaylists: { playlist: YouTubePlaylist; position: number }[]
   suggestedPlaylists: PlaylistSuggestion[]
 }
 
@@ -39,11 +38,10 @@ export const LikedSongsTrackList: React.FC<LikedSongsTrackListProps> = ({
 
   return (
     <div className="space-y-2">
-      {tracks.map(({ track, foundInPlaylists, suggestedPlaylists }) => (
+      {tracks.map(({ track, suggestedPlaylists }) => (
         <TrackCard
           key={track.id}
           track={track}
-          foundInPlaylists={foundInPlaylists}
           suggestedPlaylists={suggestedPlaylists}
           isPlaying={currentlyPlaying === track.videoId}
           isAdding={isAddingTrack?.startsWith(track.videoId)}

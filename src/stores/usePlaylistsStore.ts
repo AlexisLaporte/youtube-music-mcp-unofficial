@@ -70,8 +70,20 @@ function calculateMostCommonPlaylists(
     .slice(0, 10)
 }
 
-// Deduplication: prevent concurrent fetches for same resource
-const pendingFetches = new Map<string, Promise<void>>()
+// Build reverse index: videoId → playlistIds
+function buildVideoIndex(playlistTracks: Record<string, YouTubeTrack[]>): Map<string, string[]> {
+  const index = new Map<string, string[]>()
+  for (const [playlistId, tracks] of Object.entries(playlistTracks)) {
+    for (const track of tracks) {
+      const existing = index.get(track.videoId) || []
+      if (!existing.includes(playlistId)) {
+        existing.push(playlistId)
+        index.set(track.videoId, existing)
+      }
+    }
+  }
+  return index
+}
 
 interface CacheResult<T> {
   data: T | null
@@ -107,6 +119,7 @@ interface PlaylistsState {
   playlists: YouTubePlaylist[]
   likedSongs: YouTubeTrack[]
   playlistTracks: Record<string, YouTubeTrack[]>
+  videoIdToPlaylists: Map<string, string[]>  // reverse index for O(1) lookup
   analysis: PlaylistAnalysis | null
 
   // Loading states
@@ -149,6 +162,10 @@ interface PlaylistsState {
   // Actions - Cache
   invalidateCache: () => void
   clearAllData: () => void
+
+  // Actions - Index
+  getPlaylistsForVideo: (videoId: string) => string[]
+  rebuildVideoIndex: () => void
 }
 
 export const usePlaylistsStore = create<PlaylistsState>((set, get) => ({
@@ -156,6 +173,7 @@ export const usePlaylistsStore = create<PlaylistsState>((set, get) => ({
   playlists: [],
   likedSongs: [],
   playlistTracks: {},
+  videoIdToPlaylists: new Map(),
   analysis: null,
   isLoadingPlaylists: false,
   isLoadingLikedSongs: false,
@@ -259,19 +277,24 @@ export const usePlaylistsStore = create<PlaylistsState>((set, get) => ({
       const cached = await fetchCache<YouTubeTrack[]>('tracks', playlistId)
       if (cached.data && cached.fresh) {
         console.log(`📦 Using server-cached tracks for playlist ${playlistId}`)
-        set({ playlistTracks: { ...state.playlistTracks, [playlistId]: cached.data } })
+        const newPlaylistTracks = { ...state.playlistTracks, [playlistId]: cached.data }
+        set({ playlistTracks: newPlaylistTracks, videoIdToPlaylists: buildVideoIndex(newPlaylistTracks) })
         return
       }
       if (cached.data) {
         console.log(`📦 Using stale tracks cache for ${playlistId}, syncing in background...`)
-        set({ playlistTracks: { ...state.playlistTracks, [playlistId]: cached.data }, isSyncing: true })
+        const newPlaylistTracks = { ...state.playlistTracks, [playlistId]: cached.data }
+        set({ playlistTracks: newPlaylistTracks, videoIdToPlaylists: buildVideoIndex(newPlaylistTracks), isSyncing: true })
       }
     }
 
     console.log(`🔄 Fetching tracks for playlist ${playlistId} from YouTube...`)
     try {
       const tracks = await apiService.getPlaylistTracks(playlistId)
-      set({ playlistTracks: { ...get().playlistTracks, [playlistId]: tracks }, isSyncing: false })
+      const newPlaylistTracks = { ...get().playlistTracks, [playlistId]: tracks }
+      set({ playlistTracks: newPlaylistTracks, isSyncing: false })
+      // Rebuild index with updated tracks
+      set({ videoIdToPlaylists: buildVideoIndex(newPlaylistTracks) })
       await saveCache('tracks', tracks, playlistId)
       console.log(`✅ Fetched ${tracks.length} tracks`)
     } catch (error) {
@@ -525,6 +548,7 @@ export const usePlaylistsStore = create<PlaylistsState>((set, get) => ({
       playlists: [],
       likedSongs: [],
       playlistTracks: {},
+      videoIdToPlaylists: new Map(),
       analysis: null,
       cacheTimestamp: null,
       selectedTracks: new Set(),
@@ -532,5 +556,17 @@ export const usePlaylistsStore = create<PlaylistsState>((set, get) => ({
     })
     // Also clear server cache
     fetch('/api/cache', { method: 'DELETE' }).catch(() => {})
+  },
+
+  // Index methods
+  getPlaylistsForVideo: (videoId: string) => {
+    return get().videoIdToPlaylists.get(videoId) || []
+  },
+
+  rebuildVideoIndex: () => {
+    const { playlistTracks } = get()
+    const index = buildVideoIndex(playlistTracks)
+    set({ videoIdToPlaylists: index })
+    console.log(`🔍 Video index rebuilt: ${index.size} unique videos`)
   }
 }))

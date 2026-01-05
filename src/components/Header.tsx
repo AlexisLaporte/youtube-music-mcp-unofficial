@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Music, LogOut, User, Heart, ListMusic } from 'lucide-react'
+import { Music, LogOut, User, Heart, ListMusic, Search } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -63,6 +63,17 @@ export const Header: React.FC<HeaderProps> = ({
                 >
                   <ListMusic className="h-4 w-4" />
                   Playlists
+                </Link>
+                <Link
+                  href="/search"
+                  className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    pathname === '/search'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  <Search className="h-4 w-4" />
+                  Search
                 </Link>
               </nav>
             )}
