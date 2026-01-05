@@ -37,3 +37,9 @@ dev/dev.log
 
 # supabase
 /supabase
+
+# SQLite cache
+/data
+
+# temp player scripts
+*-player-script.js

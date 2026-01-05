@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react';
-import { Music, Play, Pause, Plus } from 'lucide-react';
+import { Music, Play, Pause, Plus, BarChart3 } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { YouTubeTrack, YouTubePlaylist } from '@/types/youtube';
@@ -99,6 +99,15 @@ export const TrackCard: React.FC<TrackCardProps> = ({
             ) : (
               <Play className="h-4 w-4 md:h-5 md:w-5 text-white ml-0.5" />
             )}
+          </button>
+
+          {/* Analyze Button */}
+          <button
+            onClick={() => router.push(`/analyze?v=${track.videoId}&title=${encodeURIComponent(track.title)}&artist=${encodeURIComponent(track.artist)}`)}
+            className="p-2 rounded-lg transition-colors text-gray-600 hover:text-purple-600 hover:bg-purple-50 active:scale-95 w-10 h-10"
+            title="Analyser l'audio"
+          >
+            <BarChart3 className="h-5 w-5" />
           </button>
 
           {/* Add to Playlist Button */}
