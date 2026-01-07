@@ -19,4 +19,12 @@ jobs:
             git pull origin main
             npm install
             npm run build
+
+            # Python venv for audio analysis
+            cd scripts
+            [ -d venv ] || python3 -m venv venv
+            ./venv/bin/pip install -q -r requirements.txt
+            which yt-dlp || pip3 install -q yt-dlp
+            cd ..
+
             pm2 restart ytmusic-manager
