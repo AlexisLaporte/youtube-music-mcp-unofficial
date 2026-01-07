@@ -40,7 +40,8 @@ export async function GET(request: NextRequest) {
     const data = await response.json()
 
     // Extract useful fields for each video
-    const videos = (data.items || []).map((item: any) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const videos = (data.items || []).map((item: Record<string, any>) => ({
       videoId: item.id,
       title: item.snippet?.title,
       channelTitle: item.snippet?.channelTitle,

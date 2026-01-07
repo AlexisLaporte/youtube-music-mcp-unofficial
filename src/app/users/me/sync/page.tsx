@@ -40,11 +40,6 @@ interface ProcessingStatus {
   error: string | null
 }
 
-function formatDate(ts: number | null) {
-  if (!ts) return 'Never'
-  return new Date(ts).toLocaleString()
-}
-
 function SyncContent() {
   const [data, setData] = useState<SyncData | null>(null)
   const [loading, setLoading] = useState(true)

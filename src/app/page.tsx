@@ -8,7 +8,7 @@ import { useUIStore } from '@/stores/useUIStore'
 import { LoginPrompt } from '@/components/LoginPrompt'
 import { PlaylistSidebar } from '@/components/layout/PlaylistSidebar'
 import { MobileBottomTabs } from '@/components/layout/MobileBottomTabs'
-import { HeartIcon, MusicalNoteIcon, ExclamationTriangleIcon, PlayIcon, SparklesIcon } from '@heroicons/react/24/solid'
+import { HeartIcon, MusicalNoteIcon, PlayIcon, SparklesIcon } from '@heroicons/react/24/solid'
 import { ArrowRightIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
 
 const PLAYLISTS_PER_PAGE = 12

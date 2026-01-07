@@ -41,7 +41,7 @@ export const PlaylistSelectorModal: React.FC<PlaylistSelectorModalProps> = ({
   const [addedPlaylists, setAddedPlaylists] = useState<Set<string>>(new Set())
 
   // Player state
-  const { playerVideoId, isPlayerPaused, playVideo, togglePlayPause, playVideoInQueue, playShuffled } = useUIStore()
+  const { playerVideoId, isPlayerPaused, playVideo, togglePlayPause, playShuffled } = useUIStore()
   const song = useMusicStore(state => state.songs.get(videoId))
   const playlistSongsMap = useMusicStore(state => state.playlistSongs)
   const isPlayingCurrentTrack = playerVideoId === videoId && !isPlayerPaused
