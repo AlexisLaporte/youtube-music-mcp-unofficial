@@ -326,7 +326,7 @@ function SyncContent() {
                 disabled={syncing}
                 className="px-4 py-2 bg-space-cadet text-white rounded-lg hover:bg-space-cadet/90 disabled:opacity-50 text-sm"
               >
-                {syncing ? 'Syncing...' : 'Force Sync'}
+                {syncing ? 'Syncing...' : 'Sync from YT'}
               </button>
             </div>
           </div>
