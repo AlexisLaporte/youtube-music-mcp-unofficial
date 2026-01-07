@@ -1,9 +1,12 @@
 import { create } from 'zustand'
 
 interface UserInfo {
+  id: string
   name: string
   email: string
   profilePicture?: string
+  status: 'pending' | 'approved' | 'blocked'
+  isAdmin: boolean
 }
 
 interface AuthState {
@@ -114,6 +117,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const data = await response.json()
 
       if (data.user) {
+        // Check if user changed - clear music data and reload
+        if (typeof window !== 'undefined') {
+          const lastUserId = localStorage.getItem('last_user_id')
+          if (lastUserId && lastUserId !== data.user.id) {
+            console.log('👤 User changed, clearing music data and reloading...')
+            localStorage.removeItem('music-store')
+            localStorage.setItem('last_user_id', data.user.id)
+            window.location.reload()
+            return
+          }
+          localStorage.setItem('last_user_id', data.user.id)
+        }
+
         // Get provider token from localStorage
         const providerToken = typeof window !== 'undefined'
           ? localStorage.getItem('youtube_provider_token')
@@ -166,6 +182,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (typeof window !== 'undefined') {
         localStorage.removeItem('youtube_provider_token')
         localStorage.removeItem('youtube_provider_refresh_token')
+        // Keep last_user_id to detect user change on next login
+        localStorage.removeItem('music-store')
       }
 
       set({

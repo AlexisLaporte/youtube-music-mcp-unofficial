@@ -20,6 +20,8 @@ export interface Song {
   isLiked: boolean;
   playlistIds: string[];
   addedAt?: string;
+  /** User marked this song as intentionally not belonging to any playlist */
+  noPlaylistNeeded?: boolean;
 }
 
 export interface Playlist {

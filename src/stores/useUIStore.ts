@@ -56,6 +56,7 @@ interface UIState {
   view: 'list' | 'grid'
   filterMode: 'all' | 'not-in-playlists'
   searchQuery: string
+  showOnlyToOrganize: boolean
 
   // Sorting
   sortBy: SortBy
@@ -104,6 +105,7 @@ interface UIState {
   setView: (view: 'list' | 'grid') => void
   setFilterMode: (mode: 'all' | 'not-in-playlists') => void
   setSearchQuery: (query: string) => void
+  toggleShowOnlyToOrganize: () => void
 
   // Actions - Sorting
   setSortBy: (sortBy: SortBy) => void
@@ -152,6 +154,7 @@ export const useUIStore = create<UIState>((set) => ({
   view: 'list',
   filterMode: 'all',
   searchQuery: '',
+  showOnlyToOrganize: false,
   sortBy: 'date',
   sortOrder: 'desc',
   filterArtist: null,
@@ -400,6 +403,10 @@ export const useUIStore = create<UIState>((set) => ({
     set({ searchQuery: query })
   },
 
+  toggleShowOnlyToOrganize: () => {
+    set(state => ({ showOnlyToOrganize: !state.showOnlyToOrganize }))
+  },
+
   // Sorting actions
   setSortBy: (sortBy) => {
     set({ sortBy })
@@ -426,6 +433,7 @@ export const useUIStore = create<UIState>((set) => ({
     set({
       searchQuery: '',
       filterMode: 'all',
+      showOnlyToOrganize: false,
       filterArtist: null,
       filterPlaylists: [],
       sortBy: 'date',

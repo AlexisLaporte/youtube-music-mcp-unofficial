@@ -5,13 +5,13 @@ import { featureMeta as discoverMeta } from '@/components/detail/SongDetail'
 import { featureMeta as playlistDiscoverMeta } from '@/components/detail/PlaylistDetail'
 import { featureMeta as playerMeta } from '@/components/layout/PlayerBar'
 import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline'
-import { PageWithSidebar } from '@/components/layout/PageWithSidebar'
+import { OptionalSidebarLayout } from '@/components/layout/OptionalSidebarLayout'
 
 const features = [syncMeta, discoverMeta, playlistDiscoverMeta, playerMeta]
 
 export default function HelpPage() {
   return (
-    <PageWithSidebar>
+    <OptionalSidebarLayout>
       <div className="max-w-2xl mx-auto p-6">
         <div className="flex items-center gap-3 mb-8">
           <QuestionMarkCircleIcon className="w-8 h-8 text-space-cadet" />
@@ -42,6 +42,6 @@ export default function HelpPage() {
           ))}
         </div>
       </div>
-    </PageWithSidebar>
+    </OptionalSidebarLayout>
   )
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createSession } from '@/lib/auth'
+import { createSession, isAdmin } from '@/lib/auth'
 import { cookies } from 'next/headers'
+import { cache } from '@/lib/db'
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
@@ -51,6 +52,20 @@ export async function GET(request: NextRequest) {
 
     const userInfo = await userInfoResponse.json()
     const { id, email, name, picture } = userInfo
+
+    // Upsert user in database and check status
+    const user = cache.upsertUser({ id, email, name, profilePicture: picture })
+    const userIsAdmin = isAdmin(email)
+
+    // If user is blocked, deny access
+    if (user.status === 'blocked') {
+      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/blocked`)
+    }
+
+    // If user is pending and not admin, redirect to pending page
+    if (user.status === 'pending' && !userIsAdmin) {
+      // Still create session so they can see their pending status
+    }
 
     // Create session (stored in HTTP-only cookie)
     const expiresAt = Date.now() + expires_in * 1000

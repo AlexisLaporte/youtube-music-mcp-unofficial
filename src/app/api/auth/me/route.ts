@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
-import { getSession, refreshGoogleToken, createSession } from '@/lib/auth'
+import { getSession, refreshGoogleToken, createSession, isAdmin } from '@/lib/auth'
 import { cookies } from 'next/headers'
+import { cache } from '@/lib/db'
 
 export async function GET() {
   try {
@@ -41,11 +42,18 @@ export async function GET() {
       }
     }
 
+    // Get user status from database
+    const dbUser = cache.getUser(session.userId)
+    const userIsAdmin = isAdmin(session.email)
+
     return NextResponse.json({
       user: {
+        id: session.userId,
         name: session.name,
         email: session.email,
         profilePicture: session.profilePicture,
+        status: dbUser?.status || 'pending',
+        isAdmin: userIsAdmin,
       },
     })
   } catch (error) {

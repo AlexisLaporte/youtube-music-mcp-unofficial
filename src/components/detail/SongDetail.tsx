@@ -61,6 +61,7 @@ export function SongDetail({ song, isNowPlaying }: SongDetailProps) {
   const songsMap = useMusicStore(state => state.songs)
   const toggleLike = useMusicStore(state => state.toggleLike)
   const removeSongFromPlaylist = useMusicStore(state => state.removeSongFromPlaylist)
+  const toggleNoPlaylistNeeded = useMusicStore(state => state.toggleNoPlaylistNeeded)
   const { playVideoInQueue, openModal, selectedPlaylistId } = useUIStore()
   const playlistSongsMap = useMusicStore(state => state.playlistSongs)
   const getLikedSongs = useMusicStore(state => state.getLikedSongs)
@@ -249,20 +250,49 @@ export function SongDetail({ song, isNowPlaying }: SongDetailProps) {
           )}
 
           {/* Warning: not in any playlist */}
-          {playlists.length === 0 && (
-            <button
-              onClick={() => openModal('playlist-selector', { videoId: song.videoId })}
-              className="w-full flex items-center gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors group"
-            >
-              <div className="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center flex-shrink-0 group-hover:bg-amber-200 dark:group-hover:bg-amber-800/50 transition-colors">
+          {playlists.length === 0 && !liveSong.noPlaylistNeeded && (
+            <div className="flex items-center gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl">
+              <div className="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center flex-shrink-0">
                 <ExclamationTriangleIcon className="w-5 h-5 text-amber-600 dark:text-amber-500" />
               </div>
-              <div className="flex-1 text-left">
+              <div className="flex-1">
                 <div className="font-medium text-amber-800 dark:text-amber-400">Not in any playlist</div>
-                <div className="text-sm text-amber-600 dark:text-amber-500">Click to add this track to a playlist</div>
+                <div className="text-sm text-amber-600 dark:text-amber-500">Add to a playlist or mark as standalone</div>
               </div>
-              <PlusIcon className="w-5 h-5 text-amber-500 group-hover:text-amber-700 transition-colors" />
-            </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => openModal('playlist-selector', { videoId: song.videoId })}
+                  className="px-3 py-1.5 text-sm font-medium bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors"
+                >
+                  Add to playlist
+                </button>
+                <button
+                  onClick={() => toggleNoPlaylistNeeded(song.videoId)}
+                  className="px-3 py-1.5 text-sm text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-800/50 rounded-lg transition-colors"
+                  title="Mark as intentionally not in any playlist"
+                >
+                  Keep standalone
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Marked as no playlist needed */}
+          {playlists.length === 0 && liveSong.noPlaylistNeeded && (
+            <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl">
+              <div className="w-8 h-8 rounded-lg bg-gray-200 dark:bg-slate-700 flex items-center justify-center flex-shrink-0">
+                <MusicalNoteIcon className="w-4 h-4 text-gray-500 dark:text-slate-400" />
+              </div>
+              <div className="flex-1">
+                <span className="text-sm text-gray-600 dark:text-slate-400">Standalone track (no playlist needed)</span>
+              </div>
+              <button
+                onClick={() => toggleNoPlaylistNeeded(song.videoId)}
+                className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 transition-colors"
+              >
+                Undo
+              </button>
+            </div>
           )}
         </div>
       )}

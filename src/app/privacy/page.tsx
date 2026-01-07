@@ -1,7 +1,12 @@
+'use client'
+
+import { OptionalSidebarLayout } from '@/components/layout/OptionalSidebarLayout'
+
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-900 py-12 px-4">
-      <div className="max-w-2xl mx-auto bg-white dark:bg-slate-800 rounded-xl shadow-sm p-8">
+    <OptionalSidebarLayout>
+      <div className="max-w-2xl mx-auto p-6">
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-8">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Privacy Policy</h1>
 
         <div className="space-y-6 text-gray-700 dark:text-slate-300 text-sm">
@@ -43,7 +48,8 @@ export default function PrivacyPage() {
             Contact: alexis.laporte@gmail.com
           </p>
         </div>
+        </div>
       </div>
-    </div>
+    </OptionalSidebarLayout>
   )
 }

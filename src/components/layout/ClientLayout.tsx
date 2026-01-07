@@ -6,6 +6,7 @@ import { useMusicStore } from '@/stores/useMusicStore'
 import { useThemeStore } from '@/stores/useThemeStore'
 // import { useAutoAnalysis } from '@/hooks/useAutoAnalysis'
 import { PlayerBar } from './PlayerBar'
+import { PlaylistSelectorModal } from '@/components/PlaylistSelectorModal'
 
 interface ClientLayoutProps {
   children: React.ReactNode
@@ -16,8 +17,8 @@ export function ClientLayout({ children }: ClientLayoutProps) {
   const selectedSongId = useUIStore(state => state.selectedSongId)
   const selectedPlaylistId = useUIStore(state => state.selectedPlaylistId)
   const playVideo = useUIStore(state => state.playVideo)
-  const getSongsForPlaylist = useMusicStore(state => state.getSongsForPlaylist)
-  const getLikedSongs = useMusicStore(state => state.getLikedSongs)
+  const { activeModal, modalData, closeModal } = useUIStore()
+  const { getSongsForPlaylist, getLikedSongs, getAllPlaylists, getSong, addSongToPlaylist } = useMusicStore()
   const hasPlayer = !!playerVideoId
 
   // Auto-start audio analysis for pending tracks (disabled - manual only)
@@ -77,6 +78,20 @@ export function ClientLayout({ children }: ClientLayoutProps) {
         {children}
       </div>
       {hasPlayer && <PlayerBar />}
+
+      {/* Global Playlist Selector Modal */}
+      {activeModal === 'playlist-selector' && modalData?.videoId && (
+        <PlaylistSelectorModal
+          videoId={modalData.videoId as string}
+          playlists={getAllPlaylists().map(p => ({ id: p.id, title: p.title, thumbnail: p.thumbnail }))}
+          foundInPlaylistIds={getSong(modalData.videoId as string)?.playlistIds || []}
+          onSelect={(playlistId) => {
+            addSongToPlaylist(modalData.videoId as string, playlistId)
+            closeModal()
+          }}
+          onClose={closeModal}
+        />
+      )}
     </div>
   )
 }

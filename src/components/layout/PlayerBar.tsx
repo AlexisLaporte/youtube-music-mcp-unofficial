@@ -97,6 +97,7 @@ export function PlayerBar() {
   const [duration, setDuration] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [showPlaylistMenu, setShowPlaylistMenu] = useState(false)
+  const [playbackError, setPlaybackError] = useState<string | null>(null)
   const seekUntilRef = useRef<number>(0)  // Ignore YouTube until this timestamp
   const isPlaying = !isPlayerPaused
 
@@ -128,6 +129,7 @@ export function PlayerBar() {
     // Reset state for new track
     setCurrentTime(0)
     setDuration(0)
+    setPlaybackError(null)
     seekUntilRef.current = 0
 
     // If player exists and is ready, just load the new video
@@ -195,8 +197,18 @@ export function PlayerBar() {
           // YouTube error codes: 2=invalid param, 5=HTML5 error, 100=not found, 101/150=embed not allowed
           // Pre-validation during enrichment should handle most unavailable videos
           // This is just a fallback for edge cases
-          console.warn(`⚠️ YouTube player error ${event.data} for video ${videoIdToLoad}, skipping...`)
-          useUIStore.getState().playNext()
+          console.warn(`⚠️ YouTube player error ${event.data} for video ${videoIdToLoad}`)
+          const store = useUIStore.getState()
+          const hasNextTrack = store.playbackQueue.length > 1 ||
+            (store.playbackQueue.length === 1 && store.playbackMode === 'loop-all')
+
+          if (hasNextTrack) {
+            store.playNext()
+          } else {
+            // No next track - show error to user
+            setPlaybackError('Unable to play this track')
+            store.pausePlayer()
+          }
         }
       }
     })
@@ -465,8 +477,8 @@ export function PlayerBar() {
                 <div className="font-semibold text-gray-900 dark:text-white truncate text-sm">
                   {trackInfo?.title || 'Now playing...'}
                 </div>
-                <div className="text-xs text-gray-500 dark:text-slate-400 truncate">
-                  {trackInfo?.artist || 'YouTube'}
+                <div className={`text-xs truncate ${playbackError ? 'text-red-500' : 'text-gray-500 dark:text-slate-400'}`}>
+                  {playbackError || trackInfo?.artist || 'YouTube'}
                 </div>
               </div>
             </button>

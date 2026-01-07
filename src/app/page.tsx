@@ -15,7 +15,7 @@ const PLAYLISTS_PER_PAGE = 12
 
 export default function Home() {
   const router = useRouter()
-  const { isConnected, isLoading: authLoading, initialize, signIn } = useAuthStore()
+  const { isConnected, isLoading: authLoading, initialize, signIn, user } = useAuthStore()
   const { smartSync, isSyncing, getAllPlaylists, getLikedSongs, getAllSongs } = useMusicStore()
   const { playVideoInQueue, playShuffled, mobileTab } = useUIStore()
   const [playlistPage, setPlaylistPage] = useState(0)
@@ -29,6 +29,17 @@ export default function Home() {
       smartSync()
     }
   }, [isConnected, smartSync])
+
+  // Redirect pending/blocked users (unless admin)
+  useEffect(() => {
+    if (user && !user.isAdmin) {
+      if (user.status === 'pending') {
+        router.push('/pending')
+      } else if (user.status === 'blocked') {
+        router.push('/blocked')
+      }
+    }
+  }, [user, router])
 
   if (authLoading) {
     return (
@@ -46,9 +57,21 @@ export default function Home() {
   }
 
   const playlists = getAllPlaylists()
+
+  // Show loading while initial sync (no cached data yet)
+  if (isSyncing && playlists.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-space-cadet via-cool-gray to-antiflash-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-antiflash-white/30 border-t-red-pantone mx-auto mb-6" />
+          <p className="text-antiflash-white text-lg font-medium">Syncing your library...</p>
+        </div>
+      </div>
+    )
+  }
   const likedSongs = getLikedSongs()
   const allSongs = getAllSongs()
-  const orphanSongs = allSongs.filter(s => s.playlistIds.length === 0 && s.isLiked)
+  const orphanSongs = allSongs.filter(s => s.playlistIds.length === 0 && s.isLiked && !s.noPlaylistNeeded)
 
   const totalPages = Math.ceil(playlists.length / PLAYLISTS_PER_PAGE)
   const paginatedPlaylists = playlists.slice(

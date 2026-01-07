@@ -1,6 +1,13 @@
 import { cookies } from 'next/headers'
 import { sign, verify } from 'jsonwebtoken'
 
+// Admins bypass approval and can manage users
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean)
+
+export function isAdmin(email: string): boolean {
+  return ADMIN_EMAILS.includes(email.toLowerCase())
+}
+
 export interface UserSession {
   userId: string
   email: string

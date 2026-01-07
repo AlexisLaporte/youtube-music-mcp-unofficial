@@ -9,12 +9,12 @@ import { Song } from '@/types/youtube'
 
 export function SongList() {
   const router = useRouter()
-  const { selectedPlaylistId, selectedSongId, playerVideoId, playVideoInQueue, togglePlayPause, isPlayerPaused, setMobileTab } = useUIStore()
+  const { selectedPlaylistId, selectedSongId, playerVideoId, playVideoInQueue, togglePlayPause, isPlayerPaused, setMobileTab, showOnlyToOrganize, toggleShowOnlyToOrganize } = useUIStore()
   const songsMap = useMusicStore(state => state.songs)
   const playlistsMap = useMusicStore(state => state.playlists)
   const playlistSongsMap = useMusicStore(state => state.playlistSongs)
 
-  const songs: Song[] = useMemo(() => {
+  const allSongs: Song[] = useMemo(() => {
     if (selectedPlaylistId === 'liked') {
       return Array.from(songsMap.values()).filter(s => s.isLiked)
     }
@@ -27,6 +27,14 @@ export function SongList() {
     return []
   }, [selectedPlaylistId, songsMap, playlistSongsMap])
 
+  // Apply "to organize" filter if active
+  const songs = useMemo(() => {
+    if (showOnlyToOrganize && selectedPlaylistId === 'liked') {
+      return allSongs.filter(s => s.playlistIds.length === 0 && !s.noPlaylistNeeded)
+    }
+    return allSongs
+  }, [allSongs, showOnlyToOrganize, selectedPlaylistId])
+
   const playlist = useMemo(() =>
     selectedPlaylistId && selectedPlaylistId !== 'liked'
       ? playlistsMap.get(selectedPlaylistId)
@@ -38,10 +46,10 @@ export function SongList() {
     ? 'Liked Songs'
     : playlist?.title || 'Select a playlist'
 
-  // Count orphan tracks (not in any playlist)
+  // Count orphan tracks (not in any playlist, excluding noPlaylistNeeded)
   const orphanCount = useMemo(() =>
-    songs.filter(s => s.playlistIds.length === 0).length,
-    [songs]
+    allSongs.filter(s => s.playlistIds.length === 0 && !s.noPlaylistNeeded).length,
+    [allSongs]
   )
 
   const handleSongClick = (song: Song) => {
@@ -74,10 +82,17 @@ export function SongList() {
         <div className="flex items-center gap-3 mt-0.5">
           <p className="text-sm text-gray-400 dark:text-slate-500">{songs.length} tracks</p>
           {orphanCount > 0 && selectedPlaylistId === 'liked' && (
-            <span className="inline-flex items-center gap-1 text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+            <button
+              onClick={toggleShowOnlyToOrganize}
+              className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full transition-colors ${
+                showOnlyToOrganize
+                  ? 'text-white bg-amber-500 hover:bg-amber-600'
+                  : 'text-amber-600 bg-amber-50 hover:bg-amber-100'
+              }`}
+            >
+              <span className={`w-1.5 h-1.5 rounded-full ${showOnlyToOrganize ? 'bg-white' : 'bg-amber-400'}`} />
               {orphanCount} to organize
-            </span>
+            </button>
           )}
         </div>
       </div>
@@ -160,7 +175,7 @@ export function SongList() {
                   )}
 
                   {/* Not in any playlist indicator */}
-                  {song.playlistIds.length === 0 && (
+                  {song.playlistIds.length === 0 && !song.noPlaylistNeeded && (
                     <div
                       className="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0"
                       title="Not in any playlist"

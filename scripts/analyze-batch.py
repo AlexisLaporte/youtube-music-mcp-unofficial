@@ -123,13 +123,31 @@ def get_video_metadata(conn, video_id):
     return None, None
 
 
-def download_audio(video_id):
+def validate_audio_file(path):
+    """Check if audio file is valid using ffprobe."""
+    try:
+        result = subprocess.run(
+            ["ffprobe", "-v", "error", "-show_entries", "format=duration",
+             "-of", "default=noprint_wrappers=1:nokey=1", str(path)],
+            capture_output=True, text=True, timeout=10
+        )
+        return result.returncode == 0 and result.stdout.strip()
+    except Exception:
+        return False
+
+
+def download_audio(video_id, retry=True):
     """Download audio using yt-dlp if not cached."""
     AUDIO_CACHE_DIR.mkdir(parents=True, exist_ok=True)
     output_path = AUDIO_CACHE_DIR / f"{video_id}.mp4"
 
     if output_path.exists():
-        return output_path
+        # Validate cached file
+        if validate_audio_file(output_path):
+            return output_path
+        else:
+            print(f"  Cached file corrupted, re-downloading...")
+            output_path.unlink()
 
     try:
         subprocess.run(
@@ -140,12 +158,21 @@ def download_audio(video_id):
              f"https://www.youtube.com/watch?v={video_id}"],
             check=True, timeout=120, capture_output=True
         )
-        return output_path
+        # Validate downloaded file
+        if validate_audio_file(output_path):
+            return output_path
+        else:
+            print(f"  Downloaded file corrupted")
+            output_path.unlink()
+            return None
     except subprocess.CalledProcessError as e:
         print(f"  Error downloading: {e.stderr.decode() if e.stderr else e}")
         return None
     except subprocess.TimeoutExpired:
         print("  Error: Download timed out")
+        # Clean up partial download
+        if output_path.exists():
+            output_path.unlink()
         return None
 
 

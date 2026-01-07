@@ -127,6 +127,18 @@ function initSchema() {
       lastfm_similar JSON,
       updated_at INTEGER NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      email TEXT NOT NULL UNIQUE,
+      name TEXT,
+      profile_picture TEXT,
+      status TEXT DEFAULT 'pending',
+      created_at INTEGER NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+    CREATE INDEX IF NOT EXISTS idx_users_status ON users(status);
   `);
 }
 
@@ -182,6 +194,35 @@ export interface TrackSuggestions {
   youtubeMix: SuggestedTrack[];
   lastfmSimilar: SuggestedTrack[];
   updatedAt: number;
+}
+
+export interface UserRecord {
+  id: string;
+  email: string;
+  name?: string;
+  profilePicture?: string;
+  status: 'pending' | 'approved' | 'blocked';
+  createdAt: number;
+}
+
+interface UserRow {
+  id: string;
+  email: string;
+  name: string | null;
+  profile_picture: string | null;
+  status: string;
+  created_at: number;
+}
+
+function rowToUser(row: UserRow): UserRecord {
+  return {
+    id: row.id,
+    email: row.email,
+    name: row.name || undefined,
+    profilePicture: row.profile_picture || undefined,
+    status: row.status as 'pending' | 'approved' | 'blocked',
+    createdAt: row.created_at
+  };
 }
 
 interface AudioAnalysisRow {
@@ -655,6 +696,51 @@ export const cache = {
       JSON.stringify(suggestions.lastfmSimilar),
       Date.now()
     );
+  },
+
+  // User management
+  getUser(userId: string): UserRecord | null {
+    const row = getDb().prepare('SELECT * FROM users WHERE id = ?').get(userId) as UserRow | undefined;
+    return row ? rowToUser(row) : null;
+  },
+
+  getUserByEmail(email: string): UserRecord | null {
+    const row = getDb().prepare('SELECT * FROM users WHERE email = ?').get(email) as UserRow | undefined;
+    return row ? rowToUser(row) : null;
+  },
+
+  upsertUser(user: { id: string; email: string; name?: string; profilePicture?: string }): UserRecord {
+    const existing = this.getUser(user.id);
+    if (existing) {
+      // Update name/picture, keep status
+      getDb().prepare(`
+        UPDATE users SET name = ?, profile_picture = ? WHERE id = ?
+      `).run(user.name || null, user.profilePicture || null, user.id);
+      return { ...existing, name: user.name, profilePicture: user.profilePicture };
+    } else {
+      // Insert new user with pending status
+      getDb().prepare(`
+        INSERT INTO users (id, email, name, profile_picture, status, created_at)
+        VALUES (?, ?, ?, ?, 'pending', ?)
+      `).run(user.id, user.email, user.name || null, user.profilePicture || null, Date.now());
+      return {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        profilePicture: user.profilePicture,
+        status: 'pending',
+        createdAt: Date.now()
+      };
+    }
+  },
+
+  setUserStatus(userId: string, status: 'pending' | 'approved' | 'blocked'): void {
+    getDb().prepare('UPDATE users SET status = ? WHERE id = ?').run(status, userId);
+  },
+
+  getAllUsers(): UserRecord[] {
+    const rows = getDb().prepare('SELECT * FROM users ORDER BY created_at DESC').all() as UserRow[];
+    return rows.map(rowToUser);
   }
 };
 

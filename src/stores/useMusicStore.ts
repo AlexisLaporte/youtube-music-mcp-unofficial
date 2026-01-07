@@ -7,6 +7,7 @@ const SYNC_TTL = 60 * 60 * 1000 // 1 hour
 
 // Serialized state format for localStorage
 interface PersistedState {
+  userId: string | null
   songs: [string, Song][]
   playlists: [string, Playlist][]
   playlistSongs: [string, string[]][]
@@ -14,15 +15,27 @@ interface PersistedState {
 }
 
 // Custom storage to handle Map serialization
-const musicStorage: PersistStorage<Pick<MusicState, 'songs' | 'playlists' | 'playlistSongs' | 'lastSyncAt'>> = {
+// Also validates userId to prevent cross-account data leakage
+const musicStorage: PersistStorage<Pick<MusicState, 'userId' | 'songs' | 'playlists' | 'playlistSongs' | 'lastSyncAt'>> = {
   getItem: (name) => {
     const str = localStorage.getItem(name)
     if (!str) return null
     try {
       const parsed = JSON.parse(str) as { state: PersistedState; version?: number }
+
+      // Check if stored data belongs to current user
+      const currentUserId = localStorage.getItem('last_user_id')
+      const storedUserId = parsed.state.userId
+      if (currentUserId && storedUserId && currentUserId !== storedUserId) {
+        console.log('🚫 Music data belongs to different user, clearing...')
+        localStorage.removeItem(name)
+        return null
+      }
+
       return {
         ...parsed,
         state: {
+          userId: parsed.state.userId,
           songs: new Map(parsed.state.songs || []),
           playlists: new Map(parsed.state.playlists || []),
           playlistSongs: new Map(parsed.state.playlistSongs || []),
@@ -37,6 +50,7 @@ const musicStorage: PersistStorage<Pick<MusicState, 'songs' | 'playlists' | 'pla
     const toStore = {
       ...value,
       state: {
+        userId: value.state.userId,
         songs: Array.from(value.state.songs.entries()),
         playlists: Array.from(value.state.playlists.entries()),
         playlistSongs: Array.from(value.state.playlistSongs.entries()),
@@ -49,6 +63,9 @@ const musicStorage: PersistStorage<Pick<MusicState, 'songs' | 'playlists' | 'pla
 }
 
 interface MusicState {
+  // Owner
+  userId: string | null
+
   // Entities
   songs: Map<string, Song>
   playlists: Map<string, Playlist>
@@ -81,6 +98,7 @@ interface MusicState {
   updatePlaylist: (playlistId: string, title: string, description?: string) => Promise<void>
   deletePlaylist: (playlistId: string) => Promise<void>
   toggleLike: (videoId: string) => Promise<void>
+  toggleNoPlaylistNeeded: (videoId: string) => void
 
   // Utility
   clearAll: () => void
@@ -90,6 +108,7 @@ export const useMusicStore = create<MusicState>()(
   persist(
     (set, get) => ({
   // Initial state
+  userId: null,
   songs: new Map(),
   playlists: new Map(),
   playlistSongs: new Map(),
@@ -198,7 +217,13 @@ export const useMusicStore = create<MusicState>()(
         playlistSongs.set(playlist.id, videoIds)
       }
 
+      // Get current user ID to tag the data
+      const currentUserId = typeof window !== 'undefined'
+        ? localStorage.getItem('last_user_id')
+        : null
+
       set({
+        userId: currentUserId,
         songs,
         playlists,
         playlistSongs,
@@ -206,7 +231,7 @@ export const useMusicStore = create<MusicState>()(
         isSyncing: false,
       })
 
-      console.log(`✅ Sync complete: ${songs.size} songs, ${playlists.size} playlists`)
+      console.log(`✅ Sync complete: ${songs.size} songs, ${playlists.size} playlists for user ${currentUserId}`)
     } catch (error) {
       console.error('❌ Sync failed:', error)
       set({
@@ -433,10 +458,25 @@ export const useMusicStore = create<MusicState>()(
     })
   },
 
+  toggleNoPlaylistNeeded: (videoId) => {
+    const { songs } = get()
+    const song = songs.get(videoId)
+    if (!song) return
+
+    const newSongs = new Map(songs)
+    newSongs.set(videoId, {
+      ...song,
+      noPlaylistNeeded: !song.noPlaylistNeeded
+    })
+    set({ songs: newSongs })
+    console.log(`📁 ${song.noPlaylistNeeded ? 'Unmarked' : 'Marked'} ${videoId} as no playlist needed`)
+  },
+
   // ============ Utility ============
 
   clearAll: () => {
     set({
+      userId: null,
       songs: new Map(),
       playlists: new Map(),
       playlistSongs: new Map(),
@@ -449,6 +489,7 @@ export const useMusicStore = create<MusicState>()(
       name: 'music-store',
       storage: musicStorage,
       partialize: (state) => ({
+        userId: state.userId,
         songs: state.songs,
         playlists: state.playlists,
         playlistSongs: state.playlistSongs,

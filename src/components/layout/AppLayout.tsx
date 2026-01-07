@@ -10,13 +10,12 @@ import { PlaylistSidebar } from './PlaylistSidebar'
 import { SongList } from './SongList'
 import { DetailPanel } from './DetailPanel'
 import { MobileBottomTabs } from './MobileBottomTabs'
-import { PlaylistSelectorModal } from '@/components/PlaylistSelectorModal'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 
 export function AppLayout() {
   const router = useRouter()
   const { isConnected, isLoading: authLoading, initialize, signIn } = useAuthStore()
-  const { smartSync, isSyncing, getAllPlaylists, getSong, getPlaylist, addSongToPlaylist, updatePlaylist, deletePlaylist } = useMusicStore()
+  const { smartSync, isSyncing, getPlaylist, updatePlaylist, deletePlaylist } = useMusicStore()
   const { mobileTab, activeModal, modalData, closeModal, selectPlaylist } = useUIStore()
 
   // Edit modal state
@@ -122,20 +121,6 @@ export function AppLayout() {
           <div className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white" />
           Syncing...
         </div>
-      )}
-
-      {/* Global Playlist Selector Modal */}
-      {activeModal === 'playlist-selector' && modalData?.videoId && (
-        <PlaylistSelectorModal
-          videoId={modalData.videoId as string}
-          playlists={getAllPlaylists().map(p => ({ id: p.id, title: p.title, thumbnail: p.thumbnail }))}
-          foundInPlaylistIds={getSong(modalData.videoId as string)?.playlistIds || []}
-          onSelect={(playlistId) => {
-            addSongToPlaylist(modalData.videoId as string, playlistId)
-            closeModal()
-          }}
-          onClose={closeModal}
-        />
       )}
 
       {/* Edit Playlist Modal */}

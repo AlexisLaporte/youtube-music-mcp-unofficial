@@ -7,7 +7,7 @@ import { useUIStore } from '@/stores/useUIStore'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useThemeStore } from '@/stores/useThemeStore'
 import { HeartIcon, PlusIcon, MusicalNoteIcon, MagnifyingGlassIcon } from '@heroicons/react/24/solid'
-import { ArrowRightOnRectangleIcon, MoonIcon, SunIcon, ArrowPathIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/outline'
+import { ArrowRightOnRectangleIcon, MoonIcon, SunIcon, ArrowPathIcon, QuestionMarkCircleIcon, UsersIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 
 export function PlaylistSidebar() {
@@ -223,7 +223,19 @@ export function PlaylistSidebar() {
                 <span className="text-sm">Sync & Analysis</span>
               </Link>
 
-              {/* Help */}
+              {/* Admin (only for admins) */}
+              {user.isAdmin && (
+                <Link
+                  href="/admin/users"
+                  onClick={() => setShowAccountMenu(false)}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors"
+                >
+                  <UsersIcon className="w-4 h-4" />
+                  <span className="text-sm">User Management</span>
+                </Link>
+              )}
+
+              {/* Help, Privacy, Terms */}
               <Link
                 href="/help"
                 onClick={() => setShowAccountMenu(false)}
@@ -232,6 +244,10 @@ export function PlaylistSidebar() {
                 <QuestionMarkCircleIcon className="w-4 h-4" />
                 <span className="text-sm">Help</span>
               </Link>
+              <div className="flex gap-4 px-4 py-2 text-xs text-gray-500 dark:text-slate-400">
+                <Link href="/privacy" onClick={() => setShowAccountMenu(false)} className="hover:text-gray-700 dark:hover:text-slate-200">Privacy</Link>
+                <Link href="/terms" onClick={() => setShowAccountMenu(false)} className="hover:text-gray-700 dark:hover:text-slate-200">Terms</Link>
+              </div>
 
               {/* Divider */}
               <div className="border-t border-gray-100 dark:border-slate-700 my-1" />
