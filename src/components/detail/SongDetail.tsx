@@ -3,9 +3,30 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Song } from '@/types/youtube'
+import type { FeatureMeta } from '@/types/docs'
+
+/**
+ * Track detail view with playback, metadata, and discovery.
+ *
+ * Discovery uses two sources:
+ * - YouTube Mix: playlist ID = "RD" + videoId (undocumented but stable API)
+ * - Last.fm similar tracks: requires YouTube search to get playable videoIds
+ *
+ * Suggestions are cached 7 days in SQLite to reduce API calls.
+ */
+export const featureMeta: FeatureMeta = {
+  id: 'discover-similar',
+  name: 'Discover Similar',
+  description: 'Find new music based on any track in your library.',
+  faq: [
+    { q: 'How does discovery work?', a: 'Combines YouTube Mix recommendations and Last.fm similar tracks.' },
+    { q: 'Why are some suggestions not playable?', a: 'Last.fm tracks without a matching YouTube video are filtered out.' },
+    { q: 'How often are suggestions refreshed?', a: 'Cached for 7 days. Click Refresh to force update.' },
+  ]
+}
 import { useMusicStore } from '@/stores/useMusicStore'
 import { useUIStore } from '@/stores/useUIStore'
-import { PlayIcon, PlusIcon, HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid'
+import { PlayIcon, PlusIcon, HeartIcon as HeartSolidIcon, SparklesIcon } from '@heroicons/react/24/solid'
 import { MusicalNoteIcon, ArrowTopRightOnSquareIcon, ArrowPathIcon, XMarkIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import { AnalysisModal } from '@/components/AnalysisModal'
 import type { AnalysisResult } from '@/hooks/useEssentia'
@@ -73,6 +94,14 @@ export function SongDetail({ song, isNowPlaying }: SongDetailProps) {
   const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(false)
   const [showAnalysisModal, setShowAnalysisModal] = useState<boolean | 'refresh'>(false)
 
+  // Suggestions state
+  const [suggestions, setSuggestions] = useState<{
+    youtubeMix: { videoId: string; title: string; artist: string; thumbnail?: string }[]
+    lastfmSimilar: { videoId: string; title: string; artist: string; thumbnail?: string }[]
+  } | null>(null)
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false)
+  const [suggestionsError, setSuggestionsError] = useState<string | null>(null)
+
   const openAnalysisModal = (refresh = false) => {
     setShowAnalysisModal(refresh ? 'refresh' : true)
   }
@@ -93,7 +122,35 @@ export function SongDetail({ song, isNowPlaying }: SongDetailProps) {
     setShowAnalysisModal(false)
   }
 
-  // Fetch analysis on mount
+  const fetchSuggestions = async (forceRefresh = false) => {
+    setIsLoadingSuggestions(true)
+    setSuggestionsError(null)
+    try {
+      const params = new URLSearchParams({
+        videoId: song.videoId,
+        title: song.title,
+        artist: song.artist
+      })
+      if (forceRefresh) params.set('refresh', 'true')
+      const res = await fetch(`/api/suggestions?${params}`)
+      if (!res.ok) throw new Error('Failed to fetch suggestions')
+      const data = await res.json()
+      setSuggestions({
+        youtubeMix: data.youtubeMix || [],
+        lastfmSimilar: data.lastfmSimilar || []
+      })
+    } catch (e) {
+      setSuggestionsError(e instanceof Error ? e.message : 'Failed to load suggestions')
+    } finally {
+      setIsLoadingSuggestions(false)
+    }
+  }
+
+  // Fetch analysis and suggestions on mount
+  useEffect(() => {
+    fetchSuggestions()
+  }, [song.videoId])
+
   useEffect(() => {
     const fetchAnalysis = async () => {
       setIsLoadingAnalysis(true)
@@ -308,6 +365,105 @@ export function SongDetail({ song, isNowPlaying }: SongDetailProps) {
             )}
           </section>
         )}
+
+        {/* Discover similar */}
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Discover Similar</h2>
+            {suggestions && (
+              <button
+                onClick={() => fetchSuggestions(true)}
+                className="text-sm text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200"
+              >
+                Refresh
+              </button>
+            )}
+          </div>
+
+          {!suggestions && !isLoadingSuggestions && (
+            <button
+              onClick={() => fetchSuggestions()}
+              className="w-full flex items-center justify-center gap-3 p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200 dark:border-purple-700 rounded-xl hover:from-purple-100 hover:to-pink-100 dark:hover:from-purple-900/30 dark:hover:to-pink-900/30 transition-colors group"
+            >
+              <SparklesIcon className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+              <span className="font-medium text-purple-700 dark:text-purple-300">Find similar tracks</span>
+            </button>
+          )}
+
+          {isLoadingSuggestions && (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-purple-300 dark:border-purple-600 border-t-purple-600 dark:border-t-purple-300" />
+            </div>
+          )}
+
+          {suggestionsError && (
+            <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-xl text-red-600 dark:text-red-400 text-sm">
+              {suggestionsError}
+            </div>
+          )}
+
+          {suggestions && (
+            <div className="space-y-4">
+              {/* YouTube Mix */}
+              {suggestions.youtubeMix.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500 dark:text-slate-400 mb-2">YouTube Mix</h3>
+                  <div className="space-y-1">
+                    {suggestions.youtubeMix.slice(0, 8).map(track => (
+                      <button
+                        key={track.videoId}
+                        onClick={() => playVideoInQueue(track.videoId, suggestions.youtubeMix.map(t => t.videoId), suggestions.youtubeMix)}
+                        className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors group"
+                      >
+                        {track.thumbnail ? (
+                          <img src={track.thumbnail} alt="" className="w-10 h-10 rounded object-cover" />
+                        ) : (
+                          <div className="w-10 h-10 rounded bg-gray-200 dark:bg-slate-700" />
+                        )}
+                        <div className="flex-1 text-left min-w-0">
+                          <div className="text-sm font-medium text-gray-900 dark:text-white truncate">{track.title}</div>
+                          <div className="text-xs text-gray-500 dark:text-slate-400 truncate">{track.artist}</div>
+                        </div>
+                        <PlayIcon className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Last.fm Similar */}
+              {suggestions.lastfmSimilar.filter(t => t.videoId).length > 0 && (
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500 dark:text-slate-400 mb-2">Last.fm Similar</h3>
+                  <div className="space-y-1">
+                    {suggestions.lastfmSimilar.filter(t => t.videoId).map(track => (
+                      <button
+                        key={track.videoId}
+                        onClick={() => playVideoInQueue(track.videoId, suggestions.lastfmSimilar.filter(t => t.videoId).map(t => t.videoId), suggestions.lastfmSimilar.filter(t => t.videoId))}
+                        className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors group"
+                      >
+                        {track.thumbnail ? (
+                          <img src={track.thumbnail} alt="" className="w-10 h-10 rounded object-cover" />
+                        ) : (
+                          <div className="w-10 h-10 rounded bg-gray-200 dark:bg-slate-700" />
+                        )}
+                        <div className="flex-1 text-left min-w-0">
+                          <div className="text-sm font-medium text-gray-900 dark:text-white truncate">{track.title}</div>
+                          <div className="text-xs text-gray-500 dark:text-slate-400 truncate">{track.artist}</div>
+                        </div>
+                        <PlayIcon className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {suggestions.youtubeMix.length === 0 && suggestions.lastfmSimilar.length === 0 && (
+                <p className="text-gray-500 dark:text-slate-400 text-sm">No suggestions found</p>
+              )}
+            </div>
+          )}
+        </section>
 
         {/* Playlists containing this song */}
         <section>

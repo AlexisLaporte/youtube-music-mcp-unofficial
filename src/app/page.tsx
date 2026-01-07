@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useMusicStore } from '@/stores/useMusicStore'
@@ -9,13 +9,16 @@ import { LoginPrompt } from '@/components/LoginPrompt'
 import { PlaylistSidebar } from '@/components/layout/PlaylistSidebar'
 import { MobileBottomTabs } from '@/components/layout/MobileBottomTabs'
 import { HeartIcon, MusicalNoteIcon, ExclamationTriangleIcon, PlayIcon } from '@heroicons/react/24/solid'
-import { ArrowRightIcon } from '@heroicons/react/24/outline'
+import { ArrowRightIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
+
+const PLAYLISTS_PER_PAGE = 12
 
 export default function Home() {
   const router = useRouter()
   const { isConnected, isLoading: authLoading, initialize, signIn } = useAuthStore()
   const { smartSync, isSyncing, getAllPlaylists, getLikedSongs, getAllSongs } = useMusicStore()
   const { playVideoInQueue, mobileTab } = useUIStore()
+  const [playlistPage, setPlaylistPage] = useState(0)
 
   useEffect(() => {
     initialize()
@@ -47,6 +50,12 @@ export default function Home() {
   const allSongs = getAllSongs()
   const orphanSongs = allSongs.filter(s => s.playlistIds.length === 0 && s.isLiked)
 
+  const totalPages = Math.ceil(playlists.length / PLAYLISTS_PER_PAGE)
+  const paginatedPlaylists = playlists.slice(
+    playlistPage * PLAYLISTS_PER_PAGE,
+    (playlistPage + 1) * PLAYLISTS_PER_PAGE
+  )
+
   const handlePlayLiked = () => {
     if (likedSongs.length > 0) {
       const queue = likedSongs.map(s => s.videoId)
@@ -65,112 +74,120 @@ export default function Home() {
             <PlaylistSidebar />
           </aside>
 
-          {/* Main content */}
+          {/* Main content - Two columns */}
           <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-slate-900 p-8">
-            <div className="max-w-4xl mx-auto">
-              {/* Header */}
-              <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                  Welcome back
-                </h1>
-                <p className="text-gray-500 dark:text-slate-400">
-                  Your music library at a glance
-                </p>
-              </div>
+            <div className="flex gap-8">
+              {/* Left column - Stats & Quick actions */}
+              <div className="w-80 flex-shrink-0 space-y-6">
+                {/* Header */}
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                    Welcome back
+                  </h1>
+                  <p className="text-gray-500 dark:text-slate-400 text-sm">
+                    Your music library
+                  </p>
+                </div>
 
-              {/* Stats cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                {/* Liked songs */}
+                {/* Liked songs card */}
                 <button
-                  onClick={() => router.push('/playlist/likes')}
-                  className="bg-gradient-to-br from-red-pantone to-crimson p-6 rounded-2xl text-white text-left hover:shadow-lg hover:shadow-red-pantone/25 transition-all group"
+                  onClick={() => router.push('/playlist/liked')}
+                  className="w-full bg-gradient-to-br from-red-pantone to-crimson p-5 rounded-2xl text-white text-left hover:shadow-lg hover:shadow-red-pantone/25 transition-all group"
                 >
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
-                      <HeartIcon className="w-6 h-6 text-white" />
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                      <HeartIcon className="w-5 h-5 text-white" />
                     </div>
-                    <ArrowRightIcon className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <ArrowRightIcon className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
-                  <div className="text-3xl font-bold mb-1">{likedSongs.length}</div>
+                  <div className="text-2xl font-bold mb-0.5">{likedSongs.length}</div>
                   <div className="text-white/80 text-sm">Liked Songs</div>
                 </button>
 
-                {/* Playlists */}
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-gray-200 dark:border-slate-700">
-                  <div className="w-12 h-12 rounded-xl bg-space-cadet/10 dark:bg-space-cadet/30 flex items-center justify-center mb-4">
-                    <MusicalNoteIcon className="w-6 h-6 text-space-cadet dark:text-slate-300" />
+                {/* Stats row */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-gray-200 dark:border-slate-700">
+                    <div className="text-2xl font-bold text-gray-900 dark:text-white">{playlists.length}</div>
+                    <div className="text-gray-500 dark:text-slate-400 text-xs">Playlists</div>
                   </div>
-                  <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">{playlists.length}</div>
-                  <div className="text-gray-500 dark:text-slate-400 text-sm">Playlists</div>
+
+                  {orphanSongs.length > 0 ? (
+                    <button
+                      onClick={() => router.push('/playlist/liked')}
+                      className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-xl border border-amber-200 dark:border-amber-700 text-left hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors"
+                    >
+                      <div className="text-2xl font-bold text-amber-800 dark:text-amber-400">{orphanSongs.length}</div>
+                      <div className="text-amber-600 dark:text-amber-500 text-xs">To organize</div>
+                    </button>
+                  ) : (
+                    <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-xl border border-green-200 dark:border-green-700">
+                      <div className="text-lg font-bold text-green-800 dark:text-green-400">✓</div>
+                      <div className="text-green-600 dark:text-green-500 text-xs">All organized</div>
+                    </div>
+                  )}
                 </div>
 
-                {/* To organize */}
-                {orphanSongs.length > 0 ? (
+                {/* Quick play */}
+                {likedSongs.length > 0 && (
                   <button
-                    onClick={() => router.push('/playlist/likes')}
-                    className="bg-amber-50 dark:bg-amber-900/20 p-6 rounded-2xl border border-amber-200 dark:border-amber-700 text-left hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors group"
+                    onClick={handlePlayLiked}
+                    className="w-full flex items-center gap-3 p-4 rounded-xl bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600 transition-colors group"
                   >
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center">
-                        <ExclamationTriangleIcon className="w-6 h-6 text-amber-600 dark:text-amber-500" />
-                      </div>
-                      <ArrowRightIcon className="w-5 h-5 text-amber-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-pantone to-crimson flex items-center justify-center shadow-lg group-hover:shadow-red-pantone/25 transition-shadow">
+                      <PlayIcon className="w-6 h-6 text-white ml-0.5" />
                     </div>
-                    <div className="text-3xl font-bold text-amber-800 dark:text-amber-400 mb-1">{orphanSongs.length}</div>
-                    <div className="text-amber-600 dark:text-amber-500 text-sm">Songs to organize</div>
+                    <div className="text-left">
+                      <div className="font-medium text-gray-900 dark:text-white text-sm">Shuffle Liked</div>
+                      <div className="text-xs text-gray-500 dark:text-slate-400">{likedSongs.length} tracks</div>
+                    </div>
                   </button>
-                ) : (
-                  <div className="bg-green-50 dark:bg-green-900/20 p-6 rounded-2xl border border-green-200 dark:border-green-700">
-                    <div className="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/50 flex items-center justify-center mb-4">
-                      <svg className="w-6 h-6 text-green-600 dark:text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                    <div className="text-xl font-bold text-green-800 dark:text-green-400 mb-1">All organized!</div>
-                    <div className="text-green-600 dark:text-green-500 text-sm">Every song is in a playlist</div>
-                  </div>
                 )}
               </div>
 
-              {/* Quick play */}
-              {likedSongs.length > 0 && (
-                <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 p-6 mb-8">
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Play</h2>
-                  <button
-                    onClick={handlePlayLiked}
-                    className="flex items-center gap-4 w-full p-4 rounded-xl bg-gray-50 dark:bg-slate-700/50 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors group"
-                  >
-                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-red-pantone to-crimson flex items-center justify-center shadow-lg group-hover:shadow-red-pantone/25 transition-shadow">
-                      <PlayIcon className="w-7 h-7 text-white ml-0.5" />
+              {/* Right column - Playlists grid */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Your Playlists</h2>
+                  {totalPages > 1 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-500 dark:text-slate-400">
+                        {playlistPage + 1} / {totalPages}
+                      </span>
+                      <button
+                        onClick={() => setPlaylistPage(p => Math.max(0, p - 1))}
+                        disabled={playlistPage === 0}
+                        className="p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                      >
+                        <ChevronLeftIcon className="w-4 h-4 text-gray-600 dark:text-slate-400" />
+                      </button>
+                      <button
+                        onClick={() => setPlaylistPage(p => Math.min(totalPages - 1, p + 1))}
+                        disabled={playlistPage >= totalPages - 1}
+                        className="p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                      >
+                        <ChevronRightIcon className="w-4 h-4 text-gray-600 dark:text-slate-400" />
+                      </button>
                     </div>
-                    <div className="text-left">
-                      <div className="font-semibold text-gray-900 dark:text-white">Shuffle Liked Songs</div>
-                      <div className="text-sm text-gray-500 dark:text-slate-400">{likedSongs.length} tracks</div>
-                    </div>
-                  </button>
+                  )}
                 </div>
-              )}
 
-              {/* Recent playlists */}
-              {playlists.length > 0 && (
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Your Playlists</h2>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {playlists.slice(0, 8).map(playlist => (
+                {playlists.length > 0 ? (
+                  <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {paginatedPlaylists.map(playlist => (
                       <button
                         key={playlist.id}
                         onClick={() => router.push(`/playlist/${playlist.id}`)}
-                        className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-4 text-left hover:shadow-md hover:border-gray-300 dark:hover:border-slate-600 transition-all group"
+                        className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-3 text-left hover:shadow-md hover:border-gray-300 dark:hover:border-slate-600 transition-all group"
                       >
                         {playlist.thumbnail ? (
                           <img
                             src={playlist.thumbnail}
                             alt=""
-                            className="w-full aspect-square rounded-lg object-cover mb-3 shadow-sm"
+                            className="w-full aspect-square rounded-lg object-cover mb-2 shadow-sm"
                           />
                         ) : (
-                          <div className="w-full aspect-square rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 dark:from-slate-700 dark:to-slate-600 mb-3 flex items-center justify-center">
-                            <MusicalNoteIcon className="w-10 h-10 text-gray-400 dark:text-slate-400" />
+                          <div className="w-full aspect-square rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 dark:from-slate-700 dark:to-slate-600 mb-2 flex items-center justify-center">
+                            <MusicalNoteIcon className="w-8 h-8 text-gray-400 dark:text-slate-400" />
                           </div>
                         )}
                         <div className="font-medium text-gray-900 dark:text-white truncate text-sm">{playlist.title}</div>
@@ -178,8 +195,12 @@ export default function Home() {
                       </button>
                     ))}
                   </div>
-                </div>
-              )}
+                ) : (
+                  <div className="text-center py-12 text-gray-500 dark:text-slate-400">
+                    No playlists yet. Sync your library to get started.
+                  </div>
+                )}
+              </div>
             </div>
           </main>
         </div>

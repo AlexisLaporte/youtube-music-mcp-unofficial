@@ -6,8 +6,8 @@ import { useMusicStore } from '@/stores/useMusicStore'
 import { useUIStore } from '@/stores/useUIStore'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useThemeStore } from '@/stores/useThemeStore'
-import { HeartIcon, PlusIcon, MusicalNoteIcon, MagnifyingGlassIcon, ChartBarIcon } from '@heroicons/react/24/solid'
-import { ArrowRightOnRectangleIcon, MoonIcon, SunIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
+import { HeartIcon, PlusIcon, MusicalNoteIcon, MagnifyingGlassIcon } from '@heroicons/react/24/solid'
+import { ArrowRightOnRectangleIcon, MoonIcon, SunIcon, ArrowPathIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 
 export function PlaylistSidebar() {
@@ -213,24 +213,24 @@ export function PlaylistSidebar() {
                 </div>
               </button>
 
-              {/* Sync status */}
+              {/* Sync & Analysis */}
               <Link
                 href="/users/me/sync"
                 onClick={() => setShowAccountMenu(false)}
                 className="w-full flex items-center gap-3 px-4 py-2.5 text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
               >
                 <ArrowPathIcon className="w-4 h-4" />
-                <span className="text-sm">Sync status</span>
+                <span className="text-sm">Sync & Analysis</span>
               </Link>
 
-              {/* Analysis status */}
+              {/* Help */}
               <Link
-                href="/users/me/analysis"
+                href="/help"
                 onClick={() => setShowAccountMenu(false)}
                 className="w-full flex items-center gap-3 px-4 py-2.5 text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
               >
-                <ChartBarIcon className="w-4 h-4" />
-                <span className="text-sm">Audio analysis</span>
+                <QuestionMarkCircleIcon className="w-4 h-4" />
+                <span className="text-sm">Help</span>
               </Link>
 
               {/* Divider */}

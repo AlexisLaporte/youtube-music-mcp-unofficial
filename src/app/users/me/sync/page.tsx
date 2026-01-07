@@ -1,127 +1,244 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { ArrowPathIcon } from '@heroicons/react/24/outline'
+import { useEffect, useState, useCallback } from 'react'
+import {
+  ArrowPathIcon,
+  CheckCircleIcon,
+  ExclamationCircleIcon,
+  PlayIcon,
+  PauseIcon,
+} from '@heroicons/react/24/outline'
 import { useMusicStore } from '@/stores/useMusicStore'
 import { PageWithSidebar } from '@/components/layout/PageWithSidebar'
 
-interface SyncDebugData {
-  browser: {
+// Feature documentation in ./meta.ts (Next.js pages can't have custom exports)
+
+interface SyncData {
+  frontend: {
     songsCount: number
     playlistsCount: number
     lastSyncAt: number | null
-    sampleSongs: { videoId: string; title: string; playlistIds: string[] }[]
   }
-  db: {
-    playlistsCount: number
-    tracksCount: number
-    analysisCount: number
-  } | null
-  youtube: {
+  backend: {
     playlistsCount: number
     likedSongsCount: number
-    playlists: { id: string; title: string; trackCount: number }[]
+    uniqueTracksCount: number
+    enrichedCount: number
+    analyzedCount: number
   } | null
-  errors: string[]
+  backendError: string | null
+}
+
+interface ProcessingStatus {
+  running: boolean
+  paused: boolean
+  currentTrack: { videoId: string; title: string } | null
+  progress: {
+    done: number
+    total: number
+  }
+  error: string | null
+}
+
+function formatDate(ts: number | null) {
+  if (!ts) return 'Never'
+  return new Date(ts).toLocaleString()
 }
 
 function SyncContent() {
-  const [data, setData] = useState<SyncDebugData | null>(null)
+  const [data, setData] = useState<SyncData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [refreshingYT, setRefreshingYT] = useState(false)
-  const [forceSync, setForceSync] = useState(false)
+  const [syncing, setSyncing] = useState(false)
+  const [selectedPlaylist, setSelectedPlaylist] = useState<string>('all')
+  const [status, setStatus] = useState<ProcessingStatus>({
+    running: false,
+    paused: false,
+    currentTrack: null,
+    progress: { done: 0, total: 0 },
+    error: null,
+  })
+  const [shouldStop, setShouldStop] = useState(false)
+  const [progressData, setProgressData] = useState<{ enrichedIds: Set<string>; analyzedIds: Set<string>; unavailableIds: Set<string> }>({
+    enrichedIds: new Set(),
+    analyzedIds: new Set(),
+    unavailableIds: new Set(),
+  })
 
   const store = useMusicStore()
+  const playlists = Array.from(store.playlists.values())
 
-  const loadData = async (fetchYouTube = false, doForceSync = false) => {
-    const errors: string[] = []
+  // Compute progress for a set of track IDs (analyzed + unavailable = done)
+  const getProgress = useCallback((trackIds: string[]) => {
+    const analyzed = trackIds.filter(id => progressData.analyzedIds.has(id)).length
+    const unavailable = trackIds.filter(id => progressData.unavailableIds.has(id)).length
+    return { analyzed: analyzed + unavailable, total: trackIds.length }
+  }, [progressData])
 
-    const browserData = {
+  const fetchProgress = useCallback(async () => {
+    try {
+      const res = await fetch('/api/analysis/progress')
+      if (res.ok) {
+        const data = await res.json()
+        setProgressData({
+          enrichedIds: new Set(data.enrichedIds || []),
+          analyzedIds: new Set(data.analyzedIds || []),
+          unavailableIds: new Set(data.unavailableIds || []),
+        })
+      }
+    } catch {
+      // Ignore
+    }
+  }, [])
+
+  const loadData = useCallback(async () => {
+    const frontendData = {
       songsCount: store.songs.size,
       playlistsCount: store.playlists.size,
       lastSyncAt: store.lastSyncAt,
-      sampleSongs: Array.from(store.songs.values())
-        .slice(0, 10)
-        .map(s => ({ videoId: s.videoId, title: s.title, playlistIds: s.playlistIds }))
     }
 
-    let dbData = null
+    let backendData = null
+    let backendError = null
+
     try {
       const res = await fetch('/api/debug/cache-stats')
       if (res.ok) {
-        dbData = await res.json()
+        const stats = await res.json()
+        // Also get enrichment stats
+        const enrichRes = await fetch('/api/track/enrich')
+        const enrichStats = enrichRes.ok ? await enrichRes.json() : { enrichedCount: 0 }
+
+        backendData = {
+          playlistsCount: stats.playlistsCount,
+          likedSongsCount: stats.likedSongsCount,
+          uniqueTracksCount: stats.uniqueTracksCount,
+          enrichedCount: enrichStats.enrichedCount || 0,
+          analyzedCount: stats.analysisCount || 0,
+        }
       } else {
-        errors.push(`DB fetch failed: ${res.status}`)
+        backendError = `HTTP ${res.status}`
       }
     } catch (e) {
-      errors.push(`DB fetch error: ${e}`)
-    }
-
-    let ytData = null
-    if (fetchYouTube) {
-      try {
-        const res = await fetch('/api/debug/youtube-stats')
-        if (res.ok) {
-          ytData = await res.json()
-        } else {
-          errors.push(`YouTube fetch failed: ${res.status}`)
-        }
-      } catch (e) {
-        errors.push(`YouTube fetch error: ${e}`)
-      }
+      backendError = e instanceof Error ? e.message : 'Unknown error'
     }
 
     setData({
-      browser: browserData,
-      db: dbData,
-      youtube: ytData,
-      errors
+      frontend: frontendData,
+      backend: backendData,
+      backendError,
     })
+  }, [store.songs.size, store.playlists.size, store.lastSyncAt])
 
-    if (doForceSync) {
+  const handleForceSync = async () => {
+    setSyncing(true)
+    try {
       await store.fullSync()
-      setData(prev => prev ? {
-        ...prev,
-        browser: {
-          songsCount: store.songs.size,
-          playlistsCount: store.playlists.size,
-          lastSyncAt: store.lastSyncAt,
-          sampleSongs: Array.from(store.songs.values())
-            .slice(0, 10)
-            .map(s => ({ videoId: s.videoId, title: s.title, playlistIds: s.playlistIds }))
-        }
-      } : null)
+      await loadData()
+    } finally {
+      setSyncing(false)
     }
   }
 
+  // Get tracks for selected playlist
+  const getTracksToProcess = useCallback(async (): Promise<string[]> => {
+    if (selectedPlaylist === 'all') {
+      // Get all unique track IDs
+      const allIds = new Set<string>()
+      store.songs.forEach((song) => allIds.add(song.videoId))
+      return Array.from(allIds)
+    } else if (selectedPlaylist === 'liked') {
+      return Array.from(store.songs.values())
+        .filter(s => s.isLiked)
+        .map(s => s.videoId)
+    } else {
+      // Get tracks from specific playlist
+      return store.playlistSongs.get(selectedPlaylist) || []
+    }
+  }, [selectedPlaylist, store.songs, store.playlistSongs])
+
+  const startAnalysis = async () => {
+    setShouldStop(false)
+    setStatus(prev => ({ ...prev, running: true, paused: false, error: null }))
+
+    try {
+      const trackIds = await getTracksToProcess()
+      if (trackIds.length === 0) {
+        setStatus(prev => ({ ...prev, running: false, error: 'No tracks to process' }))
+        return
+      }
+
+      // Filter out already analyzed tracks
+      const pendingIds = trackIds.filter(id =>
+        !progressData.analyzedIds.has(id) && !progressData.unavailableIds.has(id)
+      )
+
+      if (pendingIds.length === 0) {
+        setStatus(prev => ({ ...prev, running: false, error: 'All tracks already analyzed' }))
+        return
+      }
+
+      setStatus(prev => ({
+        ...prev,
+        progress: { done: 0, total: pendingIds.length },
+      }))
+
+      // Process one track at a time
+      for (let i = 0; i < pendingIds.length; i++) {
+        if (shouldStop) break
+
+        const videoId = pendingIds[i]
+        const song = store.songs.get(videoId)
+
+        setStatus(prev => ({
+          ...prev,
+          currentTrack: { videoId, title: song?.title || videoId },
+          progress: { ...prev.progress, done: i },
+        }))
+
+        // Call unified enrichment (YT metadata + replacement + audio analysis)
+        await fetch('/api/track/enrich', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ videoIds: [videoId] }),
+        })
+
+        setStatus(prev => ({
+          ...prev,
+          progress: { ...prev.progress, done: i + 1 },
+        }))
+      }
+
+      // Done
+      setStatus(prev => ({ ...prev, running: false, currentTrack: null }))
+      await fetchProgress()
+      await loadData()
+
+    } catch (e) {
+      setStatus(prev => ({
+        ...prev,
+        running: false,
+        error: e instanceof Error ? e.message : 'Analysis failed',
+      }))
+    }
+  }
+
+  const pauseAnalysis = () => {
+    setShouldStop(true)
+    setStatus(prev => ({ ...prev, running: false, paused: true }))
+  }
+
   useEffect(() => {
-    loadData().finally(() => setLoading(false))
-  }, [])
+    const init = async () => {
+      setLoading(true)
+      await loadData()
+      await fetchProgress()
+      setLoading(false)
+    }
+    init()
+  }, [loadData, fetchProgress])
 
-  const handleRefreshYouTube = async () => {
-    setRefreshingYT(true)
-    await loadData(true)
-    setRefreshingYT(false)
-  }
-
-  const handleForceSync = async () => {
-    setForceSync(true)
-    await loadData(false, true)
-    setForceSync(false)
-  }
-
-  const formatDate = (ts: number | null) => {
-    if (!ts) return 'Never'
-    return new Date(ts).toLocaleString()
-  }
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="animate-spin rounded-full h-10 w-10 border-2 border-gray-300 border-t-space-cadet" />
-      </div>
-    )
-  }
+  const isSynced = data?.frontend && data?.backend &&
+    data.frontend.playlistsCount === data.backend.playlistsCount
 
   return (
     <div className="bg-gray-50 dark:bg-slate-900 min-h-full">
@@ -134,135 +251,185 @@ function SyncContent() {
                 <ArrowPathIcon className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">Sync Status</h1>
-                <p className="text-sm text-gray-500 dark:text-slate-400">Data synchronization debug</p>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">Sync & Analysis</h1>
+                <p className="text-sm text-gray-500 dark:text-slate-400">Data sync + audio processing</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <button
-                onClick={handleRefreshYouTube}
-                disabled={refreshingYT}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm"
+                onClick={loadData}
+                disabled={loading}
+                className="px-4 py-2 text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg text-sm"
               >
-                {refreshingYT ? 'Fetching...' : 'Fetch YouTube'}
+                Refresh
               </button>
               <button
                 onClick={handleForceSync}
-                disabled={forceSync}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 text-sm"
+                disabled={syncing}
+                className="px-4 py-2 bg-space-cadet text-white rounded-lg hover:bg-space-cadet/90 disabled:opacity-50 text-sm"
               >
-                {forceSync ? 'Syncing...' : 'Force Sync'}
+                {syncing ? 'Syncing...' : 'Force Sync'}
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-6 py-8 space-y-8">
-        {/* Errors */}
-        {data?.errors && data.errors.length > 0 && (
-          <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-4">
-            <h2 className="font-semibold text-red-800 dark:text-red-200 mb-2">Errors</h2>
-            <ul className="text-sm text-red-700 dark:text-red-300 space-y-1">
-              {data.errors.map((e, i) => <li key={i}>{e}</li>)}
-            </ul>
+      <div className="max-w-5xl mx-auto px-6 py-8 space-y-6">
+        {loading && !data ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="animate-spin rounded-full h-10 w-10 border-2 border-gray-300 border-t-space-cadet" />
           </div>
-        )}
+        ) : data ? (
+          <>
+            {/* Sync status */}
+            <div className={`flex items-center gap-3 p-4 rounded-xl border ${
+              isSynced
+                ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
+            }`}>
+              {isSynced ? (
+                <>
+                  <CheckCircleIcon className="w-6 h-6 text-green-600 dark:text-green-400" />
+                  <span className="text-green-800 dark:text-green-300 font-medium">Backend and Frontend are in sync</span>
+                </>
+              ) : (
+                <>
+                  <ExclamationCircleIcon className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+                  <span className="text-amber-800 dark:text-amber-300 font-medium">Data may be out of sync - run Force Sync</span>
+                </>
+              )}
+            </div>
 
-        {/* Browser Cache */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Browser Cache (localStorage)
-          </h2>
-          <dl className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <dt className="text-gray-500 dark:text-slate-400">Songs</dt>
-              <dd className="text-2xl font-bold text-gray-900 dark:text-white">{data?.browser.songsCount}</dd>
-            </div>
-            <div>
-              <dt className="text-gray-500 dark:text-slate-400">Playlists</dt>
-              <dd className="text-2xl font-bold text-gray-900 dark:text-white">{data?.browser.playlistsCount}</dd>
-            </div>
-            <div className="col-span-2">
-              <dt className="text-gray-500 dark:text-slate-400">Last Sync</dt>
-              <dd className="text-gray-900 dark:text-white">{formatDate(data?.browser.lastSyncAt ?? null)}</dd>
-            </div>
-          </dl>
-          {data?.browser.sampleSongs && data.browser.sampleSongs.length > 0 && (
-            <div className="mt-4">
-              <h3 className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Sample Songs</h3>
-              <div className="text-xs font-mono bg-gray-50 dark:bg-slate-900 rounded p-2 max-h-40 overflow-auto">
-                {data.browser.sampleSongs.map(s => (
-                  <div key={s.videoId} className="text-gray-600 dark:text-slate-400">
-                    {s.videoId}: {s.title} [{s.playlistIds.length} playlists]
+            {/* Stats overview */}
+            {data.backend && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-4">
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">{data.backend.uniqueTracksCount}</div>
+                  <div className="text-sm text-gray-500 dark:text-slate-400">Total tracks</div>
+                </div>
+                <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-4">
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">{data.backend.playlistsCount}</div>
+                  <div className="text-sm text-gray-500 dark:text-slate-400">Playlists</div>
+                </div>
+                <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-4">
+                  <div className="text-2xl font-bold text-red-600 dark:text-red-400">{data.backend.enrichedCount}</div>
+                  <div className="text-sm text-gray-500 dark:text-slate-400">YT metadata</div>
+                </div>
+                <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-4">
+                  <div className="text-2xl font-bold text-space-cadet dark:text-blue-400">{data.backend.analyzedCount}</div>
+                  <div className="text-sm text-gray-500 dark:text-slate-400">Audio analyzed</div>
+                </div>
+              </div>
+            )}
+
+            {/* Analysis Section */}
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Analysis</h2>
+
+              {/* Playlist selector + Start/Pause button */}
+              <div className="flex items-center gap-4 mb-6">
+                <div className="flex-1">
+                  <label className="block text-sm text-gray-600 dark:text-slate-400 mb-1">Playlist</label>
+                  <select
+                    value={selectedPlaylist}
+                    onChange={(e) => setSelectedPlaylist(e.target.value)}
+                    disabled={status.running}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 rounded-lg text-sm text-gray-900 dark:text-white disabled:opacity-50"
+                  >
+                    {(() => {
+                      const allTracks = Array.from(store.songs.values()).map(s => s.videoId)
+                      const allProgress = getProgress(allTracks)
+                      return <option value="all">All tracks ({allProgress.analyzed}/{allProgress.total})</option>
+                    })()}
+                    {(() => {
+                      const likedTracks = Array.from(store.songs.values()).filter(s => s.isLiked).map(s => s.videoId)
+                      const likedProgress = getProgress(likedTracks)
+                      return <option value="liked">Liked songs ({likedProgress.analyzed}/{likedProgress.total})</option>
+                    })()}
+                    {playlists.map(pl => {
+                      const trackIds = store.playlistSongs.get(pl.id) || []
+                      const progress = getProgress(trackIds)
+                      return (
+                        <option key={pl.id} value={pl.id}>
+                          {pl.title} ({progress.analyzed}/{progress.total})
+                        </option>
+                      )
+                    })}
+                  </select>
+                </div>
+
+                <div className="pt-6">
+                  {status.running ? (
+                    <button
+                      onClick={pauseAnalysis}
+                      className="flex items-center gap-2 px-6 py-2 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 hover:bg-amber-200 dark:hover:bg-amber-900/50 rounded-lg transition-colors"
+                    >
+                      <PauseIcon className="w-5 h-5" />
+                      Pause
+                    </button>
+                  ) : (
+                    <button
+                      onClick={startAnalysis}
+                      className="flex items-center gap-2 px-6 py-2 bg-space-cadet text-white hover:bg-space-cadet/90 rounded-lg transition-colors"
+                    >
+                      <PlayIcon className="w-5 h-5" />
+                      {status.paused ? 'Resume' : 'Start Analysis'}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Status display */}
+              {status.running && (
+                <div className="space-y-4">
+                  {/* Current track */}
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-900 rounded-lg">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                    <span className="text-sm text-gray-700 dark:text-slate-300">
+                      Analyzing...
+                    </span>
+                    {status.currentTrack && (
+                      <span className="text-xs text-gray-500 dark:text-slate-400 truncate flex-1">
+                        {status.currentTrack.title}
+                      </span>
+                    )}
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
 
-        {/* DB Cache */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Server DB Cache (SQLite)
-          </h2>
-          {data?.db ? (
-            <dl className="grid grid-cols-3 gap-4 text-sm">
-              <div>
-                <dt className="text-gray-500 dark:text-slate-400">Playlists</dt>
-                <dd className="text-2xl font-bold text-gray-900 dark:text-white">{data.db.playlistsCount}</dd>
-              </div>
-              <div>
-                <dt className="text-gray-500 dark:text-slate-400">Tracks</dt>
-                <dd className="text-2xl font-bold text-gray-900 dark:text-white">{data.db.tracksCount}</dd>
-              </div>
-              <div>
-                <dt className="text-gray-500 dark:text-slate-400">Audio Analyses</dt>
-                <dd className="text-2xl font-bold text-gray-900 dark:text-white">{data.db.analysisCount}</dd>
-              </div>
-            </dl>
-          ) : (
-            <p className="text-gray-500 dark:text-slate-400">Not loaded</p>
-          )}
-        </div>
-
-        {/* YouTube Live */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            YouTube API (Live)
-          </h2>
-          {data?.youtube ? (
-            <>
-              <dl className="grid grid-cols-2 gap-4 text-sm mb-4">
-                <div>
-                  <dt className="text-gray-500 dark:text-slate-400">Playlists</dt>
-                  <dd className="text-2xl font-bold text-gray-900 dark:text-white">{data.youtube.playlistsCount}</dd>
-                </div>
-                <div>
-                  <dt className="text-gray-500 dark:text-slate-400">Liked Songs</dt>
-                  <dd className="text-2xl font-bold text-gray-900 dark:text-white">{data.youtube.likedSongsCount}</dd>
-                </div>
-              </dl>
-              {data.youtube.playlists && (
-                <div>
-                  <h3 className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Playlists</h3>
-                  <div className="text-xs font-mono bg-gray-50 dark:bg-slate-900 rounded p-2 max-h-40 overflow-auto">
-                    {data.youtube.playlists.map(p => (
-                      <div key={p.id} className="text-gray-600 dark:text-slate-400">
-                        {p.id}: {p.title} ({p.trackCount} tracks)
-                      </div>
-                    ))}
+                  {/* Single progress bar */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs text-gray-600 dark:text-slate-400">Progress</span>
+                      <span className="text-xs text-gray-600 dark:text-slate-400">
+                        {status.progress.done} / {status.progress.total}
+                      </span>
+                    </div>
+                    <div className="h-2 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-space-cadet rounded-full transition-all duration-300"
+                        style={{ width: status.progress.total > 0 ? `${(status.progress.done / status.progress.total) * 100}%` : '0%' }}
+                      />
+                    </div>
                   </div>
                 </div>
               )}
-            </>
-          ) : (
-            <p className="text-gray-500 dark:text-slate-400">
-              Click &quot;Fetch YouTube&quot; to load (expensive API calls)
-            </p>
-          )}
-        </div>
+
+              {/* Error */}
+              {status.error && (
+                <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg p-3">
+                  {status.error}
+                </div>
+              )}
+
+              {/* Info */}
+              <div className="mt-6 pt-4 border-t border-gray-100 dark:border-slate-700">
+                <p className="text-xs text-gray-500 dark:text-slate-500">
+                  Pour chaque track : YT metadata → remplacement auto si indisponible → audio analysis (BPM, key, energy)
+                </p>
+              </div>
+            </div>
+          </>
+        ) : null}
       </div>
     </div>
   )

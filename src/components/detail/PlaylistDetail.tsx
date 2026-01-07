@@ -4,26 +4,51 @@ import { useMemo, useState, useEffect, useCallback } from 'react'
 import { Playlist, Song } from '@/types/youtube'
 import { useMusicStore } from '@/stores/useMusicStore'
 import { useUIStore } from '@/stores/useUIStore'
-import { MusicalNoteIcon, TrashIcon, PencilIcon, BeakerIcon } from '@heroicons/react/24/outline'
-import { PlayIcon } from '@heroicons/react/24/solid'
+import { MusicalNoteIcon, TrashIcon, PencilIcon } from '@heroicons/react/24/outline'
+import { PlayIcon, SparklesIcon } from '@heroicons/react/24/solid'
+import type { FeatureMeta } from '@/types/docs'
+
+/**
+ * Playlist detail view with stats, management, and discovery.
+ *
+ * Playlist suggestions aggregate recommendations from multiple tracks,
+ * ranking by how many playlist tracks suggested the same song.
+ * Higher score = better fit for the playlist's overall vibe.
+ */
+export const featureMeta: FeatureMeta = {
+  id: 'playlist-discover',
+  name: 'Playlist Discovery',
+  description: 'Find tracks that match your playlist\'s vibe.',
+  faq: [
+    { q: 'How does playlist discovery work?', a: 'Analyzes your top tracks and aggregates their suggestions. Songs recommended by multiple tracks rank higher.' },
+    { q: 'What does "3x match" mean?', a: '3 tracks in your playlist suggested this song independently.' },
+  ]
+}
 
 interface PlaylistDetailProps {
   playlist: Playlist
 }
 
-interface BatchStatus {
-  running: boolean
-  processedCount: number
-  lastVideoId: string | null
+interface PlaylistSuggestion {
+  videoId: string
+  title: string
+  artist: string
+  thumbnail?: string
+  score: number
+  sources: string[]
 }
 
 export function PlaylistDetail({ playlist }: PlaylistDetailProps) {
   const songsMap = useMusicStore(state => state.songs)
   const playlistSongsMap = useMusicStore(state => state.playlistSongs)
-  const { openModal, playShuffled } = useUIStore()
-  const [isStarting, setIsStarting] = useState(false)
-  const [analyzeError, setAnalyzeError] = useState<string | null>(null)
-  const [batchStatus, setBatchStatus] = useState<BatchStatus | null>(null)
+  const { openModal, playShuffled, playVideoInQueue } = useUIStore()
+  const [analyzedIds, setAnalyzedIds] = useState<Set<string>>(new Set())
+  const [unavailableIds, setUnavailableIds] = useState<Set<string>>(new Set())
+
+  // Playlist suggestions state
+  const [suggestions, setSuggestions] = useState<PlaylistSuggestion[] | null>(null)
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false)
+  const [suggestionsError, setSuggestionsError] = useState<string | null>(null)
 
   const songs = useMemo(() => {
     const videoIds = playlistSongsMap.get(playlist.id) || []
@@ -36,58 +61,66 @@ export function PlaylistDetail({ playlist }: PlaylistDetailProps) {
   const artists = new Set(songs.map(s => s.artist))
   const likedCount = songs.filter(s => s.isLiked).length
 
-  // Check batch status
-  const fetchBatchStatus = useCallback(async () => {
-    try {
-      const res = await fetch('/api/analysis/batch')
-      if (res.ok) {
-        const data = await res.json()
-        setBatchStatus(data)
+  // Fetch analysis progress
+  useEffect(() => {
+    const fetchProgress = async () => {
+      try {
+        const res = await fetch('/api/analysis/progress')
+        if (res.ok) {
+          const data = await res.json()
+          setAnalyzedIds(new Set(data.analyzedIds || []))
+          setUnavailableIds(new Set(data.unavailableIds || []))
+        }
+      } catch {
+        // Ignore
       }
-    } catch {
-      // Ignore
     }
+    fetchProgress()
   }, [])
 
-  // Poll batch status
-  useEffect(() => {
-    fetchBatchStatus()
+  // Calculate analysis progress for this playlist
+  const videoIds = useMemo(() => songs.map(s => s.videoId), [songs])
+  const analyzedCount = useMemo(
+    () => videoIds.filter(id => analyzedIds.has(id)).length,
+    [videoIds, analyzedIds]
+  )
+  const unavailableCount = useMemo(
+    () => videoIds.filter(id => unavailableIds.has(id)).length,
+    [videoIds, unavailableIds]
+  )
+  // Consider unavailable videos as "done" since we can't analyze them
+  const effectiveAnalyzed = analyzedCount + unavailableCount
+  const analysisPercent = songs.length > 0 ? Math.round((effectiveAnalyzed / songs.length) * 100) : 100
 
-    const interval = setInterval(fetchBatchStatus, 3000)
-    return () => clearInterval(interval)
-  }, [fetchBatchStatus])
-
-  const analyzePlaylist = async () => {
-    if (songs.length === 0 || batchStatus?.running) return
-
-    setIsStarting(true)
-    setAnalyzeError(null)
-
+  const fetchPlaylistSuggestions = async () => {
+    setIsLoadingSuggestions(true)
+    setSuggestionsError(null)
     try {
-      const videoIds = songs.map(s => s.videoId)
-      const res = await fetch('/api/analysis/batch', {
+      const tracks = songs.map(s => ({
+        videoId: s.videoId,
+        title: s.title,
+        artist: s.artist
+      }))
+
+      const res = await fetch('/api/suggestions/playlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ videoIds }),
+        body: JSON.stringify({
+          tracks,
+          playlistVideoIds: songs.map(s => s.videoId)
+        })
       })
 
+      if (!res.ok) throw new Error('Failed to fetch suggestions')
+
       const data = await res.json()
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to start analysis')
-      }
-
-      if (data.status) {
-        setBatchStatus(data.status)
-      }
-    } catch (err) {
-      setAnalyzeError(err instanceof Error ? err.message : 'Failed to start')
+      setSuggestions(data.suggestions || [])
+    } catch (e) {
+      setSuggestionsError(e instanceof Error ? e.message : 'Failed to load suggestions')
     } finally {
-      setIsStarting(false)
+      setIsLoadingSuggestions(false)
     }
   }
-
-  const isRunning = batchStatus?.running ?? false
 
   return (
     <div className="h-full overflow-y-auto">
@@ -170,24 +203,100 @@ export function PlaylistDetail({ playlist }: PlaylistDetailProps) {
           </div>
         )}
 
+        {/* Analysis progress (only if not 100%) */}
+        {analysisPercent < 100 && (
+          <div className="mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-600">Audio analysis</span>
+              <span className="text-sm font-medium text-gray-900">
+                {analyzedCount}/{songs.length}
+                {unavailableCount > 0 && (
+                  <span className="text-gray-400 ml-1">({unavailableCount} unavailable)</span>
+                )}
+              </span>
+            </div>
+            <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-space-cadet rounded-full transition-all"
+                style={{ width: `${analysisPercent}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Discover similar for playlist */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-md font-semibold text-gray-900 flex items-center gap-2">
+              <SparklesIcon className="w-5 h-5 text-red-pantone" />
+              Discover for this playlist
+            </h3>
+            {suggestions === null && !isLoadingSuggestions && (
+              <button
+                onClick={fetchPlaylistSuggestions}
+                disabled={songs.length === 0}
+                className="px-4 py-2 bg-space-cadet text-white rounded-lg hover:bg-opacity-90 transition-colors disabled:opacity-50"
+              >
+                Find tracks
+              </button>
+            )}
+          </div>
+
+          {isLoadingSuggestions && (
+            <div className="flex items-center gap-2 text-gray-500">
+              <div className="w-4 h-4 border-2 border-gray-300 border-t-space-cadet rounded-full animate-spin" />
+              Analyzing playlist...
+            </div>
+          )}
+
+          {suggestionsError && (
+            <p className="text-red-500 text-sm">{suggestionsError}</p>
+          )}
+
+          {suggestions && suggestions.length > 0 && (
+            <div className="space-y-2">
+              {suggestions.map((s) => (
+                <button
+                  key={s.videoId}
+                  onClick={() => {
+                    const queue = suggestions.map(sg => sg.videoId)
+                    const externalTracks = suggestions.map(sg => ({
+                      videoId: sg.videoId,
+                      title: sg.title,
+                      artist: sg.artist,
+                      thumbnail: sg.thumbnail
+                    }))
+                    playVideoInQueue(s.videoId, queue, externalTracks)
+                  }}
+                  className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 transition-colors text-left"
+                >
+                  {s.thumbnail ? (
+                    <img src={s.thumbnail} alt="" className="w-10 h-10 rounded object-cover" />
+                  ) : (
+                    <div className="w-10 h-10 rounded bg-gray-200 flex items-center justify-center">
+                      <MusicalNoteIcon className="w-5 h-5 text-gray-400" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">{s.title}</p>
+                    <p className="text-xs text-gray-500 truncate">{s.artist}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-400">{s.score}x match</span>
+                    <PlayIcon className="w-4 h-4 text-gray-400" />
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {suggestions && suggestions.length === 0 && (
+            <p className="text-sm text-gray-500">No suggestions found for this playlist.</p>
+          )}
+        </div>
+
         {/* Actions */}
         <div className="flex flex-wrap gap-3">
-          <button
-            onClick={analyzePlaylist}
-            disabled={isStarting || isRunning || songs.length === 0}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-              isRunning
-                ? 'bg-green-600 text-white'
-                : 'bg-space-cadet text-white hover:bg-space-cadet/90 disabled:bg-gray-300 disabled:cursor-not-allowed'
-            }`}
-          >
-            <BeakerIcon className={`w-4 h-4 ${isRunning ? 'animate-pulse' : ''}`} />
-            {isStarting
-              ? 'Starting...'
-              : isRunning
-                ? `Analyzing... (${batchStatus?.processedCount || 0} done)`
-                : `Analyze ${songs.length} tracks`}
-          </button>
           <button
             onClick={() => openModal('edit-playlist', { playlistId: playlist.id, playlistTitle: playlist.title })}
             className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
@@ -203,9 +312,6 @@ export function PlaylistDetail({ playlist }: PlaylistDetailProps) {
             Delete
           </button>
         </div>
-        {analyzeError && (
-          <p className="mt-2 text-sm text-red-600">{analyzeError}</p>
-        )}
       </div>
     </div>
   )

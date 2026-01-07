@@ -7,6 +7,24 @@ import { useUIStore } from '@/stores/useUIStore'
 import { XMarkIcon, ChevronUpIcon, PlayIcon, PauseIcon, HeartIcon as HeartSolidIcon, PlusIcon, BackwardIcon, ForwardIcon } from '@heroicons/react/24/solid'
 import { HeartIcon as HeartOutlineIcon, QueueListIcon, XMarkIcon as XMarkOutlineIcon, ArrowPathRoundedSquareIcon } from '@heroicons/react/24/outline'
 import { Shuffle, Repeat1 } from 'lucide-react'
+import type { FeatureMeta } from '@/types/docs'
+
+/**
+ * Persistent player bar with YouTube IFrame API integration.
+ *
+ * Supports queue management, shuffle, and repeat modes.
+ * External tracks (from suggestions) are handled via externalTracks map
+ * since they're not in the user's library.
+ */
+export const featureMeta: FeatureMeta = {
+  id: 'player',
+  name: 'Music Player',
+  description: 'Play tracks with queue, shuffle, and repeat.',
+  faq: [
+    { q: 'Why does a track show no title?', a: 'Suggested tracks from discovery may briefly show no info while loading.' },
+    { q: 'How does shuffle work?', a: 'Randomizes the queue when activated. Click again to restore original order.' },
+  ]
+}
 
 declare global {
   interface Window {
@@ -63,7 +81,7 @@ export function PlayerBar() {
     playerVideoId, closePlayer, toggleNowPlayingMode, isNowPlayingMode,
     isPlayerPaused, pausePlayer, resumePlayer, openModal,
     playbackMode, cyclePlaybackMode, playNext, playPrevious,
-    playbackQueue, selectedPlaylistId
+    playbackQueue, selectedPlaylistId, externalTracks
   } = useUIStore()
   const songsMap = useMusicStore(state => state.songs)
   const playlistsMap = useMusicStore(state => state.playlists)
@@ -175,10 +193,10 @@ export function PlayerBar() {
         },
         onError: (event) => {
           // YouTube error codes: 2=invalid param, 5=HTML5 error, 100=not found, 101/150=embed not allowed
-          console.warn(`⚠️ YouTube player error ${event.data} for video, skipping...`)
-          const store = useUIStore.getState()
-          // Skip to next track on error
-          store.playNext()
+          // Pre-validation during enrichment should handle most unavailable videos
+          // This is just a fallback for edge cases
+          console.warn(`⚠️ YouTube player error ${event.data} for video ${videoIdToLoad}, skipping...`)
+          useUIStore.getState().playNext()
         }
       }
     })
@@ -324,6 +342,8 @@ export function PlayerBar() {
   if (!playerVideoId) return null
 
   const song = songsMap.get(playerVideoId)
+  const externalTrack = externalTracks.get(playerVideoId)
+  const trackInfo = song || externalTrack
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0
   const isLiked = song?.isLiked ?? false
   const songPlaylists = song?.playlistIds
@@ -347,9 +367,9 @@ export function PlayerBar() {
             onClick={toggleNowPlayingMode}
             className="relative flex-shrink-0 group"
           >
-            {song?.thumbnail ? (
+            {trackInfo?.thumbnail ? (
               <img
-                src={song.thumbnail}
+                src={trackInfo.thumbnail}
                 alt=""
                 className="w-14 h-14 rounded-xl object-cover shadow-lg ring-1 ring-black/5 transition-transform duration-200 group-hover:scale-105"
               />
@@ -443,10 +463,10 @@ export function PlayerBar() {
             >
               <div className="min-w-0 flex-1">
                 <div className="font-semibold text-gray-900 dark:text-white truncate text-sm">
-                  {song?.title || 'Now playing...'}
+                  {trackInfo?.title || 'Now playing...'}
                 </div>
                 <div className="text-xs text-gray-500 dark:text-slate-400 truncate">
-                  {song?.artist || 'YouTube'}
+                  {trackInfo?.artist || 'YouTube'}
                 </div>
               </div>
             </button>

@@ -23,6 +23,14 @@ type SortOrder = 'asc' | 'desc'
 type MobileTab = 'playlists' | 'songs' | 'detail'
 type PlaybackMode = 'normal' | 'shuffle' | 'loop-one' | 'loop-all'
 
+// Track info for external tracks (not in user's library)
+export interface ExternalTrack {
+  videoId: string
+  title: string
+  artist: string
+  thumbnail?: string
+}
+
 interface UIState {
   // Navigation (3-column layout)
   selectedPlaylistId: string | 'liked' | null  // Col 1 selection
@@ -42,6 +50,7 @@ interface UIState {
   playbackMode: PlaybackMode
   playbackQueue: string[]  // Array of videoIds
   playbackQueueIndex: number
+  externalTracks: Map<string, ExternalTrack>  // Cache for tracks not in library
 
   // View modes
   view: 'list' | 'grid'
@@ -80,7 +89,7 @@ interface UIState {
 
   // Actions - Player
   playVideo: (videoId: string) => void
-  playVideoInQueue: (videoId: string, queue: string[]) => void
+  playVideoInQueue: (videoId: string, queue: string[], externalTracks?: ExternalTrack[]) => void
   playShuffled: (queue: string[]) => void
   pausePlayer: () => void
   resumePlayer: () => void
@@ -139,6 +148,7 @@ export const useUIStore = create<UIState>((set) => ({
   playbackMode: 'normal',
   playbackQueue: [],
   playbackQueueIndex: -1,
+  externalTracks: new Map(),
   view: 'list',
   filterMode: 'all',
   searchQuery: '',
@@ -214,15 +224,27 @@ export const useUIStore = create<UIState>((set) => ({
     })
   },
 
-  playVideoInQueue: (videoId, queue) => {
+  playVideoInQueue: (videoId, queue, externalTracksList) => {
     console.log('▶️ Playing video in queue:', videoId, `(${queue.length} tracks)`)
     const queueIndex = queue.indexOf(videoId)
-    set({
-      playerVideoId: videoId,
-      isPlayerVisible: true,
-      isPlayerPaused: false,
-      playbackQueue: queue,
-      playbackQueueIndex: queueIndex >= 0 ? queueIndex : 0
+
+    set(state => {
+      // Add external tracks to cache
+      const newExternalTracks = new Map(state.externalTracks)
+      if (externalTracksList) {
+        for (const track of externalTracksList) {
+          newExternalTracks.set(track.videoId, track)
+        }
+      }
+
+      return {
+        playerVideoId: videoId,
+        isPlayerVisible: true,
+        isPlayerPaused: false,
+        playbackQueue: queue,
+        playbackQueueIndex: queueIndex >= 0 ? queueIndex : 0,
+        externalTracks: newExternalTracks
+      }
     })
   },
 

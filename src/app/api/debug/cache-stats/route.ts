@@ -19,19 +19,48 @@ export async function GET() {
   const db = new Database(DB_PATH)
 
   try {
-    const playlistsCount = (db.prepare('SELECT COUNT(*) as count FROM playlists WHERE user_id = ?').get(session.userId) as { count: number }).count
-    const likedSongs = db.prepare('SELECT data FROM liked_songs WHERE user_id = ?').get(session.userId) as { data: string } | undefined
-    const likedSongsCount = likedSongs ? JSON.parse(likedSongs.data).length : 0
+    // Get playlists from JSON data
+    const playlistsRow = db.prepare('SELECT data FROM playlists WHERE user_id = ?').get(session.userId) as { data: string } | undefined
+    const playlists = playlistsRow ? JSON.parse(playlistsRow.data) : []
+    const playlistsCount = Array.isArray(playlists) ? playlists.length : 0
 
-    const playlistTracks = db.prepare('SELECT playlist_id, data FROM playlist_tracks WHERE user_id = ?').all(session.userId) as { playlist_id: string; data: string }[]
-    const tracksCount = playlistTracks.reduce((sum, pt) => sum + JSON.parse(pt.data).length, 0)
+    // Get liked songs from JSON data
+    const likedRow = db.prepare('SELECT data FROM liked_songs WHERE user_id = ?').get(session.userId) as { data: string } | undefined
+    const likedSongs = likedRow ? JSON.parse(likedRow.data) : []
+    const likedSongsCount = Array.isArray(likedSongs) ? likedSongs.length : 0
 
+    // Get all unique tracks from playlist_tracks
+    const playlistTracksRows = db.prepare('SELECT playlist_id, data FROM playlist_tracks WHERE user_id = ?').all(session.userId) as { playlist_id: string; data: string }[]
+
+    const allVideoIds = new Set<string>()
+    let totalTracksInPlaylists = 0
+
+    for (const row of playlistTracksRows) {
+      try {
+        const tracks = JSON.parse(row.data) as { videoId: string }[]
+        totalTracksInPlaylists += tracks.length
+        tracks.forEach(t => allVideoIds.add(t.videoId))
+      } catch {
+        // ignore parse errors
+      }
+    }
+
+    // Add liked songs video IDs
+    if (Array.isArray(likedSongs)) {
+      likedSongs.forEach((s: { videoId: string }) => allVideoIds.add(s.videoId))
+    }
+
+    const uniqueTracksCount = allVideoIds.size
+
+    // Get analysis count
     const analysisCount = (db.prepare('SELECT COUNT(*) as count FROM audio_analysis WHERE bpm IS NOT NULL').get() as { count: number }).count
 
     return NextResponse.json({
       playlistsCount,
       likedSongsCount,
-      tracksCount,
+      playlistTracksCount: playlistTracksRows.length,
+      totalTracksInPlaylists,
+      uniqueTracksCount,
       analysisCount
     })
   } finally {

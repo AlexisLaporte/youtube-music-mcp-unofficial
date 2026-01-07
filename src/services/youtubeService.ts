@@ -1,3 +1,17 @@
+/**
+ * YouTube Data API client with two access patterns:
+ *
+ * 1. Direct API calls (fetchYouTubeDirect):
+ *    - For mutations (add/remove from playlist, like/unlike)
+ *    - Bypasses cache, uses user's OAuth token directly
+ *
+ * 2. Backend API calls (fetchBackend):
+ *    - For reads (playlists, tracks, search)
+ *    - Server-side cache reduces quota usage
+ *
+ * Quota: 10,000 units/day. Reads cost 1-100 units, writes cost 50.
+ * That's why we cache aggressively and batch requests.
+ */
 import { YouTubePlaylist, YouTubeTrack, PlaylistAnalysis } from '@/types/youtube'
 
 export interface SearchResult extends YouTubeTrack {
@@ -8,7 +22,6 @@ export interface SearchResult extends YouTubeTrack {
 class YouTubeService {
   private readonly PROVIDER_TOKEN_KEY = 'youtube_provider_token'
 
-  // Get provider token from localStorage
   getProviderToken(): string | null {
     if (typeof window !== 'undefined') {
       return localStorage.getItem(this.PROVIDER_TOKEN_KEY)
@@ -16,7 +29,8 @@ class YouTubeService {
     return null
   }
 
-  private async fetchYouTube(endpoint: string, options: RequestInit = {}) {
+  // Direct YouTube API call (for mutations that bypass cache)
+  private async fetchYouTubeDirect(endpoint: string, options: RequestInit = {}) {
     const token = this.getProviderToken()
     if (!token) {
       throw new Error('No YouTube access token available')
@@ -41,39 +55,42 @@ class YouTubeService {
     return response.json()
   }
 
-  async getPlaylists(): Promise<YouTubePlaylist[]> {
-    console.log('📋 Fetching playlists...')
-    const playlists: YouTubePlaylist[] = []
-    let pageToken = ''
+  // Backend API call (with server-side cache)
+  private async fetchBackend(endpoint: string) {
+    const response = await fetch(endpoint)
 
-    do {
-      const params = new URLSearchParams({
-        part: 'snippet,contentDetails,status',
-        mine: 'true',
-        maxResults: '50',
-      })
-      if (pageToken) params.set('pageToken', pageToken)
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Unknown error' }))
+      throw new Error(error.error || `API error: ${response.status}`)
+    }
 
-      const data = await this.fetchYouTube(`playlists?${params}`)
-
-      for (const item of data.items || []) {
-        playlists.push({
-          id: item.id,
-          title: item.snippet.title,
-          description: item.snippet.description || '',
-          thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
-          trackCount: item.contentDetails.itemCount || 0,
-          privacy: item.status.privacyStatus,
-          publishedAt: item.snippet.publishedAt,
-        })
-      }
-
-      pageToken = data.nextPageToken || ''
-    } while (pageToken)
-
-    console.log(`✅ Fetched ${playlists.length} playlists`)
-    return playlists
+    return response.json()
   }
+
+  // ============ READ operations (via Backend cache) ============
+
+  async getPlaylists(): Promise<YouTubePlaylist[]> {
+    console.log('📋 Fetching playlists via backend...')
+    const result = await this.fetchBackend('/api/youtube/playlists')
+    console.log(`✅ Got ${result.data.length} playlists (cache: ${result.fromCache})`)
+    return result.data
+  }
+
+  async getLikedSongs(): Promise<YouTubeTrack[]> {
+    console.log('❤️ Fetching liked songs via backend...')
+    const result = await this.fetchBackend('/api/youtube/liked')
+    console.log(`✅ Got ${result.data.length} liked songs (cache: ${result.fromCache})`)
+    return result.data
+  }
+
+  async getPlaylistTracks(playlistId: string): Promise<YouTubeTrack[]> {
+    console.log(`🎵 Fetching tracks for playlist ${playlistId} via backend...`)
+    const result = await this.fetchBackend(`/api/youtube/tracks/${playlistId}`)
+    console.log(`✅ Got ${result.data.length} tracks (cache: ${result.fromCache})`)
+    return result.data
+  }
+
+  // ============ SEARCH (direct to YouTube, not cached) ============
 
   async searchVideos(query: string, maxResults = 20): Promise<SearchResult[]> {
     console.log(`🔍 Searching for: ${query}`)
@@ -86,7 +103,7 @@ class YouTubeService {
       maxResults: String(maxResults),
     })
 
-    const data = await this.fetchYouTube(`search?${params}`)
+    const data = await this.fetchYouTubeDirect(`search?${params}`)
 
     const results: SearchResult[] = (data.items || []).map((item: {
       id: { videoId: string }
@@ -102,7 +119,7 @@ class YouTubeService {
       title: item.snippet.title,
       artist: item.snippet.channelTitle.replace(' - Topic', ''),
       channelTitle: item.snippet.channelTitle,
-      duration: '', // Not available in search results
+      duration: '',
       thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
       publishedAt: item.snippet.publishedAt,
     }))
@@ -111,44 +128,7 @@ class YouTubeService {
     return results
   }
 
-  async getLikedSongs(musicOnly = true): Promise<YouTubeTrack[]> {
-    console.log('❤️ Fetching liked songs...')
-    const tracks: YouTubeTrack[] = []
-    let pageToken = ''
-
-    do {
-      const params = new URLSearchParams({
-        part: 'snippet,contentDetails',
-        myRating: 'like',
-        maxResults: '50',
-      })
-      if (pageToken) params.set('pageToken', pageToken)
-
-      const data = await this.fetchYouTube(`videos?${params}`)
-
-      for (const item of data.items || []) {
-        // Filter: Music category (10) or Topic channels (YouTube Music auto-generated)
-        const isMusic = item.snippet.categoryId === '10'
-        const isTopicChannel = item.snippet.channelTitle?.endsWith(' - Topic')
-
-        if (musicOnly && !isMusic && !isTopicChannel) continue
-
-        tracks.push({
-          id: item.id,
-          videoId: item.id,
-          title: item.snippet.title,
-          artist: item.snippet.channelTitle?.replace(/ - Topic$/, '') || item.snippet.channelTitle,
-          duration: this.parseDuration(item.contentDetails.duration),
-          thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
-        })
-      }
-
-      pageToken = data.nextPageToken || ''
-    } while (pageToken)
-
-    console.log(`✅ Fetched ${tracks.length} liked songs (music only: ${musicOnly})`)
-    return tracks
-  }
+  // ============ MUTATIONS (direct to YouTube) ============
 
   async rateVideo(videoId: string, rating: 'like' | 'dislike' | 'none'): Promise<void> {
     const token = this.getProviderToken()
@@ -170,7 +150,6 @@ class YouTubeService {
   }
 
   async removeVideoFromPlaylist(playlistId: string, videoId: string): Promise<void> {
-    // First, find the playlistItemId for this video
     const params = new URLSearchParams({
       part: 'id,snippet',
       playlistId,
@@ -178,7 +157,7 @@ class YouTubeService {
       maxResults: '1',
     })
 
-    const data = await this.fetchYouTube(`playlistItems?${params}`)
+    const data = await this.fetchYouTubeDirect(`playlistItems?${params}`)
 
     if (!data.items || data.items.length === 0) {
       throw new Error(`Video ${videoId} not found in playlist ${playlistId}`)
@@ -186,7 +165,6 @@ class YouTubeService {
 
     const playlistItemId = data.items[0].id
 
-    // Delete the playlist item
     const token = this.getProviderToken()
     if (!token) {
       throw new Error('No YouTube access token available')
@@ -207,51 +185,11 @@ class YouTubeService {
     console.log(`✅ Removed video ${videoId} from playlist ${playlistId}`)
   }
 
-  async getPlaylistTracks(playlistId: string): Promise<YouTubeTrack[]> {
-    console.log(`🎵 Fetching tracks for playlist ${playlistId}...`)
-    const tracks: YouTubeTrack[] = []
-    let pageToken = ''
-
-    do {
-      const params = new URLSearchParams({
-        part: 'snippet,contentDetails',
-        playlistId,
-        maxResults: '50',
-      })
-      if (pageToken) params.set('pageToken', pageToken)
-
-      const data = await this.fetchYouTube(`playlistItems?${params}`)
-
-      for (const item of data.items || []) {
-        if (!item.snippet.resourceId?.videoId) continue
-
-        // Skip deleted or private videos
-        const title = item.snippet.title
-        if (title === 'Deleted video' || title === 'Private video') continue
-
-        tracks.push({
-          id: item.id,
-          videoId: item.snippet.resourceId.videoId,
-          title,
-          artist: item.snippet.videoOwnerChannelTitle || item.snippet.channelTitle,
-          duration: '',
-          thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
-          addedAt: item.snippet.publishedAt,
-        })
-      }
-
-      pageToken = data.nextPageToken || ''
-    } while (pageToken)
-
-    console.log(`✅ Fetched ${tracks.length} tracks`)
-    return tracks
-  }
-
   async addVideoToPlaylist(playlistId: string, videoId: string): Promise<boolean> {
     console.log(`➕ Adding video ${videoId} to playlist ${playlistId}...`)
 
     try {
-      await this.fetchYouTube('playlistItems?part=snippet', {
+      await this.fetchYouTubeDirect('playlistItems?part=snippet', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -282,7 +220,7 @@ class YouTubeService {
   ): Promise<string> {
     console.log(`🆕 Creating playlist: ${title}...`)
 
-    const data = await this.fetchYouTube('playlists?part=snippet,status', {
+    const data = await this.fetchYouTubeDirect('playlists?part=snippet,status', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -306,7 +244,7 @@ class YouTubeService {
     console.log(`🗑️ Deleting playlist ${playlistId}...`)
 
     try {
-      await this.fetchYouTube(`playlists?id=${playlistId}`, {
+      await this.fetchYouTubeDirect(`playlists?id=${playlistId}`, {
         method: 'DELETE',
       })
 
@@ -326,7 +264,7 @@ class YouTubeService {
     console.log(`✏️ Updating playlist ${playlistId}...`)
 
     try {
-      await this.fetchYouTube('playlists?part=snippet', {
+      await this.fetchYouTubeDirect('playlists?part=snippet', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -347,6 +285,8 @@ class YouTubeService {
       return false
     }
   }
+
+  // ============ ANALYSIS (uses cached data) ============
 
   async analyzeLikedSongsInPlaylists(): Promise<PlaylistAnalysis> {
     console.log('🔍 Starting liked songs analysis...')
@@ -374,7 +314,6 @@ class YouTubeService {
         }
       })
 
-      // Generate smart suggestions
       const suggestedPlaylists = this.generateSmartSuggestions(
         track,
         playlists,
@@ -415,7 +354,6 @@ class YouTubeService {
       let score = 0
       const reasons: string[] = []
 
-      // Check artist frequency
       const artistMatches = playlistTracks.filter(pt =>
         pt.artist.toLowerCase().includes(track.artist.toLowerCase()) ||
         track.artist.toLowerCase().includes(pt.artist.toLowerCase())
@@ -426,7 +364,6 @@ class YouTubeService {
         reasons.push(`${artistMatches} songs by ${track.artist}`)
       }
 
-      // Check keyword matches in playlist title/description
       const keywords = track.title.toLowerCase().split(/\s+/).filter(w => w.length > 3)
       const playlistText = `${playlist.title} ${playlist.description}`.toLowerCase()
       const keywordMatches = keywords.filter(kw => playlistText.includes(kw)).length
@@ -469,22 +406,7 @@ class YouTubeService {
       .sort((a, b) => b.songCount - a.songCount)
       .slice(0, 10)
   }
-
-  private parseDuration(duration: string): string {
-    const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/)
-    if (!match) return ''
-
-    const hours = match[1] ? parseInt(match[1]) : 0
-    const minutes = match[2] ? parseInt(match[2]) : 0
-    const seconds = match[3] ? parseInt(match[3]) : 0
-
-    if (hours > 0) {
-      return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-    }
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`
-  }
 }
 
 export const youtubeService = new YouTubeService()
-// For backwards compatibility
 export const apiService = youtubeService
