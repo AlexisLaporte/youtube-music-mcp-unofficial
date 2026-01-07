@@ -1,7 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { ArrowPathIcon } from '@heroicons/react/24/outline'
 import { useMusicStore } from '@/stores/useMusicStore'
+import { PageWithSidebar } from '@/components/layout/PageWithSidebar'
 
 interface SyncDebugData {
   browser: {
@@ -23,7 +25,7 @@ interface SyncDebugData {
   errors: string[]
 }
 
-export default function SyncDebugPage() {
+function SyncContent() {
   const [data, setData] = useState<SyncDebugData | null>(null)
   const [loading, setLoading] = useState(true)
   const [refreshingYT, setRefreshingYT] = useState(false)
@@ -34,7 +36,6 @@ export default function SyncDebugPage() {
   const loadData = async (fetchYouTube = false, doForceSync = false) => {
     const errors: string[] = []
 
-    // Browser data
     const browserData = {
       songsCount: store.songs.size,
       playlistsCount: store.playlists.size,
@@ -44,7 +45,6 @@ export default function SyncDebugPage() {
         .map(s => ({ videoId: s.videoId, title: s.title, playlistIds: s.playlistIds }))
     }
 
-    // DB data
     let dbData = null
     try {
       const res = await fetch('/api/debug/cache-stats')
@@ -57,7 +57,6 @@ export default function SyncDebugPage() {
       errors.push(`DB fetch error: ${e}`)
     }
 
-    // YouTube data (optional - expensive)
     let ytData = null
     if (fetchYouTube) {
       try {
@@ -81,7 +80,6 @@ export default function SyncDebugPage() {
 
     if (doForceSync) {
       await store.fullSync()
-      // Reload browser data after sync
       setData(prev => prev ? {
         ...prev,
         browser: {
@@ -119,138 +117,161 @@ export default function SyncDebugPage() {
 
   if (loading) {
     return (
-      <div className="p-8">
-        <div className="animate-spin h-8 w-8 border-4 border-gray-300 border-t-red-500 rounded-full" />
+      <div className="flex items-center justify-center py-20">
+        <div className="animate-spin rounded-full h-10 w-10 border-2 border-gray-300 border-t-space-cadet" />
       </div>
     )
   }
 
   return (
-    <div className="p-8 max-w-4xl mx-auto space-y-8">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Sync Debug</h1>
-
-      {/* Actions */}
-      <div className="flex gap-4">
-        <button
-          onClick={handleRefreshYouTube}
-          disabled={refreshingYT}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-        >
-          {refreshingYT ? 'Fetching YouTube...' : 'Fetch YouTube Data'}
-        </button>
-        <button
-          onClick={handleForceSync}
-          disabled={forceSync}
-          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
-        >
-          {forceSync ? 'Syncing...' : 'Force Full Sync'}
-        </button>
-      </div>
-
-      {/* Errors */}
-      {data?.errors && data.errors.length > 0 && (
-        <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-4">
-          <h2 className="font-semibold text-red-800 dark:text-red-200 mb-2">Errors</h2>
-          <ul className="text-sm text-red-700 dark:text-red-300 space-y-1">
-            {data.errors.map((e, i) => <li key={i}>{e}</li>)}
-          </ul>
-        </div>
-      )}
-
-      {/* Browser Cache */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          Browser Cache (localStorage)
-        </h2>
-        <dl className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <dt className="text-gray-500 dark:text-slate-400">Songs</dt>
-            <dd className="text-2xl font-bold text-gray-900 dark:text-white">{data?.browser.songsCount}</dd>
-          </div>
-          <div>
-            <dt className="text-gray-500 dark:text-slate-400">Playlists</dt>
-            <dd className="text-2xl font-bold text-gray-900 dark:text-white">{data?.browser.playlistsCount}</dd>
-          </div>
-          <div className="col-span-2">
-            <dt className="text-gray-500 dark:text-slate-400">Last Sync</dt>
-            <dd className="text-gray-900 dark:text-white">{formatDate(data?.browser.lastSyncAt ?? null)}</dd>
-          </div>
-        </dl>
-        {data?.browser.sampleSongs && data.browser.sampleSongs.length > 0 && (
-          <div className="mt-4">
-            <h3 className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Sample Songs</h3>
-            <div className="text-xs font-mono bg-gray-50 dark:bg-slate-900 rounded p-2 max-h-40 overflow-auto">
-              {data.browser.sampleSongs.map(s => (
-                <div key={s.videoId} className="text-gray-600 dark:text-slate-400">
-                  {s.videoId}: {s.title} [{s.playlistIds.length} playlists]
-                </div>
-              ))}
+    <div className="bg-gray-50 dark:bg-slate-900 min-h-full">
+      {/* Header */}
+      <div className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700">
+        <div className="max-w-5xl mx-auto px-6 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-space-cadet flex items-center justify-center">
+                <ArrowPathIcon className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">Sync Status</h1>
+                <p className="text-sm text-gray-500 dark:text-slate-400">Data synchronization debug</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleRefreshYouTube}
+                disabled={refreshingYT}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm"
+              >
+                {refreshingYT ? 'Fetching...' : 'Fetch YouTube'}
+              </button>
+              <button
+                onClick={handleForceSync}
+                disabled={forceSync}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 text-sm"
+              >
+                {forceSync ? 'Syncing...' : 'Force Sync'}
+              </button>
             </div>
           </div>
-        )}
+        </div>
       </div>
 
-      {/* DB Cache */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          Server DB Cache (SQLite)
-        </h2>
-        {data?.db ? (
-          <dl className="grid grid-cols-3 gap-4 text-sm">
+      <div className="max-w-5xl mx-auto px-6 py-8 space-y-8">
+        {/* Errors */}
+        {data?.errors && data.errors.length > 0 && (
+          <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-4">
+            <h2 className="font-semibold text-red-800 dark:text-red-200 mb-2">Errors</h2>
+            <ul className="text-sm text-red-700 dark:text-red-300 space-y-1">
+              {data.errors.map((e, i) => <li key={i}>{e}</li>)}
+            </ul>
+          </div>
+        )}
+
+        {/* Browser Cache */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Browser Cache (localStorage)
+          </h2>
+          <dl className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <dt className="text-gray-500 dark:text-slate-400">Songs</dt>
+              <dd className="text-2xl font-bold text-gray-900 dark:text-white">{data?.browser.songsCount}</dd>
+            </div>
             <div>
               <dt className="text-gray-500 dark:text-slate-400">Playlists</dt>
-              <dd className="text-2xl font-bold text-gray-900 dark:text-white">{data.db.playlistsCount}</dd>
+              <dd className="text-2xl font-bold text-gray-900 dark:text-white">{data?.browser.playlistsCount}</dd>
             </div>
-            <div>
-              <dt className="text-gray-500 dark:text-slate-400">Tracks</dt>
-              <dd className="text-2xl font-bold text-gray-900 dark:text-white">{data.db.tracksCount}</dd>
-            </div>
-            <div>
-              <dt className="text-gray-500 dark:text-slate-400">Audio Analyses</dt>
-              <dd className="text-2xl font-bold text-gray-900 dark:text-white">{data.db.analysisCount}</dd>
+            <div className="col-span-2">
+              <dt className="text-gray-500 dark:text-slate-400">Last Sync</dt>
+              <dd className="text-gray-900 dark:text-white">{formatDate(data?.browser.lastSyncAt ?? null)}</dd>
             </div>
           </dl>
-        ) : (
-          <p className="text-gray-500 dark:text-slate-400">Not loaded</p>
-        )}
-      </div>
+          {data?.browser.sampleSongs && data.browser.sampleSongs.length > 0 && (
+            <div className="mt-4">
+              <h3 className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Sample Songs</h3>
+              <div className="text-xs font-mono bg-gray-50 dark:bg-slate-900 rounded p-2 max-h-40 overflow-auto">
+                {data.browser.sampleSongs.map(s => (
+                  <div key={s.videoId} className="text-gray-600 dark:text-slate-400">
+                    {s.videoId}: {s.title} [{s.playlistIds.length} playlists]
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
 
-      {/* YouTube Live */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          YouTube API (Live)
-        </h2>
-        {data?.youtube ? (
-          <>
-            <dl className="grid grid-cols-2 gap-4 text-sm mb-4">
+        {/* DB Cache */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Server DB Cache (SQLite)
+          </h2>
+          {data?.db ? (
+            <dl className="grid grid-cols-3 gap-4 text-sm">
               <div>
                 <dt className="text-gray-500 dark:text-slate-400">Playlists</dt>
-                <dd className="text-2xl font-bold text-gray-900 dark:text-white">{data.youtube.playlistsCount}</dd>
+                <dd className="text-2xl font-bold text-gray-900 dark:text-white">{data.db.playlistsCount}</dd>
               </div>
               <div>
-                <dt className="text-gray-500 dark:text-slate-400">Liked Songs</dt>
-                <dd className="text-2xl font-bold text-gray-900 dark:text-white">{data.youtube.likedSongsCount}</dd>
+                <dt className="text-gray-500 dark:text-slate-400">Tracks</dt>
+                <dd className="text-2xl font-bold text-gray-900 dark:text-white">{data.db.tracksCount}</dd>
+              </div>
+              <div>
+                <dt className="text-gray-500 dark:text-slate-400">Audio Analyses</dt>
+                <dd className="text-2xl font-bold text-gray-900 dark:text-white">{data.db.analysisCount}</dd>
               </div>
             </dl>
-            {data.youtube.playlists && (
-              <div>
-                <h3 className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Playlists</h3>
-                <div className="text-xs font-mono bg-gray-50 dark:bg-slate-900 rounded p-2 max-h-40 overflow-auto">
-                  {data.youtube.playlists.map(p => (
-                    <div key={p.id} className="text-gray-600 dark:text-slate-400">
-                      {p.id}: {p.title} ({p.trackCount} tracks)
-                    </div>
-                  ))}
+          ) : (
+            <p className="text-gray-500 dark:text-slate-400">Not loaded</p>
+          )}
+        </div>
+
+        {/* YouTube Live */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            YouTube API (Live)
+          </h2>
+          {data?.youtube ? (
+            <>
+              <dl className="grid grid-cols-2 gap-4 text-sm mb-4">
+                <div>
+                  <dt className="text-gray-500 dark:text-slate-400">Playlists</dt>
+                  <dd className="text-2xl font-bold text-gray-900 dark:text-white">{data.youtube.playlistsCount}</dd>
                 </div>
-              </div>
-            )}
-          </>
-        ) : (
-          <p className="text-gray-500 dark:text-slate-400">
-            Click &quot;Fetch YouTube Data&quot; to load (expensive API calls)
-          </p>
-        )}
+                <div>
+                  <dt className="text-gray-500 dark:text-slate-400">Liked Songs</dt>
+                  <dd className="text-2xl font-bold text-gray-900 dark:text-white">{data.youtube.likedSongsCount}</dd>
+                </div>
+              </dl>
+              {data.youtube.playlists && (
+                <div>
+                  <h3 className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Playlists</h3>
+                  <div className="text-xs font-mono bg-gray-50 dark:bg-slate-900 rounded p-2 max-h-40 overflow-auto">
+                    {data.youtube.playlists.map(p => (
+                      <div key={p.id} className="text-gray-600 dark:text-slate-400">
+                        {p.id}: {p.title} ({p.trackCount} tracks)
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <p className="text-gray-500 dark:text-slate-400">
+              Click &quot;Fetch YouTube&quot; to load (expensive API calls)
+            </p>
+          )}
+        </div>
       </div>
     </div>
+  )
+}
+
+export default function SyncPage() {
+  return (
+    <PageWithSidebar>
+      <SyncContent />
+    </PageWithSidebar>
   )
 }

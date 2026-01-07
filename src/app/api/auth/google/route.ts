@@ -5,7 +5,6 @@ export async function GET() {
   const redirectUri = `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback`
 
   const scopes = [
-    'https://www.googleapis.com/auth/youtube.readonly',
     'https://www.googleapis.com/auth/youtube',
     'https://www.googleapis.com/auth/userinfo.email',
     'https://www.googleapis.com/auth/userinfo.profile'

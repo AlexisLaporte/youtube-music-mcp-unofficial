@@ -7,7 +7,8 @@ import { useUIStore } from '@/stores/useUIStore'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useThemeStore } from '@/stores/useThemeStore'
 import { HeartIcon, PlusIcon, MusicalNoteIcon, MagnifyingGlassIcon, ChartBarIcon } from '@heroicons/react/24/solid'
-import { ArrowRightOnRectangleIcon, MoonIcon, SunIcon } from '@heroicons/react/24/outline'
+import { ArrowRightOnRectangleIcon, MoonIcon, SunIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
+import Link from 'next/link'
 
 export function PlaylistSidebar() {
   const router = useRouter()
@@ -152,13 +153,13 @@ export function PlaylistSidebar() {
           <PlusIcon className="w-4 h-4" />
           New playlist
         </button>
-        <button
-          onClick={() => router.push('/analysis-status')}
+        <Link
+          href="/users/me/analysis"
           className="w-full flex items-center justify-center gap-2 px-3 py-2 text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 hover:bg-white dark:hover:bg-slate-700 rounded-xl transition-all duration-150 text-xs font-medium"
         >
           <ChartBarIcon className="w-3.5 h-3.5" />
           Analysis status
-        </button>
+        </Link>
       </div>
 
       {/* Account */}
@@ -218,6 +219,26 @@ export function PlaylistSidebar() {
                   />
                 </div>
               </button>
+
+              {/* Sync status */}
+              <Link
+                href="/users/me/sync"
+                onClick={() => setShowAccountMenu(false)}
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+              >
+                <ArrowPathIcon className="w-4 h-4" />
+                <span className="text-sm">Sync status</span>
+              </Link>
+
+              {/* Analysis status */}
+              <Link
+                href="/users/me/analysis"
+                onClick={() => setShowAccountMenu(false)}
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+              >
+                <ChartBarIcon className="w-4 h-4" />
+                <span className="text-sm">Audio analysis</span>
+              </Link>
 
               {/* Divider */}
               <div className="border-t border-gray-100 dark:border-slate-700 my-1" />

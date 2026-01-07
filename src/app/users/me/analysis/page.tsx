@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
 import {
   ArrowPathIcon,
   CheckCircleIcon,
@@ -11,6 +10,7 @@ import {
   PlayIcon,
   StopIcon,
 } from "@heroicons/react/24/outline";
+import { PageWithSidebar } from "@/components/layout/PageWithSidebar";
 
 interface AnalysisStats {
   totalTracks: number;
@@ -57,7 +57,7 @@ function formatDuration(ms: number): string {
   return `${seconds}s`;
 }
 
-export default function AnalysisStatusPage() {
+function AnalysisContent() {
   const [stats, setStats] = useState<AnalysisStats | null>(null);
   const [batchStatus, setBatchStatus] = useState<BatchStatus | null>(null);
   const [loading, setLoading] = useState(true);
@@ -113,7 +113,6 @@ export default function AnalysisStatusPage() {
     }
   };
 
-  // Initial fetch
   useEffect(() => {
     const init = async () => {
       setLoading(true);
@@ -123,7 +122,6 @@ export default function AnalysisStatusPage() {
     init();
   }, [fetchStats, fetchBatchStatus]);
 
-  // Poll when batch is running
   useEffect(() => {
     if (!batchStatus?.running) return;
 
@@ -139,8 +137,16 @@ export default function AnalysisStatusPage() {
     ? Math.round((stats.analyzedCount / stats.totalTracks) * 100)
     : 0;
 
+  if (loading && !stats) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="animate-spin rounded-full h-10 w-10 border-2 border-gray-300 border-t-space-cadet" />
+      </div>
+    );
+  }
+
   return (
-    <div className="h-screen overflow-y-auto bg-gray-50 dark:bg-slate-900">
+    <div className="bg-gray-50 dark:bg-slate-900 min-h-full">
       {/* Header */}
       <div className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700">
         <div className="max-w-5xl mx-auto px-6 py-6">
@@ -150,29 +156,21 @@ export default function AnalysisStatusPage() {
                 <ChartBarIcon className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">Analysis Status</h1>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">Audio Analysis</h1>
                 <p className="text-sm text-gray-500 dark:text-slate-400">Track audio analysis progress</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => {
-                  fetchStats();
-                  fetchBatchStatus();
-                }}
-                disabled={loading}
-                className="flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-50"
-              >
-                <ArrowPathIcon className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-                Refresh
-              </button>
-              <Link
-                href="/"
-                className="px-4 py-2 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-              >
-                Back to app
-              </Link>
-            </div>
+            <button
+              onClick={() => {
+                fetchStats();
+                fetchBatchStatus();
+              }}
+              disabled={loading}
+              className="flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-50"
+            >
+              <ArrowPathIcon className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+              Refresh
+            </button>
           </div>
         </div>
       </div>
@@ -184,11 +182,7 @@ export default function AnalysisStatusPage() {
           </div>
         )}
 
-        {loading && !stats ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="animate-spin rounded-full h-10 w-10 border-2 border-gray-300 border-t-space-cadet" />
-          </div>
-        ) : stats ? (
+        {stats && (
           <div className="space-y-8">
             {/* Batch control panel */}
             <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-6">
@@ -198,28 +192,28 @@ export default function AnalysisStatusPage() {
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
-                    <span className="text-gray-700">Analysis running...</span>
+                    <span className="text-gray-700 dark:text-slate-300">Analysis running...</span>
                     {batchStatus.startedAt && (
-                      <span className="text-sm text-gray-500">
+                      <span className="text-sm text-gray-500 dark:text-slate-400">
                         ({formatDuration(Date.now() - batchStatus.startedAt)})
                       </span>
                     )}
                   </div>
 
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="text-sm text-gray-600">
+                  <div className="bg-gray-50 dark:bg-slate-900 rounded-lg p-4">
+                    <div className="text-sm text-gray-600 dark:text-slate-400">
                       Processed: <span className="font-medium">{batchStatus.processedCount}</span>
                     </div>
                     {batchStatus.lastVideoId && (
-                      <div className="text-sm text-gray-500 mt-1">
-                        Current: <code className="bg-gray-200 px-1 rounded">{batchStatus.lastVideoId}</code>
+                      <div className="text-sm text-gray-500 dark:text-slate-500 mt-1">
+                        Current: <code className="bg-gray-200 dark:bg-slate-700 px-1 rounded">{batchStatus.lastVideoId}</code>
                       </div>
                     )}
                   </div>
 
                   <button
                     onClick={stopBatch}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 rounded-lg transition-colors"
                   >
                     <StopIcon className="w-4 h-4" />
                     Stop
@@ -228,36 +222,36 @@ export default function AnalysisStatusPage() {
               ) : (
                 <div className="space-y-4">
                   {batchStatus?.error && (
-                    <div className="text-sm text-red-600 bg-red-50 rounded-lg p-3">
+                    <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg p-3">
                       {batchStatus.error}
                     </div>
                   )}
 
                   <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
-                      <label className="text-sm text-gray-600">Limit:</label>
+                      <label className="text-sm text-gray-600 dark:text-slate-400">Limit:</label>
                       <input
                         type="number"
                         value={limit}
                         onChange={(e) => setLimit(parseInt(e.target.value) || 0)}
-                        className="w-20 px-3 py-1.5 border border-gray-300 rounded-lg text-sm"
+                        className="w-20 px-3 py-1.5 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 rounded-lg text-sm text-gray-900 dark:text-white"
                         min={0}
                         placeholder="All"
                       />
-                      <span className="text-xs text-gray-500">(0 = all)</span>
+                      <span className="text-xs text-gray-500 dark:text-slate-500">(0 = all)</span>
                     </div>
 
                     <button
                       onClick={startBatch}
                       disabled={stats.pendingCount === 0}
-                      className="flex items-center gap-2 px-4 py-2 bg-space-cadet text-white hover:bg-space-cadet/90 disabled:bg-gray-300 disabled:cursor-not-allowed rounded-lg transition-colors"
+                      className="flex items-center gap-2 px-4 py-2 bg-space-cadet text-white hover:bg-space-cadet/90 disabled:bg-gray-300 dark:disabled:bg-slate-700 disabled:cursor-not-allowed rounded-lg transition-colors"
                     >
                       <PlayIcon className="w-4 h-4" />
                       Start Analysis
                     </button>
                   </div>
 
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-500 dark:text-slate-400">
                     {stats.pendingCount > 0
                       ? `${stats.pendingCount} tracks pending analysis`
                       : "All tracks have been analyzed"}
@@ -270,7 +264,6 @@ export default function AnalysisStatusPage() {
             <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-6">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Progress</h2>
 
-              {/* Progress bar */}
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-gray-600 dark:text-slate-400">
@@ -286,28 +279,27 @@ export default function AnalysisStatusPage() {
                 </div>
               </div>
 
-              {/* Stats cards */}
               <div className="grid grid-cols-3 gap-4 mt-6">
-                <div className="bg-green-50 rounded-lg p-4">
+                <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-1">
-                    <CheckCircleIcon className="w-5 h-5 text-green-600" />
-                    <span className="text-sm text-green-700">Analyzed</span>
+                    <CheckCircleIcon className="w-5 h-5 text-green-600 dark:text-green-500" />
+                    <span className="text-sm text-green-700 dark:text-green-400">Analyzed</span>
                   </div>
-                  <div className="text-2xl font-bold text-green-900">{stats.analyzedCount}</div>
+                  <div className="text-2xl font-bold text-green-900 dark:text-green-300">{stats.analyzedCount}</div>
                 </div>
-                <div className="bg-amber-50 rounded-lg p-4">
+                <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-1">
-                    <ClockIcon className="w-5 h-5 text-amber-600" />
-                    <span className="text-sm text-amber-700">Pending</span>
+                    <ClockIcon className="w-5 h-5 text-amber-600 dark:text-amber-500" />
+                    <span className="text-sm text-amber-700 dark:text-amber-400">Pending</span>
                   </div>
-                  <div className="text-2xl font-bold text-amber-900">{stats.pendingCount}</div>
+                  <div className="text-2xl font-bold text-amber-900 dark:text-amber-300">{stats.pendingCount}</div>
                 </div>
-                <div className="bg-blue-50 rounded-lg p-4">
+                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-1">
-                    <MusicalNoteIcon className="w-5 h-5 text-blue-600" />
-                    <span className="text-sm text-blue-700">Total</span>
+                    <MusicalNoteIcon className="w-5 h-5 text-blue-600 dark:text-blue-500" />
+                    <span className="text-sm text-blue-700 dark:text-blue-400">Total</span>
                   </div>
-                  <div className="text-2xl font-bold text-blue-900">{stats.totalTracks}</div>
+                  <div className="text-2xl font-bold text-blue-900 dark:text-blue-300">{stats.totalTracks}</div>
                 </div>
               </div>
             </div>
@@ -391,8 +383,16 @@ export default function AnalysisStatusPage() {
               </div>
             )}
           </div>
-        ) : null}
+        )}
       </div>
     </div>
+  );
+}
+
+export default function AnalysisPage() {
+  return (
+    <PageWithSidebar>
+      <AnalysisContent />
+    </PageWithSidebar>
   );
 }
