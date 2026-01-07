@@ -270,7 +270,7 @@ function SyncContent() {
         const data = await res.json()
         alert(data.error || 'Failed to start')
       }
-    } catch (e) {
+    } catch {
       alert('Failed to start background analysis')
     }
   }
