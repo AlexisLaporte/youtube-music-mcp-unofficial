@@ -153,13 +153,6 @@ export function PlaylistSidebar() {
           <PlusIcon className="w-4 h-4" />
           New playlist
         </button>
-        <Link
-          href="/users/me/analysis"
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 hover:bg-white dark:hover:bg-slate-700 rounded-xl transition-all duration-150 text-xs font-medium"
-        >
-          <ChartBarIcon className="w-3.5 h-3.5" />
-          Analysis status
-        </Link>
       </div>
 
       {/* Account */}
