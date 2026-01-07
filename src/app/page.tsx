@@ -27,6 +27,11 @@ export default function Home() {
   useEffect(() => {
     if (isConnected) {
       smartSync()
+      // Auto-sync every 30 minutes while app is open
+      const interval = setInterval(() => {
+        smartSync()
+      }, 30 * 60 * 1000)
+      return () => clearInterval(interval)
     }
   }, [isConnected, smartSync])
 
