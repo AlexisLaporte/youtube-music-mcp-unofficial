@@ -8,7 +8,6 @@ import { useUIStore } from '@/stores/useUIStore'
 import { LoginPrompt } from '@/components/LoginPrompt'
 import { PlaylistSidebar } from '@/components/layout/PlaylistSidebar'
 import { MobileBottomTabs } from '@/components/layout/MobileBottomTabs'
-import { PlayerBar } from '@/components/layout/PlayerBar'
 import { HeartIcon, MusicalNoteIcon, ExclamationTriangleIcon, PlayIcon } from '@heroicons/react/24/solid'
 import { ArrowRightIcon } from '@heroicons/react/24/outline'
 
@@ -16,7 +15,7 @@ export default function Home() {
   const router = useRouter()
   const { isConnected, isLoading: authLoading, initialize, signIn } = useAuthStore()
   const { smartSync, isSyncing, getAllPlaylists, getLikedSongs, getAllSongs } = useMusicStore()
-  const { playerVideoId, playVideoInQueue, mobileTab } = useUIStore()
+  const { playVideoInQueue, mobileTab } = useUIStore()
 
   useEffect(() => {
     initialize()
@@ -205,9 +204,6 @@ export default function Home() {
       <div className="md:hidden">
         <MobileBottomTabs />
       </div>
-
-      {/* Player bar */}
-      {playerVideoId && <PlayerBar />}
 
       {/* Sync indicator */}
       {isSyncing && (

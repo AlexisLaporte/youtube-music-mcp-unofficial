@@ -34,11 +34,41 @@ export const PlaylistSelectorModal: React.FC<PlaylistSelectorModalProps> = ({
   const [searchQuery, setSearchQuery] = useState('')
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false)
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
 
   useEffect(() => {
     const fetchSuggestions = async () => {
       setIsLoadingSuggestions(true)
       try {
+        // First check if we have an analysis
+        const analysisRes = await fetch(`/api/analysis?v=${videoId}`)
+        const analysisData = await analysisRes.json()
+
+        // If no cached analysis with BPM, trigger one
+        if (!analysisData.cached || !analysisData.bpm) {
+          console.log('🔬 No analysis for', videoId, '- triggering analysis...')
+          setIsAnalyzing(true)
+
+          // Start analysis for this single video
+          const startRes = await fetch('/api/analysis/batch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ videoIds: [videoId] })
+          })
+
+          if (startRes.ok) {
+            // Poll for completion (max 60s)
+            for (let i = 0; i < 30; i++) {
+              await new Promise(r => setTimeout(r, 2000))
+              const statusRes = await fetch('/api/analysis/batch')
+              const status = await statusRes.json()
+              if (!status.running) break
+            }
+          }
+          setIsAnalyzing(false)
+        }
+
+        // Now fetch suggestions
         const res = await fetch(`/api/playlist-suggestions?v=${videoId}`)
         if (res.ok) {
           const data = await res.json()
@@ -152,7 +182,7 @@ export const PlaylistSelectorModal: React.FC<PlaylistSelectorModalProps> = ({
           {isLoadingSuggestions && !searchQuery && (
             <div className="flex items-center gap-2 mb-4 px-1 text-sm text-gray-500 dark:text-slate-400">
               <div className="animate-spin h-4 w-4 border-2 border-gray-300 dark:border-slate-600 border-t-amber-500 rounded-full" />
-              Loading suggestions...
+              {isAnalyzing ? 'Analyzing audio...' : 'Loading suggestions...'}
             </div>
           )}
 

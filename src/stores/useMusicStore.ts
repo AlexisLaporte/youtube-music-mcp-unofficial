@@ -78,6 +78,7 @@ interface MusicState {
   addSongToPlaylist: (videoId: string, playlistId: string) => Promise<void>
   removeSongFromPlaylist: (videoId: string, playlistId: string) => Promise<void>
   createPlaylist: (title: string, description: string, privacy: 'public' | 'private' | 'unlisted') => Promise<string>
+  updatePlaylist: (playlistId: string, title: string, description?: string) => Promise<void>
   deletePlaylist: (playlistId: string) => Promise<void>
   toggleLike: (videoId: string) => Promise<void>
 
@@ -356,6 +357,27 @@ export const useMusicStore = create<MusicState>()(
       set({ playlists: rollbackPlaylists, playlistSongs: rollbackPlaylistSongs })
       throw err
     }
+  },
+
+  updatePlaylist: async (playlistId, title, description) => {
+    const { playlists } = get()
+    const playlist = playlists.get(playlistId)
+    if (!playlist) return
+
+    // 1. Optimistic update
+    const newPlaylists = new Map(playlists)
+    newPlaylists.set(playlistId, { ...playlist, title, description: description || playlist.description })
+    set({ playlists: newPlaylists })
+    console.log(`✅ Updated playlist ${playlistId} (optimistic)`)
+
+    // 2. API call in background
+    apiService.updatePlaylist(playlistId, title, description).catch(err => {
+      console.error('❌ API sync failed for updatePlaylist:', err)
+      // Rollback on failure
+      const rollbackPlaylists = new Map(get().playlists)
+      rollbackPlaylists.set(playlistId, playlist)
+      set({ playlists: rollbackPlaylists })
+    })
   },
 
   deletePlaylist: async (playlistId) => {

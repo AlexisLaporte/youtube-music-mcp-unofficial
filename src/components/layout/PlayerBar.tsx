@@ -36,6 +36,7 @@ interface YouTubePlayerOptions {
   events: {
     onReady: (event: { target: YouTubePlayer }) => void
     onStateChange: (event: { data: number }) => void
+    onError: (event: { data: number }) => void
   }
 }
 
@@ -46,6 +47,7 @@ interface YouTubePlayer {
   getCurrentTime: () => number
   getDuration: () => number
   getPlayerState: () => number
+  loadVideoById: (videoId: string) => void
   destroy: () => void
 }
 
@@ -101,7 +103,7 @@ export function PlayerBar() {
     }
   }, [])
 
-  // Create/update player when video changes
+  // Create player when API is ready and we have a video to play
   useEffect(() => {
     if (!isApiReady || !playerVideoId || !containerRef.current) return
 
@@ -109,17 +111,15 @@ export function PlayerBar() {
     setCurrentTime(0)
     setDuration(0)
     seekUntilRef.current = 0
-    playerReadyRef.current = false
 
-    // Destroy existing player
-    if (playerRef.current) {
-      try {
-        playerRef.current.destroy()
-      } catch {
-        // Player might already be destroyed
-      }
-      playerRef.current = null
+    // If player exists and is ready, just load the new video
+    if (playerRef.current && playerReadyRef.current) {
+      playerRef.current.loadVideoById(playerVideoId)
+      return
     }
+
+    // Need to create a new player
+    playerReadyRef.current = false
 
     // Create container div for the player
     const playerDiv = document.createElement('div')
@@ -127,10 +127,12 @@ export function PlayerBar() {
     containerRef.current.innerHTML = ''
     containerRef.current.appendChild(playerDiv)
 
+    const videoIdToLoad = playerVideoId // Capture for closure
+
     playerRef.current = new window.YT.Player(playerDiv.id, {
       height: '0',
       width: '0',
-      videoId: playerVideoId,
+      videoId: videoIdToLoad,
       playerVars: {
         autoplay: 1,
         controls: 0,
@@ -166,9 +168,17 @@ export function PlayerBar() {
               playerRef.current.seekTo(0, true)
               playerRef.current.playVideo()
             } else {
+              // Call playNext - will trigger this effect again with new videoId
               store.playNext()
             }
           }
+        },
+        onError: (event) => {
+          // YouTube error codes: 2=invalid param, 5=HTML5 error, 100=not found, 101/150=embed not allowed
+          console.warn(`⚠️ YouTube player error ${event.data} for video, skipping...`)
+          const store = useUIStore.getState()
+          // Skip to next track on error
+          store.playNext()
         }
       }
     })

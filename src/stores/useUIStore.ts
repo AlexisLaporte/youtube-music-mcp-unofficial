@@ -81,6 +81,7 @@ interface UIState {
   // Actions - Player
   playVideo: (videoId: string) => void
   playVideoInQueue: (videoId: string, queue: string[]) => void
+  playShuffled: (queue: string[]) => void
   pausePlayer: () => void
   resumePlayer: () => void
   togglePlayPause: () => void
@@ -222,6 +223,21 @@ export const useUIStore = create<UIState>((set) => ({
       isPlayerPaused: false,
       playbackQueue: queue,
       playbackQueueIndex: queueIndex >= 0 ? queueIndex : 0
+    })
+  },
+
+  playShuffled: (queue) => {
+    if (queue.length === 0) return
+    // Pick random starting point, enable shuffle mode
+    const startIndex = Math.floor(Math.random() * queue.length)
+    console.log('🔀 Playing shuffled from index:', startIndex, '/', queue.length)
+    set({
+      playerVideoId: queue[startIndex],
+      isPlayerVisible: true,
+      isPlayerPaused: false,
+      playbackQueue: queue,
+      playbackQueueIndex: startIndex,
+      playbackMode: 'shuffle'
     })
   },
 

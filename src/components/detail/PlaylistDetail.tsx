@@ -5,6 +5,7 @@ import { Playlist, Song } from '@/types/youtube'
 import { useMusicStore } from '@/stores/useMusicStore'
 import { useUIStore } from '@/stores/useUIStore'
 import { MusicalNoteIcon, TrashIcon, PencilIcon, BeakerIcon } from '@heroicons/react/24/outline'
+import { PlayIcon } from '@heroicons/react/24/solid'
 
 interface PlaylistDetailProps {
   playlist: Playlist
@@ -19,7 +20,7 @@ interface BatchStatus {
 export function PlaylistDetail({ playlist }: PlaylistDetailProps) {
   const songsMap = useMusicStore(state => state.songs)
   const playlistSongsMap = useMusicStore(state => state.playlistSongs)
-  const { openModal } = useUIStore()
+  const { openModal, playShuffled } = useUIStore()
   const [isStarting, setIsStarting] = useState(false)
   const [analyzeError, setAnalyzeError] = useState<string | null>(null)
   const [batchStatus, setBatchStatus] = useState<BatchStatus | null>(null)
@@ -93,17 +94,28 @@ export function PlaylistDetail({ playlist }: PlaylistDetailProps) {
       {/* Header with cover */}
       <div className="bg-gradient-to-b from-space-cadet to-gray-50 p-8">
         <div className="max-w-2xl mx-auto flex flex-col md:flex-row items-center gap-6">
-          {playlist.thumbnail ? (
-            <img
-              src={playlist.thumbnail}
-              alt=""
-              className="w-48 h-48 rounded-xl shadow-xl object-cover"
-            />
-          ) : (
-            <div className="w-48 h-48 rounded-xl bg-gray-300 flex items-center justify-center">
-              <MusicalNoteIcon className="w-20 h-20 text-gray-400" />
-            </div>
-          )}
+          <div className="relative group">
+            {playlist.thumbnail ? (
+              <img
+                src={playlist.thumbnail}
+                alt=""
+                className="w-48 h-48 rounded-xl shadow-xl object-cover"
+              />
+            ) : (
+              <div className="w-48 h-48 rounded-xl bg-gray-300 flex items-center justify-center">
+                <MusicalNoteIcon className="w-20 h-20 text-gray-400" />
+              </div>
+            )}
+            <button
+              onClick={() => playShuffled(songs.map(s => s.videoId))}
+              disabled={songs.length === 0}
+              className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl disabled:cursor-not-allowed"
+            >
+              <div className="w-16 h-16 bg-red-pantone rounded-full flex items-center justify-center shadow-lg hover:scale-105 transition-transform">
+                <PlayIcon className="w-8 h-8 text-white ml-1" />
+              </div>
+            </button>
+          </div>
 
           <div className="text-center md:text-left">
             <p className="text-sm text-gray-300 uppercase tracking-wide mb-1">Playlist</p>

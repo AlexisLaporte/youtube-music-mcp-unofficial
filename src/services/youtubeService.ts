@@ -225,10 +225,14 @@ class YouTubeService {
       for (const item of data.items || []) {
         if (!item.snippet.resourceId?.videoId) continue
 
+        // Skip deleted or private videos
+        const title = item.snippet.title
+        if (title === 'Deleted video' || title === 'Private video') continue
+
         tracks.push({
           id: item.id,
           videoId: item.snippet.resourceId.videoId,
-          title: item.snippet.title,
+          title,
           artist: item.snippet.videoOwnerChannelTitle || item.snippet.channelTitle,
           duration: '',
           thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
@@ -310,6 +314,36 @@ class YouTubeService {
       return true
     } catch (error) {
       console.error('❌ Error deleting playlist:', error)
+      return false
+    }
+  }
+
+  async updatePlaylist(
+    playlistId: string,
+    title: string,
+    description?: string
+  ): Promise<boolean> {
+    console.log(`✏️ Updating playlist ${playlistId}...`)
+
+    try {
+      await this.fetchYouTube('playlists?part=snippet', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: playlistId,
+          snippet: {
+            title,
+            description: description || '',
+          },
+        }),
+      })
+
+      console.log('✅ Playlist updated successfully')
+      return true
+    } catch (error) {
+      console.error('❌ Error updating playlist:', error)
       return false
     }
   }
