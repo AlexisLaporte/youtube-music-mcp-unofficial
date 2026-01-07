@@ -402,17 +402,31 @@ export function SongDetail({ song, isNowPlaying }: SongDetailProps) {
             </div>
           )}
 
-          {suggestions && (
+          {suggestions && (() => {
+            // Deduplicate suggestions
+            const seenIds = new Set<string>()
+            const uniqueYtMix = suggestions.youtubeMix.filter(t => {
+              if (seenIds.has(t.videoId)) return false
+              seenIds.add(t.videoId)
+              return true
+            })
+            const uniqueLastfm = suggestions.lastfmSimilar.filter(t => {
+              if (!t.videoId || seenIds.has(t.videoId)) return false
+              seenIds.add(t.videoId)
+              return true
+            })
+
+            return (
             <div className="space-y-4">
               {/* YouTube Mix */}
-              {suggestions.youtubeMix.length > 0 && (
+              {uniqueYtMix.length > 0 && (
                 <div>
                   <h3 className="text-sm font-medium text-gray-500 dark:text-slate-400 mb-2">YouTube Mix</h3>
                   <div className="space-y-1">
-                    {suggestions.youtubeMix.slice(0, 8).map(track => (
+                    {uniqueYtMix.slice(0, 8).map(track => (
                       <button
                         key={track.videoId}
-                        onClick={() => playVideoInQueue(track.videoId, suggestions.youtubeMix.map(t => t.videoId), suggestions.youtubeMix)}
+                        onClick={() => playVideoInQueue(track.videoId, uniqueYtMix.map(t => t.videoId), uniqueYtMix)}
                         className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors group"
                       >
                         {track.thumbnail ? (
@@ -432,14 +446,14 @@ export function SongDetail({ song, isNowPlaying }: SongDetailProps) {
               )}
 
               {/* Last.fm Similar */}
-              {suggestions.lastfmSimilar.filter(t => t.videoId).length > 0 && (
+              {uniqueLastfm.length > 0 && (
                 <div>
                   <h3 className="text-sm font-medium text-gray-500 dark:text-slate-400 mb-2">Last.fm Similar</h3>
                   <div className="space-y-1">
-                    {suggestions.lastfmSimilar.filter(t => t.videoId).map(track => (
+                    {uniqueLastfm.map(track => (
                       <button
                         key={track.videoId}
-                        onClick={() => playVideoInQueue(track.videoId, suggestions.lastfmSimilar.filter(t => t.videoId).map(t => t.videoId), suggestions.lastfmSimilar.filter(t => t.videoId))}
+                        onClick={() => playVideoInQueue(track.videoId, uniqueLastfm.map(t => t.videoId), uniqueLastfm)}
                         className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors group"
                       >
                         {track.thumbnail ? (
@@ -458,11 +472,12 @@ export function SongDetail({ song, isNowPlaying }: SongDetailProps) {
                 </div>
               )}
 
-              {suggestions.youtubeMix.length === 0 && suggestions.lastfmSimilar.length === 0 && (
+              {uniqueYtMix.length === 0 && uniqueLastfm.length === 0 && (
                 <p className="text-gray-500 dark:text-slate-400 text-sm">No suggestions found</p>
               )}
             </div>
-          )}
+            )
+          })()}
         </section>
 
         {/* Playlists containing this song */}
