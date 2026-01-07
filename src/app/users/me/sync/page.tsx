@@ -232,8 +232,71 @@ function SyncContent() {
     init()
   }, [loadData, fetchProgress])
 
-  const isSynced = data?.frontend && data?.backend &&
-    data.frontend.playlistsCount === data.backend.playlistsCount
+  // Sync is OK if we have backend data
+  const isSynced = !!data?.backend
+
+  // Calculate total pending analysis
+  const allTrackIds = Array.from(store.songs.values()).map(s => s.videoId)
+  const pendingAnalysisCount = allTrackIds.filter(id =>
+    !progressData.analyzedIds.has(id) && !progressData.unavailableIds.has(id)
+  ).length
+
+  // Background analysis state
+  const [bgRunning, setBgRunning] = useState(false)
+  const [bgStartedAt, setBgStartedAt] = useState<number | null>(null)
+
+  // Check background status
+  const checkBackgroundStatus = useCallback(async () => {
+    try {
+      const res = await fetch('/api/analysis/background')
+      if (res.ok) {
+        const data = await res.json()
+        setBgRunning(data.running)
+        setBgStartedAt(data.startedAt)
+      }
+    } catch {
+      // Ignore
+    }
+  }, [])
+
+  // Start background analysis (server-side)
+  const startBackgroundAnalysis = async () => {
+    try {
+      const res = await fetch('/api/analysis/background', { method: 'POST' })
+      if (res.ok) {
+        setBgRunning(true)
+        setBgStartedAt(Date.now())
+      } else {
+        const data = await res.json()
+        alert(data.error || 'Failed to start')
+      }
+    } catch (e) {
+      alert('Failed to start background analysis')
+    }
+  }
+
+  // Stop background analysis
+  const stopBackgroundAnalysis = async () => {
+    try {
+      await fetch('/api/analysis/background', { method: 'DELETE' })
+      setBgRunning(false)
+      setBgStartedAt(null)
+    } catch {
+      // Ignore
+    }
+  }
+
+  // Poll background status when running
+  useEffect(() => {
+    checkBackgroundStatus()
+    if (bgRunning) {
+      const interval = setInterval(() => {
+        checkBackgroundStatus()
+        fetchProgress()
+      }, 5000)
+      return () => clearInterval(interval)
+    }
+  }, [bgRunning, checkBackgroundStatus, fetchProgress])
 
   return (
     <div className="bg-gray-50 dark:bg-slate-900 min-h-full">
@@ -277,7 +340,43 @@ function SyncContent() {
           </div>
         ) : data ? (
           <>
-            {/* Sync status */}
+            {/* Background Analysis - server-side */}
+            {(pendingAnalysisCount > 0 || bgRunning) && (
+              <div className={`p-6 rounded-xl text-white ${bgRunning ? 'bg-gradient-to-r from-green-600 to-green-500' : 'bg-gradient-to-r from-space-cadet to-cool-gray'}`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-lg font-semibold mb-1">
+                      {bgRunning ? 'Analysis Running (Server)' : 'Audio Analysis'}
+                    </h2>
+                    <p className="text-white/80 text-sm">
+                      {bgRunning
+                        ? `Running for ${bgStartedAt ? Math.round((Date.now() - bgStartedAt) / 60000) : 0} min - ${pendingAnalysisCount} remaining`
+                        : `${pendingAnalysisCount} tracks pending`
+                      }
+                    </p>
+                  </div>
+                  {bgRunning ? (
+                    <button
+                      onClick={stopBackgroundAnalysis}
+                      className="flex items-center gap-2 px-6 py-3 bg-white/20 text-white font-semibold rounded-lg hover:bg-white/30 transition-colors"
+                    >
+                      <PauseIcon className="w-5 h-5" />
+                      Stop
+                    </button>
+                  ) : (
+                    <button
+                      onClick={startBackgroundAnalysis}
+                      className="flex items-center gap-2 px-6 py-3 bg-white text-space-cadet font-semibold rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                      <PlayIcon className="w-5 h-5" />
+                      Analyze All (Background)
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Sync status - simplified */}
             <div className={`flex items-center gap-3 p-4 rounded-xl border ${
               isSynced
                 ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
@@ -286,12 +385,16 @@ function SyncContent() {
               {isSynced ? (
                 <>
                   <CheckCircleIcon className="w-6 h-6 text-green-600 dark:text-green-400" />
-                  <span className="text-green-800 dark:text-green-300 font-medium">Backend and Frontend are in sync</span>
+                  <span className="text-green-800 dark:text-green-300 font-medium">
+                    Backend connected ({data.backend?.uniqueTracksCount} tracks in DB)
+                  </span>
                 </>
               ) : (
                 <>
                   <ExclamationCircleIcon className="w-6 h-6 text-amber-600 dark:text-amber-400" />
-                  <span className="text-amber-800 dark:text-amber-300 font-medium">Data may be out of sync - run Force Sync</span>
+                  <span className="text-amber-800 dark:text-amber-300 font-medium">
+                    {data.backendError || 'Backend not reachable'}
+                  </span>
                 </>
               )}
             </div>
