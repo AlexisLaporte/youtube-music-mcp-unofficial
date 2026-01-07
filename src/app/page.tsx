@@ -8,7 +8,7 @@ import { useUIStore } from '@/stores/useUIStore'
 import { LoginPrompt } from '@/components/LoginPrompt'
 import { PlaylistSidebar } from '@/components/layout/PlaylistSidebar'
 import { MobileBottomTabs } from '@/components/layout/MobileBottomTabs'
-import { HeartIcon, MusicalNoteIcon, ExclamationTriangleIcon, PlayIcon } from '@heroicons/react/24/solid'
+import { HeartIcon, MusicalNoteIcon, ExclamationTriangleIcon, PlayIcon, SparklesIcon } from '@heroicons/react/24/solid'
 import { ArrowRightIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
 
 const PLAYLISTS_PER_PAGE = 12
@@ -17,7 +17,7 @@ export default function Home() {
   const router = useRouter()
   const { isConnected, isLoading: authLoading, initialize, signIn } = useAuthStore()
   const { smartSync, isSyncing, getAllPlaylists, getLikedSongs, getAllSongs } = useMusicStore()
-  const { playVideoInQueue, mobileTab } = useUIStore()
+  const { playVideoInQueue, playShuffled, mobileTab } = useUIStore()
   const [playlistPage, setPlaylistPage] = useState(0)
 
   useEffect(() => {
@@ -128,20 +128,37 @@ export default function Home() {
                 </div>
 
                 {/* Quick play */}
-                {likedSongs.length > 0 && (
-                  <button
-                    onClick={handlePlayLiked}
-                    className="w-full flex items-center gap-3 p-4 rounded-xl bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600 transition-colors group"
-                  >
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-pantone to-crimson flex items-center justify-center shadow-lg group-hover:shadow-red-pantone/25 transition-shadow">
-                      <PlayIcon className="w-6 h-6 text-white ml-0.5" />
-                    </div>
-                    <div className="text-left">
-                      <div className="font-medium text-gray-900 dark:text-white text-sm">Shuffle Liked</div>
-                      <div className="text-xs text-gray-500 dark:text-slate-400">{likedSongs.length} tracks</div>
-                    </div>
-                  </button>
-                )}
+                <div className="space-y-3">
+                  {allSongs.length > 0 && (
+                    <button
+                      onClick={() => playShuffled(allSongs.map(s => s.videoId))}
+                      className="w-full flex items-center gap-3 p-4 rounded-xl bg-gradient-to-br from-space-cadet to-cool-gray text-white hover:shadow-lg hover:shadow-space-cadet/25 transition-all group"
+                    >
+                      <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
+                        <SparklesIcon className="w-6 h-6 text-white" />
+                      </div>
+                      <div className="text-left">
+                        <div className="font-medium text-sm">Shuffle All</div>
+                        <div className="text-xs text-white/70">{allSongs.length} tracks</div>
+                      </div>
+                    </button>
+                  )}
+
+                  {likedSongs.length > 0 && (
+                    <button
+                      onClick={handlePlayLiked}
+                      className="w-full flex items-center gap-3 p-4 rounded-xl bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600 transition-colors group"
+                    >
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-pantone to-crimson flex items-center justify-center shadow-lg group-hover:shadow-red-pantone/25 transition-shadow">
+                        <PlayIcon className="w-6 h-6 text-white ml-0.5" />
+                      </div>
+                      <div className="text-left">
+                        <div className="font-medium text-gray-900 dark:text-white text-sm">Shuffle Liked</div>
+                        <div className="text-xs text-gray-500 dark:text-slate-400">{likedSongs.length} tracks</div>
+                      </div>
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Right column - Playlists grid */}
