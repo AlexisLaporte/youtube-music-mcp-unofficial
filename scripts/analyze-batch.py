@@ -139,24 +139,29 @@ def validate_audio_file(path):
 def download_audio(video_id, retry=True):
     """Download audio using yt-dlp if not cached."""
     AUDIO_CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    output_path = AUDIO_CACHE_DIR / f"{video_id}.mp4"
+    # Use .m4a extension for audio-only downloads
+    output_path = AUDIO_CACHE_DIR / f"{video_id}.m4a"
+    # Also check for old .mp4 files
+    old_path = AUDIO_CACHE_DIR / f"{video_id}.mp4"
 
-    if output_path.exists():
-        # Validate cached file
-        if validate_audio_file(output_path):
-            return output_path
-        else:
-            print(f"  Cached file corrupted, re-downloading...")
-            output_path.unlink()
+    # Check existing files
+    for path in [output_path, old_path]:
+        if path.exists():
+            if validate_audio_file(path):
+                return path
+            else:
+                print(f"  Cached file corrupted, re-downloading...")
+                path.unlink()
 
     try:
+        # Extract audio and convert to m4a for consistent format
         subprocess.run(
             ["yt-dlp", "--no-warnings",
              "--extractor-args", "youtube:player_client=android",
-             "-f", "18",
+             "-x", "--audio-format", "m4a",
              "-o", str(output_path),
              f"https://www.youtube.com/watch?v={video_id}"],
-            check=True, timeout=120, capture_output=True
+            check=True, timeout=180, capture_output=True
         )
         # Validate downloaded file
         if validate_audio_file(output_path):
