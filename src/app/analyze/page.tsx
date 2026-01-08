@@ -3,30 +3,7 @@
 import { useState, useRef, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type EssentiaInstance = any;
-
-interface AudioFeatures {
-  bpm: number | null;
-  key: string | null;
-  scale: string | null;
-  energy: number | null;
-  danceability: number | null;
-}
-
-interface CachedAnalysis {
-  cached: boolean;
-  videoId: string;
-  title: string | null;
-  artist: string | null;
-  bpm?: number | null;
-  key?: string | null;
-  scale?: string | null;
-  energy?: number | null;
-  danceability?: number | null;
-  lastfmTags?: string[] | null;
-}
+import { useEssentia, AnalysisStatus, AnalysisResult } from "@/hooks/useEssentia";
 
 interface LastFmInfo {
   tags: string[];
@@ -34,46 +11,29 @@ interface LastFmInfo {
   playcount?: string;
 }
 
-declare global {
-  interface Window {
-    Essentia: EssentiaInstance;
-    EssentiaWASM: EssentiaInstance;
-  }
+const STATUS_LABELS: Record<AnalysisStatus, string> = {
+  'idle': 'En attente',
+  'loading-essentia': 'Chargement Essentia.js...',
+  'checking-cache': 'Vérification du cache...',
+  'fetching-audio': 'Extraction de l\'audio YouTube...',
+  'decoding': 'Décodage audio...',
+  'analyzing': 'Analyse en cours...',
+  'fetching-tags': 'Récupération des tags Last.fm...',
+  'saving': 'Enregistrement...',
+  'done': 'Terminé',
+  'error': 'Erreur',
 }
 
 function AnalyzeContent() {
   const searchParams = useSearchParams();
-  const [isLoading, setIsLoading] = useState(false);
-  const [isEssentiaReady, setIsEssentiaReady] = useState(false);
-  const [features, setFeatures] = useState<AudioFeatures | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [sourceName, setSourceName] = useState<string | null>(null);
-  const [loadingStatus, setLoadingStatus] = useState("Loading Essentia.js...");
+  const { status, error: analysisError, analyze, isLoading, isReady } = useEssentia();
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [autoAnalyzeTriggered, setAutoAnalyzeTriggered] = useState(false);
   const [lastFmInfo, setLastFmInfo] = useState<LastFmInfo | null>(null);
-  const [trackMeta, setTrackMeta] = useState<{ title: string; artist: string } | null>(null);
-  const essentiaRef = useRef<EssentiaInstance>(null);
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+  const [sourceName, setSourceName] = useState<string | null>(null);
+  const [localError, setLocalError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const fetchLastFmTags = async (artist: string, track: string): Promise<string[] | null> => {
-    try {
-      const res = await fetch(`/api/lastfm?artist=${encodeURIComponent(artist)}&track=${encodeURIComponent(track)}`);
-      if (res.ok) {
-        const data = await res.json();
-        const tags = data.tags || [];
-        setLastFmInfo({ tags, listeners: data.listeners, playcount: data.playcount });
-        return tags;
-      }
-    } catch (e) {
-      console.warn("Last.fm fetch failed:", e);
-    }
-    return null;
-  };
-
-  useEffect(() => {
-    loadEssentia();
-  }, []);
 
   // Auto-analyze from URL param
   useEffect(() => {
@@ -81,105 +41,29 @@ function AnalyzeContent() {
     const title = searchParams.get("title");
     const artist = searchParams.get("artist");
 
-    if (videoId && isEssentiaReady && !autoAnalyzeTriggered) {
+    if (videoId && isReady && !autoAnalyzeTriggered) {
       setAutoAnalyzeTriggered(true);
       setYoutubeUrl(videoId);
 
-      // Check cache first
-      checkCacheAndAnalyze(videoId, title, artist);
+      const trackName = title && artist ? `${title} - ${artist}` : `YouTube: ${videoId}`;
+      setSourceName(trackName);
+
+      // Run analysis
+      analyze(videoId, title || undefined, artist || undefined).then(result => {
+        if (result) {
+          setAnalysisResult(result);
+          if (result.lastfmTags && result.lastfmTags.length > 0) {
+            setLastFmInfo({
+              tags: result.lastfmTags,
+              listeners: result.lastfmListeners || undefined,
+              playcount: result.lastfmPlaycount || undefined,
+            });
+          }
+        }
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, isEssentiaReady, autoAnalyzeTriggered]);
-
-  const checkCacheAndAnalyze = async (videoId: string, urlTitle: string | null, urlArtist: string | null) => {
-    setIsLoading(true);
-    setLoadingStatus("Vérification du cache...");
-
-    try {
-      const res = await fetch(`/api/analysis?v=${videoId}`);
-      const data: CachedAnalysis = await res.json();
-
-      // Use URL params or cached/fetched metadata
-      const title = urlTitle || data.title;
-      const artist = urlArtist || data.artist;
-
-      if (title && artist) {
-        setTrackMeta({ title, artist });
-        setSourceName(`${title} - ${artist}`);
-      } else {
-        setSourceName(`YouTube: ${videoId}`);
-      }
-
-      // If we have cached analysis results, use them
-      if (data.cached && data.bpm !== undefined) {
-        setFeatures({
-          bpm: data.bpm,
-          key: data.key || null,
-          scale: data.scale || null,
-          energy: data.energy ?? null,
-          danceability: data.danceability ?? null,
-        });
-
-        if (data.lastfmTags && data.lastfmTags.length > 0) {
-          setLastFmInfo({ tags: data.lastfmTags });
-        } else if (title && artist) {
-          fetchLastFmTags(artist, title);
-        }
-
-        setIsLoading(false);
-        return;
-      }
-
-      // No cache - need to analyze
-      let tags: string[] | null = null;
-      if (title && artist) {
-        tags = await fetchLastFmTags(artist, title);
-      }
-
-      await analyzeVideoId(videoId, title, artist, tags);
-    } catch (error) {
-      console.error("Cache check failed:", error);
-      // Fallback to direct analysis
-      let tags: string[] | null = null;
-      if (urlTitle && urlArtist) {
-        setTrackMeta({ title: urlTitle, artist: urlArtist });
-        setSourceName(`${urlTitle} - ${urlArtist}`);
-        tags = await fetchLastFmTags(urlArtist, urlTitle);
-      }
-      await analyzeVideoId(videoId, urlTitle, urlArtist, tags);
-    }
-  };
-
-  const loadEssentia = async () => {
-    try {
-      const wasmScript = document.createElement("script");
-      wasmScript.src = "https://cdn.jsdelivr.net/npm/essentia.js@0.1.3/dist/essentia-wasm.web.js";
-      document.head.appendChild(wasmScript);
-
-      await new Promise((resolve) => {
-        wasmScript.onload = resolve;
-      });
-
-      setLoadingStatus("Loading main module...");
-
-      const essentiaScript = document.createElement("script");
-      essentiaScript.src = "https://cdn.jsdelivr.net/npm/essentia.js@0.1.3/dist/essentia.js-core.js";
-      document.head.appendChild(essentiaScript);
-
-      await new Promise((resolve) => {
-        essentiaScript.onload = resolve;
-      });
-
-      setLoadingStatus("Initializing...");
-
-      const wasm = await window.EssentiaWASM();
-      essentiaRef.current = new window.Essentia(wasm);
-      setIsEssentiaReady(true);
-    } catch (err) {
-      console.error("Failed to load Essentia:", err);
-      setError("Failed to load Essentia.js");
-    }
-  };
+  }, [searchParams, isReady, autoAnalyzeTriggered]);
 
   const extractVideoId = (url: string): string | null => {
     const patterns = [
@@ -193,134 +77,33 @@ function AnalyzeContent() {
     return null;
   };
 
-  const analyzeVideoId = async (
-    videoId: string,
-    title?: string | null,
-    artist?: string | null,
-    tags?: string[] | null
-  ) => {
-    setError(null);
-    setFeatures(null);
-    setLoadingStatus("Extraction de l'audio...");
-
-    try {
-      const response = await fetch(`/api/audio?v=${videoId}`);
-      if (!response.ok) {
-        throw new Error("Impossible d'extraire l'audio");
-      }
-
-      setLoadingStatus("Décodage...");
-      const arrayBuffer = await response.arrayBuffer();
-      await analyzeBuffer(arrayBuffer, videoId, title, artist, tags);
-    } catch (err) {
-      console.error("YouTube analysis failed:", err);
-      setError(err instanceof Error ? err.message : "Erreur d'extraction");
-      setIsLoading(false);
-    }
-  };
-
   const analyzeFromYoutube = async () => {
     const videoId = extractVideoId(youtubeUrl.trim());
     if (!videoId) {
-      setError("URL YouTube invalide");
-      return;
-    }
-    // For manual input, check cache first
-    await checkCacheAndAnalyze(videoId, null, null);
-  };
-
-  const analyzeBuffer = async (
-    arrayBuffer: ArrayBuffer,
-    videoId?: string,
-    title?: string | null,
-    artist?: string | null,
-    tags?: string[] | null
-  ) => {
-    if (!essentiaRef.current) {
-      setError("Essentia n'est pas encore prêt");
-      setIsLoading(false);
+      setLocalError("URL YouTube invalide");
       return;
     }
 
-    try {
-      const essentia = essentiaRef.current;
-      const audioContext = new AudioContext();
+    setLocalError(null);
+    setAnalysisResult(null);
+    setLastFmInfo(null);
 
-      setLoadingStatus("Analyse en cours...");
-      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-      const audioData = audioBuffer.getChannelData(0);
-      const signal = essentia.arrayToVector(audioData);
-
-      const extractedFeatures: AudioFeatures = {
-        bpm: null,
-        key: null,
-        scale: null,
-        energy: null,
-        danceability: null,
-      };
-
-      try {
-        const rhythm = essentia.RhythmExtractor2013(signal);
-        extractedFeatures.bpm = Math.round(rhythm.bpm);
-      } catch (e) {
-        console.warn("BPM extraction failed:", e);
+    const result = await analyze(videoId);
+    if (result) {
+      setAnalysisResult(result);
+      setSourceName(result.title && result.artist ? `${result.title} - ${result.artist}` : `YouTube: ${videoId}`);
+      if (result.lastfmTags && result.lastfmTags.length > 0) {
+        setLastFmInfo({
+          tags: result.lastfmTags,
+          listeners: result.lastfmListeners || undefined,
+          playcount: result.lastfmPlaycount || undefined,
+        });
       }
-
-      try {
-        const keyResult = essentia.KeyExtractor(signal);
-        extractedFeatures.key = keyResult.key;
-        extractedFeatures.scale = keyResult.scale;
-      } catch (e) {
-        console.warn("Key extraction failed:", e);
-      }
-
-      try {
-        const rms = essentia.RMS(signal);
-        extractedFeatures.energy = Math.round(rms.rms * 1000) / 10;
-      } catch (e) {
-        console.warn("Energy extraction failed:", e);
-      }
-
-      try {
-        const danceability = essentia.Danceability(signal);
-        extractedFeatures.danceability = Math.round(danceability.danceability * 100);
-      } catch (e) {
-        console.warn("Danceability extraction failed:", e);
-      }
-
-      setFeatures(extractedFeatures);
-      await audioContext.close();
-
-      // Save to cache if we have videoId
-      if (videoId) {
-        fetch("/api/analysis", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            videoId,
-            title: title || trackMeta?.title,
-            artist: artist || trackMeta?.artist,
-            ...extractedFeatures,
-            lastfmTags: tags || null,
-          }),
-        }).catch(console.error);
-      }
-    } catch (err) {
-      console.error("Analysis failed:", err);
-      setError(err instanceof Error ? err.message : "Erreur d'analyse");
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const analyzeFile = async (file: File) => {
-    setIsLoading(true);
-    setError(null);
-    setFeatures(null);
-    setSourceName(file.name);
-
-    const arrayBuffer = await file.arrayBuffer();
-    await analyzeBuffer(arrayBuffer);
+    setLocalError("L'analyse de fichiers locaux n'est pas encore supportée avec le hook unifié");
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -334,6 +117,9 @@ function AnalyzeContent() {
     if (file && file.type.startsWith("audio/")) analyzeFile(file);
   };
 
+  const displayError = analysisError || localError;
+  const features = analysisResult;
+
   return (
     <div className="min-h-screen bg-zinc-950 text-white p-8">
       <div className="max-w-2xl mx-auto">
@@ -343,10 +129,10 @@ function AnalyzeContent() {
         </p>
 
         {/* Loading Essentia */}
-        {!isEssentiaReady && !error && (
+        {!isReady && status === 'loading-essentia' && (
           <div className="mb-6 p-4 bg-zinc-900 rounded-lg flex items-center gap-3">
             <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-            <span className="text-zinc-400">{loadingStatus}</span>
+            <span className="text-zinc-400">{STATUS_LABELS[status]}</span>
           </div>
         )}
 
@@ -362,11 +148,11 @@ function AnalyzeContent() {
               onChange={(e) => setYoutubeUrl(e.target.value)}
               placeholder="https://music.youtube.com/watch?v=..."
               className="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-500"
-              disabled={!isEssentiaReady || isLoading}
+              disabled={!isReady || isLoading}
             />
             <button
               onClick={analyzeFromYoutube}
-              disabled={!isEssentiaReady || isLoading || !youtubeUrl.trim()}
+              disabled={!isReady || isLoading || !youtubeUrl.trim()}
               className="px-6 py-3 bg-red-600 hover:bg-red-700 disabled:bg-zinc-700 disabled:cursor-not-allowed rounded-lg font-medium transition-colors"
             >
               {isLoading ? "..." : "Analyser"}
@@ -383,11 +169,11 @@ function AnalyzeContent() {
 
         {/* Drop zone */}
         <div
-          onClick={() => isEssentiaReady && !isLoading && fileInputRef.current?.click()}
+          onClick={() => isReady && !isLoading && fileInputRef.current?.click()}
           onDrop={handleDrop}
           onDragOver={(e) => e.preventDefault()}
           className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${
-            isEssentiaReady && !isLoading
+            isReady && !isLoading
               ? "border-zinc-700 cursor-pointer hover:border-zinc-500"
               : "border-zinc-800 cursor-not-allowed opacity-50"
           }`}
@@ -398,28 +184,40 @@ function AnalyzeContent() {
             accept="audio/*"
             onChange={handleFileChange}
             className="hidden"
-            disabled={!isEssentiaReady || isLoading}
+            disabled={!isReady || isLoading}
           />
           <p className="text-zinc-400">Glisse un fichier audio ici</p>
         </div>
 
-        {/* Loading status */}
-        {isLoading && (
-          <div className="mt-6 p-4 bg-zinc-900 rounded-lg flex items-center gap-3">
-            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            <span>{loadingStatus}</span>
+        {/* Loading status with progressive steps */}
+        {isLoading && status !== 'idle' && status !== 'done' && (
+          <div className="mt-6 p-4 bg-zinc-900 rounded-lg">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <span className="font-medium">{STATUS_LABELS[status]}</span>
+            </div>
+            {/* Progress steps visualization */}
+            <div className="ml-8 space-y-1 text-sm text-zinc-400">
+              {status === 'loading-essentia' && <div>• Chargement des bibliothèques</div>}
+              {status === 'checking-cache' && <div>• Recherche en cache</div>}
+              {status === 'fetching-audio' && <div>• Téléchargement depuis YouTube</div>}
+              {status === 'decoding' && <div>• Conversion audio</div>}
+              {status === 'analyzing' && <div>• Extraction des features (BPM, Key, etc.)</div>}
+              {status === 'fetching-tags' && <div>• Enrichissement métadonnées</div>}
+              {status === 'saving' && <div>• Mise en cache</div>}
+            </div>
           </div>
         )}
 
         {/* Error */}
-        {error && (
+        {displayError && (
           <div className="mt-6 p-4 bg-red-900/30 border border-red-800 rounded-lg text-red-300">
-            {error}
+            {displayError}
           </div>
         )}
 
         {/* Results */}
-        {features && (
+        {features && status === 'done' && (
           <div className="mt-8">
             <h2 className="text-xl font-semibold mb-4">{sourceName}</h2>
             <div className="grid grid-cols-2 gap-4">
