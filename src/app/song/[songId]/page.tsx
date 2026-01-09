@@ -6,7 +6,6 @@ import { PageWithSidebar } from '@/components/layout/PageWithSidebar'
 import { SongDetail } from '@/components/detail/SongDetail'
 import { useMusicStore } from '@/stores/useMusicStore'
 import { useUIStore } from '@/stores/useUIStore'
-import { Song } from '@/types/youtube'
 import { MusicalNoteIcon, ArrowLeftIcon } from '@heroicons/react/24/outline'
 import { PlayIcon } from '@heroicons/react/24/solid'
 
