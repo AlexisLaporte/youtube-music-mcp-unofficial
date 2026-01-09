@@ -233,7 +233,7 @@ export function PlayerBar() {
   useEffect(() => {
     if (!playerVideoId) return
 
-    let lastEndCheck = 0
+    let handledEndForVideo = ''  // Track which video we already handled end for
     const intervalId = setInterval(() => {
       if (playerReadyRef.current && playerRef.current && Date.now() > seekUntilRef.current) {
         try {
@@ -242,26 +242,25 @@ export function PlayerBar() {
           setCurrentTime(time)
 
           // Background tab fix: detect track end via polling
-          // Check if track ended (within 0.5s of end and player state is ENDED)
-          const now = Date.now()
-          if (dur > 0 && time >= dur - 0.5 && now - lastEndCheck > 1000) {
-            lastEndCheck = now
-            const state = playerRef.current.getPlayerState()
-            if (state === window.YT.PlayerState.ENDED) {
-              const store = useUIStore.getState()
-              if (store.playbackMode === 'loop-one') {
-                playerRef.current.seekTo(0, true)
-                playerRef.current.playVideo()
-              } else {
-                store.playNext()
-              }
+          // Check if player state is ENDED and we haven't handled it yet for this video
+          const state = playerRef.current.getPlayerState()
+          if (state === window.YT.PlayerState.ENDED && handledEndForVideo !== playerVideoId) {
+            handledEndForVideo = playerVideoId
+            console.log('🔄 Background tab: detected track end via polling')
+            const store = useUIStore.getState()
+            if (store.playbackMode === 'loop-one') {
+              playerRef.current.seekTo(0, true)
+              playerRef.current.playVideo()
+              handledEndForVideo = ''  // Allow re-detection for loop
+            } else {
+              store.playNext()
             }
           }
         } catch {
           // Player might not be ready
         }
       }
-    }, 250)  // 4 updates per second - sufficient for progress + background detection
+    }, 500)  // Check every 500ms - browsers throttle to ~1s in background anyway
 
     return () => clearInterval(intervalId)
   }, [playerVideoId])
