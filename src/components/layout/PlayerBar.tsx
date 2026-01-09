@@ -237,9 +237,7 @@ export function PlayerBar() {
     const intervalId = setInterval(() => {
       if (playerReadyRef.current && playerRef.current && Date.now() > seekUntilRef.current) {
         try {
-          const time = playerRef.current.getCurrentTime()
-          const dur = playerRef.current.getDuration()
-          setCurrentTime(time)
+          setCurrentTime(playerRef.current.getCurrentTime())
 
           // Background tab fix: detect track end via polling
           // Check if player state is ENDED and we haven't handled it yet for this video
