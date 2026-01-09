@@ -229,18 +229,39 @@ export function PlayerBar() {
   }, [isPlayerPaused])
 
   // Update progress - using setInterval for reliable React state updates
+  // Also handles track-end detection for background tabs where onStateChange may not fire
   useEffect(() => {
     if (!playerVideoId) return
 
+    let lastEndCheck = 0
     const intervalId = setInterval(() => {
       if (playerReadyRef.current && playerRef.current && Date.now() > seekUntilRef.current) {
         try {
-          setCurrentTime(playerRef.current.getCurrentTime())
+          const time = playerRef.current.getCurrentTime()
+          const dur = playerRef.current.getDuration()
+          setCurrentTime(time)
+
+          // Background tab fix: detect track end via polling
+          // Check if track ended (within 0.5s of end and player state is ENDED)
+          const now = Date.now()
+          if (dur > 0 && time >= dur - 0.5 && now - lastEndCheck > 1000) {
+            lastEndCheck = now
+            const state = playerRef.current.getPlayerState()
+            if (state === window.YT.PlayerState.ENDED) {
+              const store = useUIStore.getState()
+              if (store.playbackMode === 'loop-one') {
+                playerRef.current.seekTo(0, true)
+                playerRef.current.playVideo()
+              } else {
+                store.playNext()
+              }
+            }
+          }
         } catch {
           // Player might not be ready
         }
       }
-    }, 100)  // 10 updates per second - smooth enough for progress bar
+    }, 250)  // 4 updates per second - sufficient for progress + background detection
 
     return () => clearInterval(intervalId)
   }, [playerVideoId])
@@ -464,24 +485,34 @@ export function PlayerBar() {
           {/* Center section: Song info + Progress */}
           <div className="flex-1 min-w-0 flex flex-col justify-center">
             {/* Song info - clickable to navigate to song detail */}
-            <button
-              onClick={() => {
-                if (playerVideoId) {
-                  const playlistPath = selectedPlaylistId ? `/playlist/${selectedPlaylistId}` : ''
-                  router.push(`${playlistPath}/song/${playerVideoId}`)
-                }
-              }}
-              className="flex items-center gap-2 mb-1.5 text-left hover:opacity-80 transition-opacity"
-            >
-              <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 mb-1.5">
+              <button
+                onClick={() => {
+                  if (playerVideoId) {
+                    const playlistPath = selectedPlaylistId ? `/playlist/${selectedPlaylistId}` : ''
+                    router.push(`${playlistPath}/song/${playerVideoId}`)
+                  }
+                }}
+                className="min-w-0 flex-1 text-left hover:opacity-80 transition-opacity"
+              >
                 <div className="font-semibold text-gray-900 dark:text-white truncate text-sm">
                   {trackInfo?.title || 'Now playing...'}
                 </div>
                 <div className={`text-xs truncate ${playbackError ? 'text-red-500' : 'text-gray-500 dark:text-slate-400'}`}>
                   {playbackError || trackInfo?.artist || 'YouTube'}
                 </div>
-              </div>
-            </button>
+              </button>
+              {/* Playing from playlist indicator */}
+              {selectedPlaylistId && (
+                <button
+                  onClick={() => router.push(selectedPlaylistId === 'liked' ? '/playlist/likes' : `/playlist/${selectedPlaylistId}`)}
+                  className="flex-shrink-0 px-2.5 py-1 text-xs bg-space-cadet/10 dark:bg-space-cadet/30 text-space-cadet dark:text-slate-300 rounded-lg hover:bg-space-cadet/20 dark:hover:bg-space-cadet/40 transition-colors truncate max-w-[140px]"
+                  title={selectedPlaylistId === 'liked' ? 'Liked Songs' : playlistsMap.get(selectedPlaylistId)?.title}
+                >
+                  {selectedPlaylistId === 'liked' ? 'Liked Songs' : playlistsMap.get(selectedPlaylistId)?.title || 'Playlist'}
+                </button>
+              )}
+            </div>
 
             {/* Progress bar (clickable) - larger hit area */}
             <div className="flex items-center gap-3">

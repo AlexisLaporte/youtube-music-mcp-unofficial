@@ -124,193 +124,190 @@ export function PlaylistDetail({ playlist }: PlaylistDetailProps) {
 
   return (
     <div className="h-full overflow-y-auto">
-      {/* Header with cover */}
-      <div className="bg-gradient-to-b from-space-cadet to-gray-50 p-8">
-        <div className="max-w-2xl mx-auto flex flex-col md:flex-row items-center gap-6">
-          <div className="relative group">
-            {playlist.thumbnail ? (
-              <img
-                src={playlist.thumbnail}
-                alt=""
-                className="w-48 h-48 rounded-xl shadow-xl object-cover"
-              />
-            ) : (
-              <div className="w-48 h-48 rounded-xl bg-gray-300 flex items-center justify-center">
-                <MusicalNoteIcon className="w-20 h-20 text-gray-400" />
-              </div>
-            )}
-            <button
-              onClick={() => playShuffled(songs.map(s => s.videoId))}
-              disabled={songs.length === 0}
-              className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl disabled:cursor-not-allowed"
-            >
-              <div className="w-16 h-16 bg-red-pantone rounded-full flex items-center justify-center shadow-lg hover:scale-105 transition-transform">
-                <PlayIcon className="w-8 h-8 text-white ml-1" />
-              </div>
-            </button>
-          </div>
-
-          <div className="text-center md:text-left">
-            <p className="text-sm text-gray-300 uppercase tracking-wide mb-1">Playlist</p>
-            <h1 className="text-3xl font-bold text-white mb-2">{playlist.title}</h1>
-            {playlist.description && (
-              <p className="text-gray-300 text-sm mb-4 line-clamp-2">{playlist.description}</p>
-            )}
-            <p className="text-gray-400 text-sm">
-              {songs.length} tracks • {artists.size} artists
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Stats */}
-      <div className="max-w-2xl mx-auto p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Statistics</h2>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white rounded-xl p-4 border border-gray-200">
-            <div className="text-2xl font-bold text-gray-900">{songs.length}</div>
-            <div className="text-sm text-gray-500">Tracks</div>
-          </div>
-          <div className="bg-white rounded-xl p-4 border border-gray-200">
-            <div className="text-2xl font-bold text-gray-900">{artists.size}</div>
-            <div className="text-sm text-gray-500">Artists</div>
-          </div>
-          <div className="bg-white rounded-xl p-4 border border-gray-200">
-            <div className="text-2xl font-bold text-red-pantone">{likedCount}</div>
-            <div className="text-sm text-gray-500">Liked</div>
-          </div>
-          <div className="bg-white rounded-xl p-4 border border-gray-200">
-            <div className="text-2xl font-bold text-gray-900 capitalize">{playlist.privacy}</div>
-            <div className="text-sm text-gray-500">Privacy</div>
-          </div>
-        </div>
-
-        {/* Top artists */}
-        {artists.size > 0 && (
-          <div className="mb-8">
-            <h3 className="text-md font-semibold text-gray-900 mb-3">Top artists</h3>
-            <div className="flex flex-wrap gap-2">
-              {Array.from(artists).slice(0, 10).map(artist => (
-                <span
-                  key={artist}
-                  className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-full text-sm"
-                >
-                  {artist}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Analysis progress (only if not 100%) */}
-        {analysisPercent < 100 && (
-          <div className="mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600">Audio analysis</span>
-              <span className="text-sm font-medium text-gray-900">
-                {analyzedCount}/{songs.length}
-                {unavailableCount > 0 && (
-                  <span className="text-gray-400 ml-1">({unavailableCount} unavailable)</span>
-                )}
-              </span>
-            </div>
-            <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-space-cadet rounded-full transition-all"
-                style={{ width: `${analysisPercent}%` }}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Discover similar for playlist */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-md font-semibold text-gray-900 flex items-center gap-2">
-              <SparklesIcon className="w-5 h-5 text-red-pantone" />
-              Discover for this playlist
-            </h3>
-            {suggestions === null && !isLoadingSuggestions && (
-              <button
-                onClick={fetchPlaylistSuggestions}
-                disabled={songs.length === 0}
-                className="px-4 py-2 bg-space-cadet text-white rounded-lg hover:bg-opacity-90 transition-colors disabled:opacity-50"
-              >
-                Find tracks
-              </button>
-            )}
-          </div>
-
-          {isLoadingSuggestions && (
-            <div className="flex items-center gap-2 text-gray-500">
-              <div className="w-4 h-4 border-2 border-gray-300 border-t-space-cadet rounded-full animate-spin" />
-              Analyzing playlist...
-            </div>
-          )}
-
-          {suggestionsError && (
-            <p className="text-red-500 text-sm">{suggestionsError}</p>
-          )}
-
-          {suggestions && suggestions.length > 0 && (
-            <div className="space-y-2">
-              {suggestions.map((s) => (
-                <button
-                  key={s.videoId}
-                  onClick={() => {
-                    const queue = suggestions.map(sg => sg.videoId)
-                    const externalTracks = suggestions.map(sg => ({
-                      videoId: sg.videoId,
-                      title: sg.title,
-                      artist: sg.artist,
-                      thumbnail: sg.thumbnail
-                    }))
-                    playVideoInQueue(s.videoId, queue, externalTracks)
-                  }}
-                  className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 transition-colors text-left"
-                >
-                  {s.thumbnail ? (
-                    <img src={s.thumbnail} alt="" className="w-10 h-10 rounded object-cover" />
-                  ) : (
-                    <div className="w-10 h-10 rounded bg-gray-200 flex items-center justify-center">
-                      <MusicalNoteIcon className="w-5 h-5 text-gray-400" />
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">{s.title}</p>
-                    <p className="text-xs text-gray-500 truncate">{s.artist}</p>
+      <div className="p-6 lg:p-8">
+        {/* 2-column layout on large screens */}
+        <div className="flex flex-col lg:flex-row gap-8 max-w-6xl mx-auto">
+          {/* Left column: Cover, info, stats, actions */}
+          <div className="lg:w-80 flex-shrink-0">
+            <div className="lg:sticky lg:top-6 space-y-6">
+              {/* Cover image */}
+              <div className="relative group mx-auto lg:mx-0 w-fit">
+                {playlist.thumbnail ? (
+                  <img
+                    src={playlist.thumbnail}
+                    alt=""
+                    className="w-56 h-56 lg:w-72 lg:h-72 rounded-2xl shadow-xl object-cover"
+                  />
+                ) : (
+                  <div className="w-56 h-56 lg:w-72 lg:h-72 rounded-2xl bg-gradient-to-br from-gray-200 to-gray-300 dark:from-slate-700 dark:to-slate-600 flex items-center justify-center shadow-xl">
+                    <MusicalNoteIcon className="w-20 h-20 text-gray-400 dark:text-slate-400" />
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-400">{s.score}x match</span>
-                    <PlayIcon className="w-4 h-4 text-gray-400" />
+                )}
+                <button
+                  onClick={() => playShuffled(songs.map(s => s.videoId))}
+                  disabled={songs.length === 0}
+                  className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl disabled:cursor-not-allowed"
+                >
+                  <div className="w-16 h-16 bg-red-pantone rounded-full flex items-center justify-center shadow-lg hover:scale-105 transition-transform">
+                    <PlayIcon className="w-8 h-8 text-white ml-1" />
                   </div>
                 </button>
-              ))}
+              </div>
+
+              {/* Title & description */}
+              <div className="text-center lg:text-left">
+                <p className="text-xs text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1">Playlist</p>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{playlist.title}</h1>
+                {playlist.description && (
+                  <p className="text-gray-500 dark:text-slate-400 text-sm mb-3 line-clamp-3">{playlist.description}</p>
+                )}
+                <p className="text-sm text-gray-400 dark:text-slate-500">
+                  {songs.length} tracks • {artists.size} artists
+                </p>
+              </div>
+
+              {/* Stats grid */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-gray-200 dark:border-slate-700">
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">{songs.length}</div>
+                  <div className="text-xs text-gray-500 dark:text-slate-400">Tracks</div>
+                </div>
+                <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-gray-200 dark:border-slate-700">
+                  <div className="text-2xl font-bold text-red-pantone">{likedCount}</div>
+                  <div className="text-xs text-gray-500 dark:text-slate-400">Liked</div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => openModal('edit-playlist', { playlistId: playlist.id, playlistTitle: playlist.title })}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-200 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
+                >
+                  <PencilIcon className="w-4 h-4" />
+                  Edit
+                </button>
+                <button
+                  onClick={() => openModal('delete-playlist-confirm', { playlistId: playlist.id, playlistTitle: playlist.title })}
+                  className="flex items-center justify-center gap-2 px-4 py-2.5 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                >
+                  <TrashIcon className="w-4 h-4" />
+                </button>
+              </div>
             </div>
-          )}
+          </div>
 
-          {suggestions && suggestions.length === 0 && (
-            <p className="text-sm text-gray-500">No suggestions found for this playlist.</p>
-          )}
-        </div>
+          {/* Right column: Top artists, Analysis, Discover */}
+          <div className="flex-1 space-y-8">
+            {/* Top artists */}
+            {artists.size > 0 && (
+              <section>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Top Artists</h2>
+                <div className="flex flex-wrap gap-2">
+                  {Array.from(artists).slice(0, 12).map(artist => (
+                    <span
+                      key={artist}
+                      className="px-3 py-1.5 bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 rounded-full text-sm border border-gray-200 dark:border-slate-700"
+                    >
+                      {artist}
+                    </span>
+                  ))}
+                </div>
+              </section>
+            )}
 
-        {/* Actions */}
-        <div className="flex flex-wrap gap-3">
-          <button
-            onClick={() => openModal('edit-playlist', { playlistId: playlist.id, playlistTitle: playlist.title })}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-          >
-            <PencilIcon className="w-4 h-4" />
-            Edit
-          </button>
-          <button
-            onClick={() => openModal('delete-playlist-confirm', { playlistId: playlist.id, playlistTitle: playlist.title })}
-            className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
-          >
-            <TrashIcon className="w-4 h-4" />
-            Delete
-          </button>
+            {/* Analysis progress (only if not 100%) */}
+            {analysisPercent < 100 && (
+              <section className="p-4 bg-gray-50 dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-gray-700 dark:text-slate-300">Audio Analysis</span>
+                  <span className="text-sm text-gray-500 dark:text-slate-400">
+                    {analyzedCount}/{songs.length}
+                    {unavailableCount > 0 && (
+                      <span className="ml-1">({unavailableCount} unavailable)</span>
+                    )}
+                  </span>
+                </div>
+                <div className="h-2 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-space-cadet to-red-pantone rounded-full transition-all"
+                    style={{ width: `${analysisPercent}%` }}
+                  />
+                </div>
+              </section>
+            )}
+
+            {/* Discover similar for playlist */}
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                  <SparklesIcon className="w-5 h-5 text-red-pantone" />
+                  Discover for this playlist
+                </h2>
+                {suggestions === null && !isLoadingSuggestions && (
+                  <button
+                    onClick={fetchPlaylistSuggestions}
+                    disabled={songs.length === 0}
+                    className="px-4 py-2 bg-space-cadet text-white rounded-lg hover:bg-opacity-90 transition-colors disabled:opacity-50 text-sm"
+                  >
+                    Find tracks
+                  </button>
+                )}
+              </div>
+
+              {isLoadingSuggestions && (
+                <div className="flex items-center gap-2 text-gray-500 dark:text-slate-400 py-4">
+                  <div className="w-4 h-4 border-2 border-gray-300 dark:border-slate-600 border-t-space-cadet rounded-full animate-spin" />
+                  Analyzing playlist...
+                </div>
+              )}
+
+              {suggestionsError && (
+                <p className="text-red-500 text-sm py-2">{suggestionsError}</p>
+              )}
+
+              {suggestions && suggestions.length > 0 && (
+                <div className="grid gap-2">
+                  {suggestions.map((s) => (
+                    <button
+                      key={s.videoId}
+                      onClick={() => {
+                        const queue = suggestions.map(sg => sg.videoId)
+                        const externalTracks = suggestions.map(sg => ({
+                          videoId: sg.videoId,
+                          title: sg.title,
+                          artist: sg.artist,
+                          thumbnail: sg.thumbnail
+                        }))
+                        playVideoInQueue(s.videoId, queue, externalTracks)
+                      }}
+                      className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600 transition-colors text-left group"
+                    >
+                      {s.thumbnail ? (
+                        <img src={s.thumbnail} alt="" className="w-12 h-12 rounded-lg object-cover" />
+                      ) : (
+                        <div className="w-12 h-12 rounded-lg bg-gray-200 dark:bg-slate-700 flex items-center justify-center">
+                          <MusicalNoteIcon className="w-5 h-5 text-gray-400 dark:text-slate-400" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-900 dark:text-white truncate">{s.title}</p>
+                        <p className="text-sm text-gray-500 dark:text-slate-400 truncate">{s.artist}</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-gray-400 dark:text-slate-500 bg-gray-100 dark:bg-slate-700 px-2 py-1 rounded-full">{s.score}x</span>
+                        <PlayIcon className="w-5 h-5 text-gray-400 dark:text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {suggestions && suggestions.length === 0 && (
+                <p className="text-sm text-gray-500 dark:text-slate-400 py-4">No suggestions found for this playlist.</p>
+              )}
+            </section>
+          </div>
         </div>
       </div>
     </div>

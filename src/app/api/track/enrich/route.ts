@@ -7,9 +7,12 @@ import { cache } from '@/lib/db'
 /**
  * Unified track enrichment endpoint.
  * For each video ID, does EVERYTHING:
- * 1. Fetch YT metadata (duration, genres, tags)
- * 2. If unavailable, search for replacement
- * 3. Run audio analysis (Python/Essentia)
+ * 1. Check if replacement exists (uses cache.getEffectiveVideoId)
+ * 2. If no replacement, check availability and find one if needed
+ * 3. Run audio analysis on effective video (Python/Essentia)
+ *
+ * The cache layer handles all resolution transparently - callers
+ * don't need to know about replacements.
  */
 
 interface OEmbedResponse {
@@ -110,44 +113,29 @@ async function findReplacement(
   return null
 }
 
-// Run Python audio analysis for a single video
-function runAudioAnalysis(videoId: string): Promise<boolean> {
-  return new Promise((resolve) => {
-    const scriptPath = path.join(process.cwd(), 'scripts', 'analyze-batch.py')
-    const pythonPath = path.join(process.cwd(), 'scripts', 'venv', 'bin', 'python')
+// Spawn Python audio analysis as detached process
+function spawnAudioAnalysis(videoId: string): void {
+  const scriptPath = path.join(process.cwd(), 'scripts', 'analyze-batch.py')
+  const pythonPath = path.join(process.cwd(), 'scripts', 'venv', 'bin', 'python')
 
-    const proc = spawn(pythonPath, [scriptPath, '--video-id', videoId], {
-      cwd: process.cwd(),
-      env: { ...process.env },
-    })
-
-    proc.stdout?.on('data', (data: Buffer) => {
-      console.log(`[Analysis ${videoId}]`, data.toString().trim())
-    })
-
-    proc.stderr?.on('data', (data: Buffer) => {
-      console.error(`[Analysis ${videoId} Error]`, data.toString().trim())
-    })
-
-    proc.on('close', (code) => {
-      resolve(code === 0)
-    })
-
-    proc.on('error', () => {
-      resolve(false)
-    })
+  const proc = spawn(pythonPath, [scriptPath, '--video-id', videoId], {
+    cwd: process.cwd(),
+    env: { ...process.env },
+    detached: true,
+    stdio: 'ignore',
   })
+
+  proc.unref()
+  console.log(`[Enrich] Spawned analysis for ${videoId}`)
 }
 
-// Enrich a single track: YT metadata + replacement + audio analysis
-async function enrichTrack(
+// Check if video needs a replacement (Topic channels or unavailable)
+async function checkNeedsReplacement(
   accessToken: string,
   videoId: string
-): Promise<{ status: 'enriched' | 'replaced' | 'unavailable' | 'error'; videoId: string; replacementId?: string }> {
-
-  // Step 1: Get YT metadata
+): Promise<{ needsReplacement: boolean; metadata?: { duration: number; genres: string[]; tags: string[] } }> {
   const params = new URLSearchParams({
-    part: 'contentDetails,snippet,topicDetails',
+    part: 'contentDetails,snippet,topicDetails,status',
     id: videoId,
   })
 
@@ -157,77 +145,120 @@ async function enrichTrack(
   )
 
   if (!response.ok) {
-    return { status: 'error', videoId }
+    return { needsReplacement: true }
   }
 
   const data = await response.json()
   const items = data.items || []
+  const item = items[0]
 
-  let effectiveVideoId = videoId
+  if (!item) {
+    return { needsReplacement: true }
+  }
 
-  if (items.length === 0) {
-    // Video unavailable - try to find replacement
-    cache.setYouTubeMetadata({
-      videoId,
-      durationSeconds: -1,
-      genres: [],
-      tags: [],
-    })
+  const isPlayable = item.status?.uploadStatus === 'processed' &&
+    (item.status?.privacyStatus === 'public' || item.status?.privacyStatus === 'unlisted')
 
-    const replacement = await findReplacement(accessToken, videoId)
+  if (!isPlayable) {
+    return { needsReplacement: true }
+  }
 
-    if (replacement) {
-      cache.setReplacement(videoId, replacement)
-      effectiveVideoId = replacement
-      console.log(`[Enrich] Replaced ${videoId} with ${replacement}`)
+  // Topic channels often have broken videos that appear "processed"
+  const oembed = await getOEmbedData(videoId)
+  const isTopicChannel = oembed?.author_name?.endsWith(' - Topic')
 
-      // Get metadata for replacement
-      const replParams = new URLSearchParams({
-        part: 'contentDetails,snippet,topicDetails',
-        id: replacement,
-      })
-      const replResponse = await fetch(
-        `https://www.googleapis.com/youtube/v3/videos?${replParams}`,
-        { headers: { Authorization: `Bearer ${accessToken}` } }
-      )
-      if (replResponse.ok) {
-        const replData = await replResponse.json()
-        if (replData.items?.length > 0) {
-          const item = replData.items[0]
-          cache.setYouTubeMetadata({
-            videoId: replacement,
-            durationSeconds: parseDuration(item.contentDetails?.duration || 'PT0S'),
-            genres: (item.topicDetails?.topicCategories || []).map(parseGenre),
-            tags: (item.snippet?.tags || []).slice(0, 20),
-          })
+  if (isTopicChannel && oembed) {
+    const channelId = extractChannelId(oembed.author_url)
+    if (channelId) {
+      const results = await searchChannelForTitle(accessToken, channelId, oembed.title)
+      for (const result of results) {
+        if (result.id.videoId !== videoId) {
+          const available = await isVideoAvailable(accessToken, result.id.videoId)
+          if (available) {
+            console.log(`[Enrich] Topic channel: ${videoId} has alternative ${result.id.videoId}`)
+            return { needsReplacement: true }
+          }
         }
       }
-    } else {
-      cache.markPermanentlyUnavailable(videoId)
-      return { status: 'unavailable', videoId }
     }
-  } else {
-    // Video available - store metadata
-    const item = items[0]
-    cache.setYouTubeMetadata({
-      videoId,
-      durationSeconds: parseDuration(item.contentDetails?.duration || 'PT0S'),
+  }
+
+  return {
+    needsReplacement: false,
+    metadata: {
+      duration: parseDuration(item.contentDetails?.duration || 'PT0S'),
       genres: (item.topicDetails?.topicCategories || []).map(parseGenre),
       tags: (item.snippet?.tags || []).slice(0, 20),
-    })
+    }
   }
-
-  // Step 2: Run audio analysis on effective video ID
-  await runAudioAnalysis(effectiveVideoId)
-
-  if (effectiveVideoId !== videoId) {
-    return { status: 'replaced', videoId, replacementId: effectiveVideoId }
-  }
-
-  return { status: 'enriched', videoId }
 }
 
-// POST - enrich tracks one by one
+// Enrich a single track
+async function enrichTrack(
+  accessToken: string,
+  videoId: string
+): Promise<{ status: 'accepted' | 'unavailable' | 'error'; videoId: string }> {
+
+  // Get effective video ID (automatically resolves known replacements)
+  const effectiveId = cache.getEffectiveVideoId(videoId)
+  const hasExistingReplacement = effectiveId !== videoId
+
+  if (hasExistingReplacement) {
+    console.log(`[Enrich] ${videoId} → using known replacement ${effectiveId}`)
+  }
+
+  // Set job status (automatically stored on effective ID)
+  cache.setJobStatus(videoId, 'in_progress', 'yt-metadata')
+
+  // If no existing replacement, check if we need to find one
+  if (!hasExistingReplacement) {
+    const check = await checkNeedsReplacement(accessToken, videoId)
+
+    if (check.needsReplacement) {
+      console.log(`[Enrich] ${videoId} needs replacement`)
+      const replacement = await findReplacement(accessToken, videoId)
+
+      if (replacement) {
+        // Store the replacement mapping
+        cache.setVideoReplacement(videoId, replacement, 'unavailable')
+        console.log(`[Enrich] ${videoId} → replaced with ${replacement}`)
+
+        // Fetch and store metadata for replacement
+        const replCheck = await checkNeedsReplacement(accessToken, replacement)
+        if (replCheck.metadata) {
+          cache.setYouTubeMetadata({
+            videoId: replacement,
+            durationSeconds: replCheck.metadata.duration,
+            genres: replCheck.metadata.genres,
+            tags: replCheck.metadata.tags,
+          })
+        }
+      } else {
+        // No replacement found
+        cache.markPermanentlyUnavailable(videoId)
+        cache.setJobStatus(videoId, 'error', null, 'Video unavailable, no replacement found')
+        return { status: 'unavailable', videoId }
+      }
+    } else if (check.metadata) {
+      // Video is fine, store its metadata
+      cache.setYouTubeMetadata({
+        videoId,
+        durationSeconds: check.metadata.duration,
+        genres: check.metadata.genres,
+        tags: check.metadata.tags,
+      })
+    }
+  }
+
+  // Spawn audio analysis (uses effective ID via cache resolution)
+  const finalEffectiveId = cache.getEffectiveVideoId(videoId)
+  cache.setJobStatus(videoId, 'in_progress', 'downloading')
+  spawnAudioAnalysis(finalEffectiveId)
+
+  return { status: 'accepted', videoId }
+}
+
+// POST - start enrichment (async, returns immediately)
 export async function POST(request: NextRequest) {
   const session = await getSession()
   if (!session) {
@@ -241,21 +272,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'No videoIds provided' }, { status: 400 })
   }
 
-  // Process one at a time
-  const results: Array<{ status: string; videoId: string; replacementId?: string }> = []
+  const results: Array<{ status: string; videoId: string }> = []
 
   for (const videoId of videoIds) {
     const result = await enrichTrack(session.accessToken, videoId)
     results.push(result)
   }
 
+  // Return 202 Accepted - analysis is running in background
   return NextResponse.json({
+    accepted: true,
+    videoIds: results.map(r => r.videoId),
     results,
-    enriched: results.filter(r => r.status === 'enriched').length,
-    replaced: results.filter(r => r.status === 'replaced').length,
-    unavailable: results.filter(r => r.status === 'unavailable').length,
-    errors: results.filter(r => r.status === 'error').length,
-  })
+  }, { status: 202 })
 }
 
 // GET - get enrichment stats

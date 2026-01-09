@@ -2,51 +2,46 @@
 
 import { useEffect } from 'react'
 import { XMarkIcon, CheckIcon } from '@heroicons/react/24/outline'
-import { useEssentia, AnalysisStatus, AnalysisResult } from '@/hooks/useEssentia'
+import { useEnrichment, EnrichmentStatus, AnalysisResult } from '@/hooks/useEnrichment'
 
 interface AnalysisModalProps {
   videoId: string
   title: string
   artist: string
-  forceRefresh?: boolean
   onClose: () => void
   onComplete: (result: AnalysisResult) => void
 }
 
-const STATUS_LABELS: Record<AnalysisStatus, string> = {
+const STATUS_LABELS: Record<EnrichmentStatus, string> = {
   'idle': 'Pending',
-  'loading-essentia': 'Loading Essentia.js...',
-  'checking-cache': 'Checking cache...',
-  'fetching-audio': 'Extracting YouTube audio...',
-  'decoding': 'Decoding audio...',
-  'analyzing': 'Analyzing...',
-  'fetching-tags': 'Fetching Last.fm tags...',
-  'saving': 'Saving...',
-  'done': 'Done',
+  'starting': 'Starting...',
+  'yt-metadata': 'Fetching YouTube metadata...',
+  'downloading': 'Downloading audio...',
+  'analyzing': 'Analyzing audio...',
+  'lastfm': 'Fetching Last.fm tags...',
+  'complete': 'Done',
   'error': 'Error',
 }
 
-const STATUS_ORDER: AnalysisStatus[] = [
-  'loading-essentia',
-  'checking-cache',
-  'fetching-audio',
-  'decoding',
+const STATUS_ORDER: EnrichmentStatus[] = [
+  'starting',
+  'yt-metadata',
+  'downloading',
   'analyzing',
-  'fetching-tags',
-  'saving',
-  'done',
+  'lastfm',
+  'complete',
 ]
 
-export function AnalysisModal({ videoId, title, artist, forceRefresh = false, onClose, onComplete }: AnalysisModalProps) {
-  const { status, error, analyze } = useEssentia()
+export function AnalysisModal({ videoId, title, artist, onClose, onComplete }: AnalysisModalProps) {
+  const { status, error, enrich, result } = useEnrichment()
 
   useEffect(() => {
     let cancelled = false
 
     const runAnalysis = async () => {
-      const result = await analyze(videoId, title, artist, forceRefresh)
-      if (!cancelled && result) {
-        onComplete(result)
+      const res = await enrich(videoId)
+      if (!cancelled && res) {
+        onComplete(res)
       }
     }
 
@@ -55,7 +50,7 @@ export function AnalysisModal({ videoId, title, artist, forceRefresh = false, on
     return () => {
       cancelled = true
     }
-  }, [videoId, title, artist, forceRefresh, analyze, onComplete])
+  }, [videoId, enrich, onComplete])
 
   const currentIndex = STATUS_ORDER.indexOf(status)
 
@@ -115,15 +110,17 @@ export function AnalysisModal({ videoId, title, artist, forceRefresh = false, on
         )}
 
         {/* Done */}
-        {status === 'done' && (
+        {status === 'complete' && result && (
           <div className="p-4 bg-green-50 border border-green-200 rounded-lg mb-4">
-            <p className="text-sm text-green-700">Analysis completed successfully</p>
+            <p className="text-sm text-green-700">
+              Analysis complete: {result.bpm} BPM, {result.key} {result.scale}
+            </p>
           </div>
         )}
 
         {/* Actions */}
         <div className="flex justify-end gap-3">
-          {(status === 'done' || status === 'error') && (
+          {(status === 'complete' || status === 'error') && (
             <button
               onClick={onClose}
               className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"

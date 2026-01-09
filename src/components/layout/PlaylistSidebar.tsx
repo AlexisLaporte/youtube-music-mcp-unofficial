@@ -14,7 +14,7 @@ export function PlaylistSidebar() {
   const router = useRouter()
   const playlistsMap = useMusicStore(state => state.playlists)
   const songsMap = useMusicStore(state => state.songs)
-  const { selectedPlaylistId, openModal, setMobileTab, enterSearchMode, isSearchMode } = useUIStore()
+  const { selectedPlaylistId, openModal, setMobileTab } = useUIStore()
   const { user, signOut } = useAuthStore()
   const { theme, toggleTheme } = useThemeStore()
   const [showAccountMenu, setShowAccountMenu] = useState(false)
@@ -63,22 +63,13 @@ export function PlaylistSidebar() {
       <div className="p-3 space-y-1">
         {/* Search */}
         <button
-          onClick={() => {
-            enterSearchMode()
-            setMobileTab('detail')
-          }}
-          className={`w-full text-left px-3 py-2.5 flex items-center gap-3 rounded-xl transition-all duration-150 ${
-            isSearchMode
-              ? 'bg-space-cadet text-white'
-              : 'hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm'
-          }`}
+          onClick={() => router.push('/search')}
+          className="w-full text-left px-3 py-2.5 flex items-center gap-3 rounded-xl transition-all duration-150 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm"
         >
-          <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
-            isSearchMode ? 'bg-white/20' : 'bg-gray-100 dark:bg-slate-700'
-          }`}>
-            <MagnifyingGlassIcon className={`w-4 h-4 ${isSearchMode ? 'text-white' : 'text-gray-500 dark:text-slate-400'}`} />
+          <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 bg-gray-100 dark:bg-slate-700">
+            <MagnifyingGlassIcon className="w-4 h-4 text-gray-500 dark:text-slate-400" />
           </div>
-          <div className={`font-medium text-sm ${isSearchMode ? 'text-white' : 'text-gray-700 dark:text-slate-200'}`}>Search YouTube</div>
+          <div className="font-medium text-sm text-gray-700 dark:text-slate-200">Search YouTube</div>
         </button>
 
         {/* Liked Songs (special) */}

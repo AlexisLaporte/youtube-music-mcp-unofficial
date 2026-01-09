@@ -42,6 +42,17 @@ def get_db_connection():
     return sqlite3.connect(DB_PATH)
 
 
+def update_job_status(conn, video_id, status, step=None, error=None):
+    """Update job status in database for polling."""
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE audio_analysis
+        SET job_status = ?, job_step = ?, job_error = ?
+        WHERE video_id = ?
+    """, (status, step, error, video_id))
+    conn.commit()
+
+
 def get_all_video_ids(conn):
     """Extract all video IDs from liked songs and playlist tracks."""
     video_ids = set()
@@ -330,36 +341,49 @@ def main():
     for i, video_id in enumerate(video_ids, 1):
         print(f"\n[{i}/{total}] Analyzing {video_id}...")
 
-        # Get metadata
-        title, artist = get_video_metadata(conn, video_id)
-        print(f"  Title: {title}")
-        print(f"  Artist: {artist}")
+        try:
+            # Step 1: Get metadata
+            update_job_status(conn, video_id, 'in_progress', 'yt-metadata')
+            title, artist = get_video_metadata(conn, video_id)
+            print(f"  Title: {title}")
+            print(f"  Artist: {artist}")
 
-        # Download audio
-        audio_path = download_audio(video_id)
-        if not audio_path:
-            print("  Skipping (download failed)")
+            # Step 2: Download audio
+            update_job_status(conn, video_id, 'in_progress', 'downloading')
+            audio_path = download_audio(video_id)
+            if not audio_path:
+                update_job_status(conn, video_id, 'error', None, 'Download failed')
+                print("  Skipping (download failed)")
+                continue
+
+            # Step 3: Analyze audio
+            update_job_status(conn, video_id, 'in_progress', 'analyzing')
+            features = analyze_audio(audio_path)
+            if not features:
+                update_job_status(conn, video_id, 'error', None, 'Analysis failed')
+                print("  Skipping (analysis failed)")
+                continue
+
+            print(f"  BPM: {features.get('bpm')}")
+            print(f"  Key: {features.get('key')} {features.get('scale')}")
+            print(f"  Energy: {features.get('energy')}")
+            print(f"  Danceability: {features.get('danceability')}")
+
+            # Step 4: Fetch Last.fm tags
+            update_job_status(conn, video_id, 'in_progress', 'lastfm')
+            tags = fetch_lastfm_tags(artist, title)
+            if tags:
+                print(f"  Tags: {', '.join(tags[:5])}")
+
+            # Save and mark complete
+            save_analysis(conn, video_id, title, artist, features, tags)
+            update_job_status(conn, video_id, 'complete', None)
+            print("  Saved!")
+
+        except Exception as e:
+            update_job_status(conn, video_id, 'error', None, str(e))
+            print(f"  Error: {e}")
             continue
-
-        # Analyze
-        features = analyze_audio(audio_path)
-        if not features:
-            print("  Skipping (analysis failed)")
-            continue
-
-        print(f"  BPM: {features.get('bpm')}")
-        print(f"  Key: {features.get('key')} {features.get('scale')}")
-        print(f"  Energy: {features.get('energy')}")
-        print(f"  Danceability: {features.get('danceability')}")
-
-        # Fetch Last.fm tags
-        tags = fetch_lastfm_tags(artist, title)
-        if tags:
-            print(f"  Tags: {', '.join(tags[:5])}")
-
-        # Save
-        save_analysis(conn, video_id, title, artist, features, tags)
-        print("  Saved!")
 
         # Rate limit
         if i < total:

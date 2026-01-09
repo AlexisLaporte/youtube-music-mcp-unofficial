@@ -89,7 +89,7 @@ interface UIState {
   exitSearchMode: () => void
 
   // Actions - Player
-  playVideo: (videoId: string) => void
+  playVideo: (videoId: string, externalTrack?: ExternalTrack) => void
   playVideoInQueue: (videoId: string, queue: string[], externalTracks?: ExternalTrack[]) => void
   playShuffled: (queue: string[]) => void
   pausePlayer: () => void
@@ -213,16 +213,21 @@ export const useUIStore = create<UIState>((set) => ({
   },
 
   // Player actions
-  playVideo: (videoId) => {
+  playVideo: (videoId, externalTrack) => {
     console.log('▶️ Playing video:', videoId)
     set(state => {
       // If already in a queue, find the index
       const queueIndex = state.playbackQueue.indexOf(videoId)
+      // Add external track info if provided
+      const newExternalTracks = externalTrack
+        ? new Map(state.externalTracks).set(videoId, externalTrack)
+        : state.externalTracks
       return {
         playerVideoId: videoId,
         isPlayerVisible: true,
         isPlayerPaused: false,
-        playbackQueueIndex: queueIndex >= 0 ? queueIndex : state.playbackQueueIndex
+        playbackQueueIndex: queueIndex >= 0 ? queueIndex : state.playbackQueueIndex,
+        externalTracks: newExternalTracks
       }
     })
   },

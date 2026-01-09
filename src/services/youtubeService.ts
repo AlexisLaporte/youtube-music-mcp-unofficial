@@ -17,6 +17,7 @@ import { YouTubePlaylist, YouTubeTrack, PlaylistAnalysis } from '@/types/youtube
 export interface SearchResult extends YouTubeTrack {
   channelTitle: string
   publishedAt: string
+  isOfficialMusic: boolean // Topic channels are official YouTube Music releases
 }
 
 class YouTubeService {
@@ -92,7 +93,7 @@ class YouTubeService {
 
   // ============ SEARCH (direct to YouTube, not cached) ============
 
-  async searchVideos(query: string, maxResults = 20): Promise<SearchResult[]> {
+  async searchVideos(query: string, maxResults = 25): Promise<SearchResult[]> {
     console.log(`🔍 Searching for: ${query}`)
 
     const params = new URLSearchParams({
@@ -113,18 +114,29 @@ class YouTubeService {
         thumbnails?: { medium?: { url: string }, default?: { url: string } }
         publishedAt: string
       }
-    }) => ({
-      id: item.id.videoId,
-      videoId: item.id.videoId,
-      title: item.snippet.title,
-      artist: item.snippet.channelTitle.replace(' - Topic', ''),
-      channelTitle: item.snippet.channelTitle,
-      duration: '',
-      thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
-      publishedAt: item.snippet.publishedAt,
-    }))
+    }) => {
+      const isOfficialMusic = item.snippet.channelTitle.endsWith(' - Topic')
+      return {
+        id: item.id.videoId,
+        videoId: item.id.videoId,
+        title: item.snippet.title,
+        artist: item.snippet.channelTitle.replace(' - Topic', ''),
+        channelTitle: item.snippet.channelTitle,
+        duration: '',
+        thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
+        publishedAt: item.snippet.publishedAt,
+        isOfficialMusic,
+      }
+    })
 
-    console.log(`✅ Found ${results.length} results`)
+    // Sort: official music (Topic channels) first, then alphabetically
+    results.sort((a, b) => {
+      if (a.isOfficialMusic && !b.isOfficialMusic) return -1
+      if (!a.isOfficialMusic && b.isOfficialMusic) return 1
+      return 0
+    })
+
+    console.log(`✅ Found ${results.length} results (${results.filter(r => r.isOfficialMusic).length} official)`)
     return results
   }
 

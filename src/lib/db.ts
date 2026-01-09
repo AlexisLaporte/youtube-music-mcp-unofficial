@@ -74,6 +74,41 @@ function runMigrations() {
       console.log('[DB] Migration replacement:', err instanceof Error ? err.message : err);
     }
   }
+
+  // Migration: Add job status columns for async enrichment
+  if (!columnNames.has('job_status') && columns.length > 0) {
+    try {
+      database.exec(`ALTER TABLE audio_analysis ADD COLUMN job_status TEXT`);
+      database.exec(`ALTER TABLE audio_analysis ADD COLUMN job_step TEXT`);
+      database.exec(`ALTER TABLE audio_analysis ADD COLUMN job_error TEXT`);
+      database.exec(`ALTER TABLE audio_analysis ADD COLUMN job_started_at INTEGER`);
+      console.log('[DB] Migration: added job status columns');
+    } catch (err) {
+      console.log('[DB] Migration job_status:', err instanceof Error ? err.message : err);
+    }
+  }
+
+  // Migration: Move replacements to dedicated table
+  if (columnNames.has('replacement_id')) {
+    try {
+      // Check if we have data to migrate
+      const count = database.prepare(
+        'SELECT COUNT(*) as cnt FROM audio_analysis WHERE replacement_id IS NOT NULL'
+      ).get() as { cnt: number };
+
+      if (count.cnt > 0) {
+        database.exec(`
+          INSERT OR IGNORE INTO video_replacements (original_id, effective_id, reason)
+          SELECT video_id, replacement_id, 'unavailable'
+          FROM audio_analysis
+          WHERE replacement_id IS NOT NULL
+        `);
+        console.log(`[DB] Migration: moved ${count.cnt} replacements to video_replacements table`);
+      }
+    } catch (err) {
+      console.log('[DB] Migration move_replacements:', err instanceof Error ? err.message : err);
+    }
+  }
 }
 
 function initSchema() {
@@ -139,7 +174,29 @@ function initSchema() {
 
     CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
     CREATE INDEX IF NOT EXISTS idx_users_status ON users(status);
+
+    CREATE TABLE IF NOT EXISTS video_replacements (
+      original_id TEXT PRIMARY KEY,
+      effective_id TEXT NOT NULL,
+      reason TEXT,
+      created_at INTEGER DEFAULT (strftime('%s', 'now') * 1000)
+    );
   `);
+}
+
+/**
+ * Core resolution function: maps original videoId to effective videoId.
+ * If the video has been replaced (unavailable), returns the replacement.
+ * Otherwise returns the original videoId.
+ *
+ * This is THE ONLY place where replacement logic should be checked.
+ */
+function getEffectiveVideoId(videoId: string): string {
+  const database = getDb();
+  const row = database.prepare(
+    'SELECT effective_id FROM video_replacements WHERE original_id = ?'
+  ).get(videoId) as { effective_id: string } | undefined;
+  return row?.effective_id || videoId;
 }
 
 // TTL in milliseconds
@@ -203,6 +260,16 @@ export interface UserRecord {
   profilePicture?: string;
   status: 'pending' | 'approved' | 'blocked';
   createdAt: number;
+}
+
+export type JobStatus = 'pending' | 'in_progress' | 'complete' | 'error';
+export type JobStep = 'yt-metadata' | 'downloading' | 'analyzing' | 'lastfm' | null;
+
+export interface JobState {
+  status: JobStatus;
+  step: JobStep;
+  error: string | null;
+  startedAt: number | null;
 }
 
 interface UserRow {
@@ -319,9 +386,12 @@ export const cache = {
   },
 
   getAudioAnalysis(videoId: string): AudioAnalysis | null {
+    // Resolve to effective video ID (handles replacements transparently)
+    const effectiveId = getEffectiveVideoId(videoId);
+
     const row = getDb().prepare(
       'SELECT * FROM audio_analysis WHERE video_id = ?'
-    ).get(videoId) as AudioAnalysisRow | undefined;
+    ).get(effectiveId) as AudioAnalysisRow | undefined;
 
     if (!row) return null;
 
@@ -602,56 +672,64 @@ export const cache = {
     return rows.map(r => r.video_id);
   },
 
-  // Set replacement for an unavailable video
-  setReplacement(oldVideoId: string, newVideoId: string): void {
+  // Get effective video ID (resolves replacement if any)
+  getEffectiveVideoId(videoId: string): string {
+    return getEffectiveVideoId(videoId);
+  },
+
+  // Set replacement for an unavailable video (stored in video_replacements table)
+  setVideoReplacement(originalId: string, effectiveId: string, reason = 'unavailable'): void {
     const database = getDb();
-    database.prepare(
-      'UPDATE audio_analysis SET replacement_id = ? WHERE video_id = ?'
-    ).run(newVideoId, oldVideoId);
+    database.prepare(`
+      INSERT OR REPLACE INTO video_replacements (original_id, effective_id, reason, created_at)
+      VALUES (?, ?, ?, ?)
+    `).run(originalId, effectiveId, reason, Date.now());
+  },
+
+  // Check if video has a replacement
+  hasReplacement(videoId: string): boolean {
+    const database = getDb();
+    const row = database.prepare(
+      'SELECT 1 FROM video_replacements WHERE original_id = ?'
+    ).get(videoId);
+    return !!row;
   },
 
   // Mark video as permanently unavailable (no replacement found)
   markPermanentlyUnavailable(videoId: string): void {
     const database = getDb();
-    database.prepare(
-      'UPDATE audio_analysis SET permanently_unavailable = 1 WHERE video_id = ?'
-    ).run(videoId);
-  },
-
-  // Get replacement for a video (if any)
-  getReplacement(videoId: string): string | null {
-    const database = getDb();
-    const row = database.prepare(
-      'SELECT replacement_id FROM audio_analysis WHERE video_id = ?'
-    ).get(videoId) as { replacement_id: string | null } | undefined;
-    return row?.replacement_id || null;
+    // Store as self-replacement with reason 'no_replacement' to indicate it's unavailable
+    database.prepare(`
+      INSERT OR REPLACE INTO video_replacements (original_id, effective_id, reason, created_at)
+      VALUES (?, ?, 'no_replacement', ?)
+    `).run(videoId, videoId, Date.now());
   },
 
   // Check if video is permanently unavailable
   isPermanentlyUnavailable(videoId: string): boolean {
     const database = getDb();
     const row = database.prepare(
-      'SELECT permanently_unavailable FROM audio_analysis WHERE video_id = ?'
-    ).get(videoId) as { permanently_unavailable: number } | undefined;
-    return row?.permanently_unavailable === 1;
+      "SELECT 1 FROM video_replacements WHERE original_id = ? AND reason = 'no_replacement'"
+    ).get(videoId);
+    return !!row;
   },
 
-  // Get all replacement mappings (old_id → new_id)
+  // Get all replacement mappings (original → effective) - used by resolveTrackIds
   getReplacementMap(): Map<string, string> {
     const database = getDb();
     const rows = database.prepare(
-      'SELECT video_id, replacement_id FROM audio_analysis WHERE replacement_id IS NOT NULL'
-    ).all() as { video_id: string; replacement_id: string }[];
-    return new Map(rows.map(r => [r.video_id, r.replacement_id]));
+      "SELECT original_id, effective_id FROM video_replacements WHERE reason != 'no_replacement'"
+    ).all() as { original_id: string; effective_id: string }[];
+    return new Map(rows.map(r => [r.original_id, r.effective_id]));
   },
 
   // Get all permanently unavailable video IDs
   getPermanentlyUnavailableIds(): Set<string> {
     const database = getDb();
     const rows = database.prepare(
-      'SELECT video_id FROM audio_analysis WHERE permanently_unavailable = 1'
-    ).all() as { video_id: string }[];
-    return new Set(rows.map(r => r.video_id));
+      "SELECT original_id FROM video_replacements WHERE reason = 'no_replacement'"
+    ).all() as { original_id: string }[];
+    return new Set(rows.map(r => r.original_id));
   },
 
   // Track suggestions cache
@@ -741,6 +819,57 @@ export const cache = {
   getAllUsers(): UserRecord[] {
     const rows = getDb().prepare('SELECT * FROM users ORDER BY created_at DESC').all() as UserRow[];
     return rows.map(rowToUser);
+  },
+
+  // Job status tracking for async enrichment
+  // All methods use effective video ID transparently
+  setJobStatus(videoId: string, status: JobStatus, step: JobStep = null, error: string | null = null): void {
+    const database = getDb();
+    const effectiveId = getEffectiveVideoId(videoId);
+    const now = Date.now();
+
+    // Check if row exists
+    const existing = database.prepare('SELECT video_id FROM audio_analysis WHERE video_id = ?').get(effectiveId);
+
+    if (existing) {
+      database.prepare(`
+        UPDATE audio_analysis
+        SET job_status = ?, job_step = ?, job_error = ?, job_started_at = COALESCE(job_started_at, ?)
+        WHERE video_id = ?
+      `).run(status, step, error, status === 'pending' ? now : null, effectiveId);
+    } else {
+      database.prepare(`
+        INSERT INTO audio_analysis (video_id, job_status, job_step, job_error, job_started_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `).run(effectiveId, status, step, error, status === 'pending' ? now : null, now);
+    }
+  },
+
+  getJobStatus(videoId: string): JobState | null {
+    const effectiveId = getEffectiveVideoId(videoId);
+
+    const row = getDb().prepare(`
+      SELECT job_status, job_step, job_error, job_started_at
+      FROM audio_analysis WHERE video_id = ?
+    `).get(effectiveId) as { job_status: string | null; job_step: string | null; job_error: string | null; job_started_at: number | null } | undefined;
+
+    if (!row || !row.job_status) return null;
+
+    return {
+      status: row.job_status as JobStatus,
+      step: row.job_step as JobStep,
+      error: row.job_error,
+      startedAt: row.job_started_at
+    };
+  },
+
+  clearJobStatus(videoId: string): void {
+    const effectiveId = getEffectiveVideoId(videoId);
+    getDb().prepare(`
+      UPDATE audio_analysis
+      SET job_status = NULL, job_step = NULL, job_error = NULL, job_started_at = NULL
+      WHERE video_id = ?
+    `).run(effectiveId);
   }
 };
 
