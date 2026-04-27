@@ -8,7 +8,6 @@ import { HeartIcon as HeartOutlineIcon, ArrowRightIcon } from '@heroicons/react/
 import { apiService, SearchResult } from '@/services/youtubeService'
 import { useMusicStore } from '@/stores/useMusicStore'
 import { useUIStore } from '@/stores/useUIStore'
-import { AnalysisBadge } from '@/components/AnalysisBadge'
 
 interface SearchPanelWithURLProps {
   initialQuery: string
@@ -194,7 +193,6 @@ export function SearchPanelWithURL({ initialQuery }: SearchPanelWithURLProps) {
                         {result.isOfficialMusic && (
                           <span className="text-xs text-purple-600 dark:text-purple-400 font-medium">Official</span>
                         )}
-                        <AnalysisBadge videoId={result.videoId} />
                       </div>
                     </button>
 

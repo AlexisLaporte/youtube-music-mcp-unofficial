@@ -1,12 +1,10 @@
 'use client'
 
 import React from 'react';
-import { Music, Play, Pause, Plus, BarChart3 } from 'lucide-react';
+import { Music, Play, Pause, Plus } from 'lucide-react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import { Song } from '@/types/youtube';
 import { PlaylistBadges } from './PlaylistBadges';
-import { AnalysisBadge } from './AnalysisBadge';
 
 interface TrackCardProps {
   song: Song;
@@ -21,8 +19,6 @@ export const TrackCard: React.FC<TrackCardProps> = ({
   onPlayToggle,
   onAddToPlaylist,
 }) => {
-  const router = useRouter();
-
   return (
     <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl transition-all duration-200 hover:border-red-300 dark:hover:border-red-400/50 hover:shadow-sm p-3">
       <div className="flex items-center gap-3">
@@ -53,7 +49,6 @@ export const TrackCard: React.FC<TrackCardProps> = ({
           </p>
           <div className="mt-0.5 flex items-center gap-2">
             <PlaylistBadges videoId={song.videoId} maxVisible={2} />
-            <AnalysisBadge videoId={song.videoId} />
           </div>
         </div>
 
@@ -69,14 +64,6 @@ export const TrackCard: React.FC<TrackCardProps> = ({
             ) : (
               <Play className="h-4 w-4 md:h-5 md:w-5 text-white ml-0.5" />
             )}
-          </button>
-
-          <button
-            onClick={() => router.push(`/analyze?v=${song.videoId}&title=${encodeURIComponent(song.title)}&artist=${encodeURIComponent(song.artist)}`)}
-            className="p-2 rounded-lg transition-colors text-gray-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 active:scale-95 w-10 h-10"
-            title="Analyser l'audio"
-          >
-            <BarChart3 className="h-5 w-5" />
           </button>
 
           <button

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createSession, isAdmin } from '@/lib/auth'
 import { cookies } from 'next/headers'
 import { cache } from '@/lib/db'
+import { users as pgUsers } from '@/lib/pg'
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
@@ -53,9 +54,27 @@ export async function GET(request: NextRequest) {
     const userInfo = await userInfoResponse.json()
     const { id, email, name, picture } = userInfo
 
-    // Upsert user in database and check status
+    // Upsert user in local cache (for backward compatibility)
     const user = cache.upsertUser({ id, email, name, profilePicture: picture })
     const userIsAdmin = isAdmin(email)
+
+    // Upsert user in PostgreSQL (for server-side sync)
+    try {
+      await pgUsers.upsert({
+        id,
+        email,
+        name,
+        profilePicture: picture,
+        refreshToken: refresh_token,
+      })
+      // Auto-approve admins in PostgreSQL too
+      if (userIsAdmin) {
+        await pgUsers.setStatus(id, 'approved')
+      }
+    } catch (pgError) {
+      console.error('PostgreSQL user upsert error:', pgError)
+      // Continue anyway - local cache still works
+    }
 
     // If user is blocked, deny access
     if (user.status === 'blocked') {

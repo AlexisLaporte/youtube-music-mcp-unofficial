@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState } from 'react'
 import { Playlist, Song } from '@/types/youtube'
 import { useMusicStore } from '@/stores/useMusicStore'
 import { useUIStore } from '@/stores/useUIStore'
@@ -42,8 +42,6 @@ export function PlaylistDetail({ playlist }: PlaylistDetailProps) {
   const songsMap = useMusicStore(state => state.songs)
   const playlistSongsMap = useMusicStore(state => state.playlistSongs)
   const { openModal, playShuffled, playVideoInQueue } = useUIStore()
-  const [analyzedIds, setAnalyzedIds] = useState<Set<string>>(new Set())
-  const [unavailableIds, setUnavailableIds] = useState<Set<string>>(new Set())
 
   // Playlist suggestions state
   const [suggestions, setSuggestions] = useState<PlaylistSuggestion[] | null>(null)
@@ -60,37 +58,6 @@ export function PlaylistDetail({ playlist }: PlaylistDetailProps) {
   // Calculate stats
   const artists = new Set(songs.map(s => s.artist))
   const likedCount = songs.filter(s => s.isLiked).length
-
-  // Fetch analysis progress
-  useEffect(() => {
-    const fetchProgress = async () => {
-      try {
-        const res = await fetch('/api/analysis/progress')
-        if (res.ok) {
-          const data = await res.json()
-          setAnalyzedIds(new Set(data.analyzedIds || []))
-          setUnavailableIds(new Set(data.unavailableIds || []))
-        }
-      } catch {
-        // Ignore
-      }
-    }
-    fetchProgress()
-  }, [])
-
-  // Calculate analysis progress for this playlist
-  const videoIds = useMemo(() => songs.map(s => s.videoId), [songs])
-  const analyzedCount = useMemo(
-    () => videoIds.filter(id => analyzedIds.has(id)).length,
-    [videoIds, analyzedIds]
-  )
-  const unavailableCount = useMemo(
-    () => videoIds.filter(id => unavailableIds.has(id)).length,
-    [videoIds, unavailableIds]
-  )
-  // Consider unavailable videos as "done" since we can't analyze them
-  const effectiveAnalyzed = analyzedCount + unavailableCount
-  const analysisPercent = songs.length > 0 ? Math.round((effectiveAnalyzed / songs.length) * 100) : 100
 
   const fetchPlaylistSuggestions = async () => {
     setIsLoadingSuggestions(true)
@@ -212,27 +179,6 @@ export function PlaylistDetail({ playlist }: PlaylistDetailProps) {
                       {artist}
                     </span>
                   ))}
-                </div>
-              </section>
-            )}
-
-            {/* Analysis progress (only if not 100%) */}
-            {analysisPercent < 100 && (
-              <section className="p-4 bg-gray-50 dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700 dark:text-slate-300">Audio Analysis</span>
-                  <span className="text-sm text-gray-500 dark:text-slate-400">
-                    {analyzedCount}/{songs.length}
-                    {unavailableCount > 0 && (
-                      <span className="ml-1">({unavailableCount} unavailable)</span>
-                    )}
-                  </span>
-                </div>
-                <div className="h-2 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-space-cadet to-red-pantone rounded-full transition-all"
-                    style={{ width: `${analysisPercent}%` }}
-                  />
                 </div>
               </section>
             )}

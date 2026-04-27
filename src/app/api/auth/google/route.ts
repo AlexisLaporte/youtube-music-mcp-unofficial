@@ -16,7 +16,7 @@ export async function GET() {
   authUrl.searchParams.set('response_type', 'code')
   authUrl.searchParams.set('scope', scopes.join(' '))
   authUrl.searchParams.set('access_type', 'offline')
-  authUrl.searchParams.set('prompt', 'select_account')
+  authUrl.searchParams.set('prompt', 'consent')
 
   return NextResponse.redirect(authUrl.toString())
 }

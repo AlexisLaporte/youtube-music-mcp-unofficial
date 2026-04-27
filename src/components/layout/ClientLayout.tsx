@@ -4,7 +4,6 @@ import { useEffect } from 'react'
 import { useUIStore } from '@/stores/useUIStore'
 import { useMusicStore } from '@/stores/useMusicStore'
 import { useThemeStore } from '@/stores/useThemeStore'
-// import { useAutoAnalysis } from '@/hooks/useAutoAnalysis'
 import { PlayerBar } from './PlayerBar'
 import { PlaylistSelectorModal } from '@/components/PlaylistSelectorModal'
 
@@ -20,9 +19,6 @@ export function ClientLayout({ children }: ClientLayoutProps) {
   const { activeModal, modalData, closeModal } = useUIStore()
   const { getSongsForPlaylist, getLikedSongs, getAllPlaylists, getSong, addSongToPlaylist } = useMusicStore()
   const hasPlayer = !!playerVideoId
-
-  // Auto-start audio analysis for pending tracks (disabled - manual only)
-  // useAutoAnalysis()
 
   // Apply theme to document
   const theme = useThemeStore(state => state.theme)

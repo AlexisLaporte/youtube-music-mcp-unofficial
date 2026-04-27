@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Search, Sparkles, Music, Play, Pause, Check } from 'lucide-react'
+import { Search, Music, Play, Pause, Check } from 'lucide-react'
 import { useUIStore } from '@/stores/useUIStore'
 import { useMusicStore } from '@/stores/useMusicStore'
 
@@ -9,13 +9,6 @@ interface PlaylistOption {
   id: string
   title: string
   thumbnail?: string
-}
-
-interface Suggestion {
-  playlistId: string
-  score: number
-  matchedTags: string[]
-  reason: string
 }
 
 interface PlaylistSelectorModalProps {
@@ -34,9 +27,6 @@ export const PlaylistSelectorModal: React.FC<PlaylistSelectorModalProps> = ({
   onClose
 }) => {
   const [searchQuery, setSearchQuery] = useState('')
-  const [suggestions, setSuggestions] = useState<Suggestion[]>([])
-  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false)
-  const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [justAdded, setJustAdded] = useState<string | null>(null)
   const [addedPlaylists, setAddedPlaylists] = useState<Set<string>>(new Set())
 
@@ -91,54 +81,6 @@ export const PlaylistSelectorModal: React.FC<PlaylistSelectorModalProps> = ({
       }
     }
   }, [playerVideoId, playingPlaylistId, playlistSongsMap])
-
-  useEffect(() => {
-    const fetchSuggestions = async () => {
-      setIsLoadingSuggestions(true)
-      try {
-        // First check if we have an analysis
-        const analysisRes = await fetch(`/api/analysis?v=${videoId}`)
-        const analysisData = await analysisRes.json()
-
-        // If no cached analysis with BPM, trigger one
-        if (!analysisData.cached || !analysisData.bpm) {
-          console.log('🔬 No analysis for', videoId, '- triggering analysis...')
-          setIsAnalyzing(true)
-
-          // Start analysis for this single video
-          const startRes = await fetch('/api/analysis/batch', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ videoIds: [videoId] })
-          })
-
-          if (startRes.ok) {
-            // Poll for completion (max 60s)
-            for (let i = 0; i < 30; i++) {
-              await new Promise(r => setTimeout(r, 2000))
-              const statusRes = await fetch('/api/analysis/batch')
-              const status = await statusRes.json()
-              if (!status.running) break
-            }
-          }
-          setIsAnalyzing(false)
-        }
-
-        // Now fetch suggestions
-        const res = await fetch(`/api/playlist-suggestions?v=${videoId}`)
-        if (res.ok) {
-          const data = await res.json()
-          setSuggestions(data.suggestions || [])
-        }
-      } catch (e) {
-        console.warn('Failed to fetch suggestions:', e)
-      } finally {
-        setIsLoadingSuggestions(false)
-      }
-    }
-
-    fetchSuggestions()
-  }, [videoId])
 
   const filteredPlaylists = playlists.filter(p =>
     p.title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -211,118 +153,6 @@ export const PlaylistSelectorModal: React.FC<PlaylistSelectorModalProps> = ({
         </div>
 
         <div className="flex-1 overflow-y-auto space-y-1">
-          {/* Suggestions Section */}
-          {!searchQuery && suggestions.length > 0 && (
-            <div className="mb-4">
-              <div className="flex items-center gap-2 mb-2 px-1">
-                <Sparkles className="h-4 w-4 text-amber-500" />
-                <span className="text-sm font-medium text-gray-700 dark:text-slate-300">Suggested</span>
-              </div>
-              <div className="space-y-1">
-                {suggestions.map(suggestion => {
-                  const playlist = playlists.find(p => p.id === suggestion.playlistId)
-                  if (!playlist) return null
-                  const isAlreadyIn = foundInPlaylistIds.includes(playlist.id) || addedPlaylists.has(playlist.id)
-                  const wasJustAdded = justAdded === playlist.id
-                  const trackIds = playlistSongsMap.get(playlist.id) || []
-                  const isPlayingThis = playingPlaylistId === playlist.id && !isPlayerPaused
-
-                  return (
-                    <div
-                      key={playlist.id}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${
-                        wasJustAdded
-                          ? 'bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 scale-[1.02]'
-                          : isAlreadyIn
-                          ? 'bg-gray-50 dark:bg-slate-700/50'
-                          : 'bg-amber-50/50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700'
-                      }`}
-                    >
-                      {/* Thumbnail */}
-                      {playlist.thumbnail ? (
-                        <img src={playlist.thumbnail} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
-                      ) : (
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 dark:from-slate-700 dark:to-slate-600 flex items-center justify-center flex-shrink-0">
-                          <Music className="w-4 h-4 text-gray-400 dark:text-slate-400" />
-                        </div>
-                      )}
-
-                      {/* Playlist info */}
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium truncate text-gray-900 dark:text-white">{playlist.title}</div>
-                        {suggestion.reason && !wasJustAdded && (
-                          <div className="text-xs text-gray-500 dark:text-slate-400 mt-0.5 truncate">
-                            {suggestion.reason} • {Math.round(suggestion.score * 10)}% match
-                          </div>
-                        )}
-                        {wasJustAdded && (
-                          <div className="text-xs text-green-600 dark:text-green-400 font-medium mt-0.5">Added to playlist!</div>
-                        )}
-                      </div>
-
-                      {/* Action buttons */}
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        {/* Play/Preview button */}
-                        {trackIds.length > 0 && (
-                          <button
-                            onClick={(e) => handlePlayPlaylist(e, playlist.id)}
-                            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                              isPlayingThis
-                                ? 'bg-green-500 text-white'
-                                : 'bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-slate-200 hover:bg-gray-300 dark:hover:bg-slate-500'
-                            }`}
-                            title="Preview this playlist"
-                          >
-                            {isPlayingThis ? (
-                              <>
-                                <Pause className="w-3.5 h-3.5" />
-                                <span className="hidden sm:inline">Playing</span>
-                              </>
-                            ) : (
-                              <>
-                                <Play className="w-3.5 h-3.5" />
-                                <span className="hidden sm:inline">Preview</span>
-                              </>
-                            )}
-                          </button>
-                        )}
-
-                        {/* Add button */}
-                        {wasJustAdded ? (
-                          <div className="flex items-center gap-1 px-3 py-1.5 bg-green-500 text-white rounded-lg text-xs font-medium">
-                            <Check className="w-3.5 h-3.5" />
-                            <span>Added</span>
-                          </div>
-                        ) : isAlreadyIn ? (
-                          <div className="flex items-center gap-1 px-3 py-1.5 text-gray-400 dark:text-slate-500 text-xs">
-                            <Check className="w-3.5 h-3.5" />
-                            <span>Already in</span>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => handleSelect(playlist.id)}
-                            className="flex items-center gap-1 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-medium transition-colors"
-                          >
-                            <span>Add</span>
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-              <div className="border-b border-gray-200 dark:border-slate-700 my-3" />
-              <div className="text-xs text-gray-500 dark:text-slate-400 px-1 mb-2">All playlists</div>
-            </div>
-          )}
-
-          {isLoadingSuggestions && !searchQuery && (
-            <div className="flex items-center gap-2 mb-4 px-1 text-sm text-gray-500 dark:text-slate-400">
-              <div className="animate-spin h-4 w-4 border-2 border-gray-300 dark:border-slate-600 border-t-amber-500 rounded-full" />
-              {isAnalyzing ? 'Analyzing audio...' : 'Loading suggestions...'}
-            </div>
-          )}
-
           {playlists.length === 0 ? (
             <p className="text-sm text-gray-500 dark:text-slate-400 text-center py-4">
               No playlists loaded. Click Refresh.

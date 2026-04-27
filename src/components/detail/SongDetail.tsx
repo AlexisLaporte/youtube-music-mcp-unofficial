@@ -27,9 +27,7 @@ export const featureMeta: FeatureMeta = {
 import { useMusicStore } from '@/stores/useMusicStore'
 import { useUIStore } from '@/stores/useUIStore'
 import { PlayIcon, PlusIcon, HeartIcon as HeartSolidIcon, SparklesIcon } from '@heroicons/react/24/solid'
-import { MusicalNoteIcon, ArrowTopRightOnSquareIcon, ArrowPathIcon, XMarkIcon, ExclamationTriangleIcon, ArrowLeftIcon } from '@heroicons/react/24/outline'
-import { AnalysisModal } from '@/components/AnalysisModal'
-import type { AnalysisResult } from '@/hooks/useEnrichment'
+import { MusicalNoteIcon, ArrowTopRightOnSquareIcon, XMarkIcon, ExclamationTriangleIcon, ArrowLeftIcon } from '@heroicons/react/24/outline'
 
 interface SongDetailProps {
   song: Song
@@ -42,17 +40,10 @@ function buildLastFmUrl(artist: string, track: string): string {
   return `https://www.last.fm/music/${encodeURIComponent(cleanArtist)}/_/${encodeURIComponent(track)}`
 }
 
-interface AnalysisData {
-  bpm?: number
-  key?: string
-  scale?: string
-  energy?: number
-  danceability?: number
+interface TrackMetadata {
   lastfmTags?: string[]
   lastfmListeners?: string
   lastfmPlaycount?: string
-  title?: string
-  artist?: string
 }
 
 export function SongDetail({ song, isNowPlaying }: SongDetailProps) {
@@ -91,9 +82,10 @@ export function SongDetail({ song, isNowPlaying }: SongDetailProps) {
       .filter((p): p is NonNullable<typeof p> => p !== undefined),
     [liveSong.playlistIds, playlistsMap]
   )
-  const [analysis, setAnalysis] = useState<AnalysisData | null>(null)
-  const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(false)
-  const [showAnalysisModal, setShowAnalysisModal] = useState<boolean | 'refresh'>(false)
+
+  // Track metadata (tags from enrichment)
+  const [metadata, setMetadata] = useState<TrackMetadata | null>(null)
+  const [isLoadingMetadata, setIsLoadingMetadata] = useState(false)
 
   // Suggestions state
   const [suggestions, setSuggestions] = useState<{
@@ -102,22 +94,6 @@ export function SongDetail({ song, isNowPlaying }: SongDetailProps) {
   } | null>(null)
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false)
   const [suggestionsError, setSuggestionsError] = useState<string | null>(null)
-
-  const openAnalysisModal = (refresh = false) => {
-    setShowAnalysisModal(refresh ? 'refresh' : true)
-  }
-
-  const handleAnalysisComplete = (result: AnalysisResult) => {
-    setAnalysis({
-      bpm: result.bpm ?? undefined,
-      key: result.key ?? undefined,
-      scale: result.scale ?? undefined,
-      energy: result.energy ?? undefined,
-      danceability: result.danceability ?? undefined,
-      lastfmTags: result.lastfmTags ?? undefined,
-    })
-    setShowAnalysisModal(false)
-  }
 
   const fetchSuggestions = async (forceRefresh = false) => {
     setIsLoadingSuggestions(true)
@@ -143,30 +119,28 @@ export function SongDetail({ song, isNowPlaying }: SongDetailProps) {
     }
   }
 
-  // Fetch analysis and suggestions on mount
+  // Fetch metadata and suggestions on mount
   useEffect(() => {
     fetchSuggestions()
   }, [song.videoId])
 
   useEffect(() => {
-    const fetchAnalysis = async () => {
-      setIsLoadingAnalysis(true)
+    const fetchMetadata = async () => {
+      setIsLoadingMetadata(true)
       try {
-        const res = await fetch(`/api/analysis?v=${song.videoId}`)
+        const res = await fetch(`/api/track/${song.videoId}/metadata`)
         if (res.ok) {
           const data = await res.json()
-          if (data.cached) {
-            setAnalysis(data)
-          }
+          setMetadata(data)
         }
       } catch (e) {
-        console.warn('Failed to fetch analysis:', e)
+        console.warn('Failed to fetch metadata:', e)
       } finally {
-        setIsLoadingAnalysis(false)
+        setIsLoadingMetadata(false)
       }
     }
 
-    fetchAnalysis()
+    fetchMetadata()
   }, [song.videoId])
 
   return (
@@ -365,233 +339,174 @@ export function SongDetail({ song, isNowPlaying }: SongDetailProps) {
             </div>
           </div>
 
-          {/* Right column: Analysis, Tags, Discover */}
+          {/* Right column: Tags, Discover */}
           <div className="flex-1 space-y-8">
-        {/* Audio Analysis */}
-        <section>
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Audio Analysis</h2>
+            {/* Last.fm Tags */}
+            {metadata?.lastfmTags && metadata.lastfmTags.length > 0 && (
+              <section>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Tags</h2>
+                  <a
+                    href={buildLastFmUrl(song.artist, song.title)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-sm text-gray-500 dark:text-slate-400 hover:text-red-600 transition-colors"
+                  >
+                    Last.fm
+                    <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+                  </a>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {metadata.lastfmTags.map(tag => (
+                    <span
+                      key={tag}
+                      className="px-3 py-1.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-full text-sm"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+                {(metadata.lastfmListeners || metadata.lastfmPlaycount) && (
+                  <div className="flex gap-6 mt-4 text-sm text-gray-500 dark:text-slate-400">
+                    {metadata.lastfmListeners && (
+                      <span>{Number(metadata.lastfmListeners).toLocaleString()} listeners</span>
+                    )}
+                    {metadata.lastfmPlaycount && (
+                      <span>{Number(metadata.lastfmPlaycount).toLocaleString()} plays</span>
+                    )}
+                  </div>
+                )}
+              </section>
+            )}
 
-          {isLoadingAnalysis ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-300 dark:border-slate-600 border-t-red-pantone" />
-            </div>
-          ) : analysis ? (
-            <>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {analysis.bpm && (
-                  <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-gray-200 dark:border-slate-700">
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white">{analysis.bpm}</div>
-                    <div className="text-sm text-gray-500 dark:text-slate-400">BPM</div>
-                  </div>
-                )}
-                {analysis.key && (
-                  <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-gray-200 dark:border-slate-700">
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                      {analysis.key} {analysis.scale}
-                    </div>
-                    <div className="text-sm text-gray-500 dark:text-slate-400">Key</div>
-                  </div>
-                )}
-                {analysis.energy !== undefined && (
-                  <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-gray-200 dark:border-slate-700">
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white">{analysis.energy}%</div>
-                    <div className="text-sm text-gray-500 dark:text-slate-400">Energy</div>
-                  </div>
-                )}
-                {analysis.danceability !== undefined && (
-                  <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-gray-200 dark:border-slate-700">
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white">{analysis.danceability}%</div>
-                    <div className="text-sm text-gray-500 dark:text-slate-400">Danceability</div>
-                  </div>
+            {/* Loading state for metadata */}
+            {isLoadingMetadata && !metadata && (
+              <section>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Tags</h2>
+                <div className="flex items-center gap-2 text-gray-500 dark:text-slate-400">
+                  <div className="w-4 h-4 border-2 border-gray-300 dark:border-slate-600 border-t-purple-600 rounded-full animate-spin" />
+                  Loading tags...
+                </div>
+              </section>
+            )}
+
+            {/* Discover similar */}
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Discover Similar</h2>
+                {suggestions && (
+                  <button
+                    onClick={() => fetchSuggestions(true)}
+                    className="text-sm text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200"
+                  >
+                    Refresh
+                  </button>
                 )}
               </div>
-              <button
-                onClick={() => openAnalysisModal(true)}
-                className="mt-4 flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 transition-colors"
-              >
-                <ArrowPathIcon className="w-4 h-4" />
-                Re-analyze
-              </button>
-            </>
-          ) : (
-            <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-6 text-center">
-              <p className="text-gray-500 dark:text-slate-400 mb-4">No analysis available</p>
-              <button
-                onClick={() => openAnalysisModal(false)}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-space-cadet text-white rounded-lg hover:bg-space-cadet/90 transition-colors"
-              >
-                Analyze this track
-              </button>
-            </div>
-          )}
-        </section>
 
-        {/* Last.fm Tags */}
-        {analysis?.lastfmTags && analysis.lastfmTags.length > 0 && (
-          <section>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Tags</h2>
-              <a
-                href={buildLastFmUrl(song.artist, song.title)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 text-sm text-gray-500 dark:text-slate-400 hover:text-red-600 transition-colors"
-              >
-                Last.fm
-                <ArrowTopRightOnSquareIcon className="w-4 h-4" />
-              </a>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {analysis.lastfmTags.map(tag => (
-                <span
-                  key={tag}
-                  className="px-3 py-1.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-full text-sm"
+              {!suggestions && !isLoadingSuggestions && (
+                <button
+                  onClick={() => fetchSuggestions()}
+                  className="w-full flex items-center justify-center gap-3 p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200 dark:border-purple-700 rounded-xl hover:from-purple-100 hover:to-pink-100 dark:hover:from-purple-900/30 dark:hover:to-pink-900/30 transition-colors group"
                 >
-                  {tag}
-                </span>
-              ))}
-            </div>
-            {(analysis.lastfmListeners || analysis.lastfmPlaycount) && (
-              <div className="flex gap-6 mt-4 text-sm text-gray-500 dark:text-slate-400">
-                {analysis.lastfmListeners && (
-                  <span>{Number(analysis.lastfmListeners).toLocaleString()} listeners</span>
-                )}
-                {analysis.lastfmPlaycount && (
-                  <span>{Number(analysis.lastfmPlaycount).toLocaleString()} plays</span>
-                )}
-              </div>
-            )}
-          </section>
-        )}
+                  <SparklesIcon className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                  <span className="font-medium text-purple-700 dark:text-purple-300">Find similar tracks</span>
+                </button>
+              )}
 
-        {/* Discover similar */}
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Discover Similar</h2>
-            {suggestions && (
-              <button
-                onClick={() => fetchSuggestions(true)}
-                className="text-sm text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200"
-              >
-                Refresh
-              </button>
-            )}
-          </div>
-
-          {!suggestions && !isLoadingSuggestions && (
-            <button
-              onClick={() => fetchSuggestions()}
-              className="w-full flex items-center justify-center gap-3 p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200 dark:border-purple-700 rounded-xl hover:from-purple-100 hover:to-pink-100 dark:hover:from-purple-900/30 dark:hover:to-pink-900/30 transition-colors group"
-            >
-              <SparklesIcon className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-              <span className="font-medium text-purple-700 dark:text-purple-300">Find similar tracks</span>
-            </button>
-          )}
-
-          {isLoadingSuggestions && (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-2 border-purple-300 dark:border-purple-600 border-t-purple-600 dark:border-t-purple-300" />
-            </div>
-          )}
-
-          {suggestionsError && (
-            <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-xl text-red-600 dark:text-red-400 text-sm">
-              {suggestionsError}
-            </div>
-          )}
-
-          {suggestions && (() => {
-            // Deduplicate suggestions
-            const seenIds = new Set<string>()
-            const uniqueYtMix = suggestions.youtubeMix.filter(t => {
-              if (seenIds.has(t.videoId)) return false
-              seenIds.add(t.videoId)
-              return true
-            })
-            const uniqueLastfm = suggestions.lastfmSimilar.filter(t => {
-              if (!t.videoId || seenIds.has(t.videoId)) return false
-              seenIds.add(t.videoId)
-              return true
-            })
-
-            return (
-            <div className="space-y-4">
-              {/* YouTube Mix */}
-              {uniqueYtMix.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 dark:text-slate-400 mb-2">YouTube Mix</h3>
-                  <div className="space-y-1">
-                    {uniqueYtMix.slice(0, 8).map(track => (
-                      <button
-                        key={track.videoId}
-                        onClick={() => playVideoInQueue(track.videoId, uniqueYtMix.map(t => t.videoId), uniqueYtMix)}
-                        className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors group"
-                      >
-                        {track.thumbnail ? (
-                          <img src={track.thumbnail} alt="" className="w-10 h-10 rounded object-cover" />
-                        ) : (
-                          <div className="w-10 h-10 rounded bg-gray-200 dark:bg-slate-700" />
-                        )}
-                        <div className="flex-1 text-left min-w-0">
-                          <div className="text-sm font-medium text-gray-900 dark:text-white truncate">{track.title}</div>
-                          <div className="text-xs text-gray-500 dark:text-slate-400 truncate">{track.artist}</div>
-                        </div>
-                        <PlayIcon className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </button>
-                    ))}
-                  </div>
+              {isLoadingSuggestions && (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-2 border-purple-300 dark:border-purple-600 border-t-purple-600 dark:border-t-purple-300" />
                 </div>
               )}
 
-              {/* Last.fm Similar */}
-              {uniqueLastfm.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 dark:text-slate-400 mb-2">Last.fm Similar</h3>
-                  <div className="space-y-1">
-                    {uniqueLastfm.map(track => (
-                      <button
-                        key={track.videoId}
-                        onClick={() => playVideoInQueue(track.videoId, uniqueLastfm.map(t => t.videoId), uniqueLastfm)}
-                        className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors group"
-                      >
-                        {track.thumbnail ? (
-                          <img src={track.thumbnail} alt="" className="w-10 h-10 rounded object-cover" />
-                        ) : (
-                          <div className="w-10 h-10 rounded bg-gray-200 dark:bg-slate-700" />
-                        )}
-                        <div className="flex-1 text-left min-w-0">
-                          <div className="text-sm font-medium text-gray-900 dark:text-white truncate">{track.title}</div>
-                          <div className="text-xs text-gray-500 dark:text-slate-400 truncate">{track.artist}</div>
-                        </div>
-                        <PlayIcon className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </button>
-                    ))}
-                  </div>
+              {suggestionsError && (
+                <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-xl text-red-600 dark:text-red-400 text-sm">
+                  {suggestionsError}
                 </div>
               )}
 
-              {uniqueYtMix.length === 0 && uniqueLastfm.length === 0 && (
-                <p className="text-gray-500 dark:text-slate-400 text-sm">No suggestions found</p>
-              )}
-            </div>
-            )
-          })()}
-        </section>
+              {suggestions && (() => {
+                // Deduplicate suggestions
+                const seenIds = new Set<string>()
+                const uniqueYtMix = suggestions.youtubeMix.filter(t => {
+                  if (seenIds.has(t.videoId)) return false
+                  seenIds.add(t.videoId)
+                  return true
+                })
+                const uniqueLastfm = suggestions.lastfmSimilar.filter(t => {
+                  if (!t.videoId || seenIds.has(t.videoId)) return false
+                  seenIds.add(t.videoId)
+                  return true
+                })
+
+                return (
+                <div className="space-y-4">
+                  {/* YouTube Mix */}
+                  {uniqueYtMix.length > 0 && (
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500 dark:text-slate-400 mb-2">YouTube Mix</h3>
+                      <div className="space-y-1">
+                        {uniqueYtMix.slice(0, 8).map(track => (
+                          <button
+                            key={track.videoId}
+                            onClick={() => playVideoInQueue(track.videoId, uniqueYtMix.map(t => t.videoId), uniqueYtMix)}
+                            className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors group"
+                          >
+                            {track.thumbnail ? (
+                              <img src={track.thumbnail} alt="" className="w-10 h-10 rounded object-cover" />
+                            ) : (
+                              <div className="w-10 h-10 rounded bg-gray-200 dark:bg-slate-700" />
+                            )}
+                            <div className="flex-1 text-left min-w-0">
+                              <div className="text-sm font-medium text-gray-900 dark:text-white truncate">{track.title}</div>
+                              <div className="text-xs text-gray-500 dark:text-slate-400 truncate">{track.artist}</div>
+                            </div>
+                            <PlayIcon className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Last.fm Similar */}
+                  {uniqueLastfm.length > 0 && (
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500 dark:text-slate-400 mb-2">Last.fm Similar</h3>
+                      <div className="space-y-1">
+                        {uniqueLastfm.map(track => (
+                          <button
+                            key={track.videoId}
+                            onClick={() => playVideoInQueue(track.videoId, uniqueLastfm.map(t => t.videoId), uniqueLastfm)}
+                            className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors group"
+                          >
+                            {track.thumbnail ? (
+                              <img src={track.thumbnail} alt="" className="w-10 h-10 rounded object-cover" />
+                            ) : (
+                              <div className="w-10 h-10 rounded bg-gray-200 dark:bg-slate-700" />
+                            )}
+                            <div className="flex-1 text-left min-w-0">
+                              <div className="text-sm font-medium text-gray-900 dark:text-white truncate">{track.title}</div>
+                              <div className="text-xs text-gray-500 dark:text-slate-400 truncate">{track.artist}</div>
+                            </div>
+                            <PlayIcon className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {uniqueYtMix.length === 0 && uniqueLastfm.length === 0 && (
+                    <p className="text-gray-500 dark:text-slate-400 text-sm">No suggestions found</p>
+                  )}
+                </div>
+                )
+              })()}
+            </section>
 
           </div>
         </div>
       </div>
-
-      {/* Analysis Modal */}
-      {showAnalysisModal && (
-        <AnalysisModal
-          videoId={song.videoId}
-          title={song.title}
-          artist={song.artist}
-          onClose={() => setShowAnalysisModal(false)}
-          onComplete={handleAnalysisComplete}
-        />
-      )}
     </div>
   )
 }

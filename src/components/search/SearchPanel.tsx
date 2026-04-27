@@ -7,7 +7,6 @@ import { HeartIcon as HeartOutlineIcon } from '@heroicons/react/24/outline'
 import { apiService, SearchResult } from '@/services/youtubeService'
 import { useMusicStore } from '@/stores/useMusicStore'
 import { useUIStore } from '@/stores/useUIStore'
-import { AnalysisBadge } from '@/components/AnalysisBadge'
 
 export function SearchPanel() {
   const [query, setQuery] = useState('')
@@ -181,7 +180,6 @@ export function SearchPanel() {
                         {isLiked && inPlaylistCount === 0 && (
                           <span className="text-xs text-red-500 dark:text-red-400">Liked</span>
                         )}
-                        <AnalysisBadge videoId={result.videoId} />
                       </div>
                     </div>
 
