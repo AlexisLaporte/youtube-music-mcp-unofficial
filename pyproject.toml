@@ -11,7 +11,7 @@ dependencies = ["fastmcp>=2,<3", "ytmusicapi>=1.12,<2"]
 
 [project.urls]
 Homepage = "https://ytmusic.tuls.me"
-Repository = "https://github.com/AlexisLaporte/ytmusic-manager"
+Repository = "https://github.com/AlexisLaporte/youtube-music-mcp-unofficial"
 
 [project.scripts]
 ytmusic-manager = "ytmusic_mcp.cli:main"

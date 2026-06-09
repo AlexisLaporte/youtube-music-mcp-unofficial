@@ -17,7 +17,7 @@ so your assistant can propose a filing plan and execute it in batches once you a
 ## Install
 
 ```bash
-uvx --from git+https://github.com/AlexisLaporte/ytmusic-manager ytmusic-manager setup
+uvx --from git+https://github.com/AlexisLaporte/youtube-music-mcp-unofficial ytmusic-manager setup
 ```
 
 The wizard asks you to paste the request headers of a `POST .../youtubei/v1/...` request
@@ -27,7 +27,7 @@ prints the account name.
 Then register the MCP server:
 
 ```bash
-claude mcp add ytmusic -- uvx --from git+https://github.com/AlexisLaporte/ytmusic-manager ytmusic-manager
+claude mcp add ytmusic -- uvx --from git+https://github.com/AlexisLaporte/youtube-music-mcp-unofficial ytmusic-manager
 ```
 
 or in any `mcpServers` config:
@@ -37,7 +37,7 @@ or in any `mcpServers` config:
   "mcpServers": {
     "ytmusic": {
       "command": "uvx",
-      "args": ["--from", "git+https://github.com/AlexisLaporte/ytmusic-manager", "ytmusic-manager"]
+      "args": ["--from", "git+https://github.com/AlexisLaporte/youtube-music-mcp-unofficial", "ytmusic-manager"]
     }
   }
 }
