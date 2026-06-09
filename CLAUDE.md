@@ -37,9 +37,12 @@ MCP server YouTube Music open source (modèle "B") : le serveur tourne **chez l'
 
 - `uv run ytmusic-manager whoami` (depuis la racine) pour smoke-tester.
 - Site : `honcho start` (vite sur 5186, https://ytmusic.dev via Caddy local).
-- Historique git réécrit le 2026-06-09 (l'ancien projet Next.js contenait des secrets
-  commités) ; archive : `/data/projects/.archive/ytmusic-manager-nextjs-2026-06-09.bundle`.
-  Le repo GitHub est PRIVATE tant que la v0 n'est pas propre → passage en public à valider.
+- Historique git réécrit le 2026-06-09 par précaution avant l'open source ; l'audit a
+  ensuite montré qu'aucun secret réel n'avait jamais été commité (seul `.env.local.example`).
+  Archive : `/data/projects/.archive/ytmusic-manager-nextjs-2026-06-09.bundle`.
+- Repo **PUBLIC depuis le 2026-06-10** (audit secrets OK, branche `vercel/*` legacy supprimée).
+  L'IP origin du serveur ne doit jamais apparaître dans le repo (tuls.me est derrière le
+  proxy CF) → elle vit dans le secret GitHub `DEPLOY_HOST`.
 - Repo GitHub renommé `AlexisLaporte/youtube-music-mcp-unofficial` (2026-06-10) ; le package,
   la CLI et ce dossier local gardent le nom `ytmusic-manager`.
 
