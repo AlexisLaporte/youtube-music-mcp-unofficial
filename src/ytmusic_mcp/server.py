@@ -1,6 +1,11 @@
-"""MCP server (stdio) exposing YouTube Music library management tools."""
+"""MCP server exposing YouTube Music library management tools.
+
+Transport is decided by MCP_TRANSPORT at import time: stdio (default, no auth)
+or http (remote personal instance, OAuth resource server — see auth.py).
+"""
 
 import json
+import os
 import time
 from typing import Literal
 
@@ -16,8 +21,18 @@ from .client import (
     slim_track,
 )
 
+TRANSPORT = os.environ.get("MCP_TRANSPORT", "stdio")
+
+if TRANSPORT in ("http", "streamable_http"):
+    from .auth import build_auth
+
+    _auth = build_auth()
+else:
+    _auth = None
+
 mcp = FastMCP(
     "YouTube Music",
+    auth=_auth,
     instructions=(
         "Manage the user's YouTube Music library. "
         "Main workflow: `unfiled_liked_songs` to find liked songs missing from every "

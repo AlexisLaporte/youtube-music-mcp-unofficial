@@ -10,7 +10,9 @@ MCP server YouTube Music open source (modèle "B") : le serveur tourne **chez l'
   - `client.py` — accès YT Music, auth `~/.config/ytmusic/browser.json`
   - `server.py` — tools MCP (instructions de garde-fous dans le constructeur FastMCP)
   - `cli.py` — entrée `ytmusic-manager` : sans arg = serveur stdio ; `setup` = wizard auth ; `whoami`
-- `site/` — vitrine statique Vue 3 + Vite (placeholder, design par Alexis), prod `ytmusic.tuls.me`
+- `site/` — vitrine statique Vue 3 + Vite (design "Musical Bold", one-page dark), prod `ytmusic.tuls.me`
+  - tokens/styles globaux : `src/assets/main.css` ; un composant par section ; URL repo + commande
+    setup centralisées dans `src/site.ts`
 
 ## Conventions
 
@@ -20,16 +22,29 @@ MCP server YouTube Music open source (modèle "B") : le serveur tourne **chez l'
 - Écritures batchées (un `add_tracks` multi-ids), throttle 0,5 s sur like/unlike.
 - Le skill local `~/.claude/skills/ytmusic/` (ytm.py) reste l'outil d'Alexis au quotidien ;
   ce repo est le produit public. Même fichier d'auth partagé.
+- Site : pas de commande PyPI tant que le package n'est pas publié — install via
+  `uvx --from git+<repo>` et renvoi vers GitHub (décision Alexis). Transcript démo = vrais
+  noms de tools MCP.
 
 ## Dev
 
 - `uv run ytmusic-manager whoami` (depuis la racine) pour smoke-tester.
-- Site : `honcho start` (vite sur 5175, https://ytmusic.dev via Caddy local).
+- Site : `honcho start` (vite sur 5186, https://ytmusic.dev via Caddy local).
 - Historique git réécrit le 2026-06-09 (l'ancien projet Next.js contenait des secrets
   commités) ; archive : `/data/projects/.archive/ytmusic-manager-nextjs-2026-06-09.bundle`.
   Le repo GitHub est PRIVATE tant que la v0 n'est pas propre → passage en public à valider.
+- Repo GitHub renommé `AlexisLaporte/youtube-music-mcp-unofficial` (2026-06-10) ; le package,
+  la CLI et ce dossier local gardent le nom `ytmusic-manager`.
 
 ## Prod
 
 - `ytmusic.tuls.me` : site statique servi par Caddy sur tuls.me, deploy GitHub Actions
   (build `site/` → rsync `site/dist/`). Voir `/prod-init`.
+- **MCP distant perso** (instance mono-tenant d'Alexis, pour claude.ai) :
+  `https://ytmusic.tuls.me/mcp`, service systemd `ytmusic-mcp` port 8096
+  (`infra/prod/ytmusic-mcp.service`), transport http + auth Logto (`auth.py`,
+  env `MCP_*`), gating par sub (`MCP_ALLOWED_SUBS`). Headers YT :
+  `/opt/ytmusic-manager/browser.json` (+ copie SOPS `projects/ytmusic.yaml`,
+  avec client_id SPA claude.ai `7bnswcaxvrpyevah3qn5t`). Déploiement code MCP :
+  rsync `pyproject.toml src` → `/opt/ytmusic-manager/` + `.venv/bin/pip install .`
+  + `systemctl restart ytmusic-mcp` (pas couvert par la CI, qui ne déploie que le site).

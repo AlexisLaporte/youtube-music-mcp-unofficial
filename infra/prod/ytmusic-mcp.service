@@ -1,0 +1,21 @@
+# Référence — déployé sur tuls.me : /etc/systemd/system/ytmusic-mcp.service
+# Env (/opt/ytmusic-manager/.env, chmod 600) : MCP_TRANSPORT=http, PORT=8096,
+# MCP_ISSUER, MCP_AUDIENCE, MCP_PUBLIC_URL, MCP_ALLOWED_SUBS,
+# YTMUSIC_AUTH_FILE=/opt/ytmusic-manager/browser.json
+[Unit]
+Description=ytmusic MCP server (remote, Logto)
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/ytmusic-manager
+EnvironmentFile=/opt/ytmusic-manager/.env
+ExecStartPre=/opt/check-port-systemd.sh 8096 ytmusic-mcp
+ExecStart=/opt/ytmusic-manager/.venv/bin/ytmusic-manager serve
+Restart=always
+RestartSec=5
+SyslogIdentifier=ytmusic-mcp
+
+[Install]
+WantedBy=multi-user.target

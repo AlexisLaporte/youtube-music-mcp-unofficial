@@ -46,9 +46,18 @@ def cmd_whoami(args):
 
 
 def cmd_serve(args):
-    from .server import mcp
+    import os
 
-    mcp.run()
+    from .server import TRANSPORT, mcp
+
+    if TRANSPORT in ("http", "streamable_http"):
+        mcp.run(
+            transport="http",
+            host=os.environ.get("HOST", "127.0.0.1"),
+            port=int(os.environ.get("PORT", "8095")),
+        )
+    else:
+        mcp.run()
 
 
 def main():

@@ -14,6 +14,9 @@ WRITE_THROTTLE_S = 0.5
 
 
 def auth_path() -> Path:
+    override = os.environ.get("YTMUSIC_AUTH_FILE")
+    if override:
+        return Path(override)
     config_home = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
     return config_home / "ytmusic" / "browser.json"
 
