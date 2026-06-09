@@ -1,16 +1,24 @@
 <script setup lang="ts">
-const repo = "https://github.com/AlexisLaporte/ytmusic-manager";
+import TopBar from "./components/TopBar.vue";
+import HeroSection from "./components/HeroSection.vue";
+import DemoSection from "./components/DemoSection.vue";
+import InstallSection from "./components/InstallSection.vue";
+import LocalFirstSection from "./components/LocalFirstSection.vue";
+import FinalCtaSection from "./components/FinalCtaSection.vue";
+import SiteFooter from "./components/SiteFooter.vue";
+import { useReveal } from "./composables/useReveal";
+
+useReveal();
 </script>
 
 <template>
-  <!-- Placeholder — design à venir (Alexis) -->
+  <TopBar />
   <main>
-    <h1>ytmusic-manager</h1>
-    <p>
-      MCP server for YouTube Music: ask Claude to audit your liked songs and organize your
-      playlists. Open source, runs on your machine — your account never leaves it.
-    </p>
-    <pre><code>uvx --from git+{{ repo }} ytmusic-manager setup</code></pre>
-    <p><a :href="repo">GitHub</a></p>
+    <HeroSection />
+    <DemoSection />
+    <InstallSection />
+    <LocalFirstSection />
+    <FinalCtaSection />
   </main>
+  <SiteFooter />
 </template>
