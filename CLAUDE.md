@@ -6,6 +6,13 @@ MCP server YouTube Music open source (modèle "B") : le serveur tourne **chez l'
 
 ## Structure
 
+- `.claude-plugin/` — manifest **plugin Claude Code** (plugin.json embarque le serveur MCP
+  via uvx git+ ; marketplace.json = le repo est sa propre marketplace `ytmusic`).
+  Install : `/plugin marketplace add AlexisLaporte/youtube-music-mcp-unofficial` puis
+  `/plugin install ytmusic-manager@ytmusic`.
+- `skills/ytmusic/SKILL.md` — skill public (méthodo de rangement sur les tools MCP,
+  générique). Version perso avec IDs/règles d'Alexis : `~/.claude/skills/ytmusic/`
+  (ytm.py CLI, hors repo) — porter manuellement les leçons généralisables de l'un à l'autre.
 - `src/ytmusic_mcp/` — package Python (FastMCP v2 + ytmusicapi)
   - `client.py` — accès YT Music, auth `~/.config/ytmusic/browser.json`
   - `server.py` — tools MCP (instructions de garde-fous dans le constructeur FastMCP)

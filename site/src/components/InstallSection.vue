@@ -2,18 +2,8 @@
 import { useClipboard } from "../composables/useClipboard";
 import { REPO, SETUP_CMD } from "../site";
 
-const mcpConfig = `{
-  "mcpServers": {
-    "ytmusic": {
-      "command": "uvx",
-      "args": [
-        "--from",
-        "git+${REPO}",
-        "ytmusic-manager"
-      ]
-    }
-  }
-}`;
+const pluginInstall = `/plugin marketplace add AlexisLaporte/youtube-music-mcp-unofficial
+/plugin install ytmusic-manager@ytmusic`;
 
 const setupCopy = useClipboard();
 const configCopy = useClipboard();
@@ -52,32 +42,23 @@ const configCopy = useClipboard();
         <div class="step">
           <div class="step-num-col"><span class="step-num">02</span></div>
           <div class="step-body">
-            <h3>Add the server to Claude</h3>
+            <h3>Install the plugin</h3>
             <p class="desc">
-              Paste this into your Claude Desktop or Claude Code MCP config. The server runs
-              over stdio — nothing listens on the network.
+              One plugin, two pieces: the MCP server (auto-registered, stdio — nothing
+              listens on the network) and the filing-methodology skill. Claude Desktop /
+              other MCP clients: see the README for the raw MCP config.
             </p>
             <div class="codeblock">
               <button
                 class="copy-btn"
                 :class="{ copied: configCopy.copied.value }"
                 type="button"
-                @click="configCopy.copy(mcpConfig)"
+                @click="configCopy.copy(pluginInstall)"
               >
                 {{ configCopy.copied.value ? "Copied" : "Copy" }}
               </button>
-              <pre>{
-  <span class="c-key">"mcpServers"</span>: {
-    <span class="c-key">"ytmusic"</span>: {
-      <span class="c-key">"command"</span>: <span class="c-str">"uvx"</span>,
-      <span class="c-key">"args"</span>: [
-        <span class="c-str">"--from"</span>,
-        <span class="c-str">"git+{{ REPO }}"</span>,
-        <span class="c-str">"ytmusic-manager"</span>
-      ]
-    }
-  }
-}</pre>
+              <pre><span class="c-accent">/plugin</span> marketplace add <span class="c-str">AlexisLaporte/youtube-music-mcp-unofficial</span>
+<span class="c-accent">/plugin</span> install <span class="c-str">ytmusic-manager@ytmusic</span></pre>
             </div>
           </div>
         </div>

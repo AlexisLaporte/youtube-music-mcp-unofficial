@@ -1,10 +1,14 @@
 # ytmusic-manager
 
-MCP server for **YouTube Music**: talk to Claude (or any MCP client) to audit your liked
-songs, organize playlists, search, like/unlike — on your own account, from your own machine.
+**Claude Code plugin + MCP server** for **YouTube Music**: talk to Claude (or any MCP
+client) to audit your liked songs, organize playlists, search, like/unlike — on your own
+account, from your own machine.
 
 The killer workflow: `unfiled_liked_songs` finds every liked song that sits in no playlist,
 so your assistant can propose a filing plan and execute it in batches once you approve.
+
+The plugin bundles the MCP server (auto-registered) and a `ytmusic` skill carrying the
+filing methodology (batching, duration checks for DJ sets, owned-playlists-only, guardrails).
 
 ## How it works
 
@@ -16,6 +20,8 @@ so your assistant can propose a filing plan and execute it in batches once you a
 
 ## Install
 
+### 1. Capture your session
+
 ```bash
 uvx --from git+https://github.com/AlexisLaporte/youtube-music-mcp-unofficial ytmusic-manager setup
 ```
@@ -24,7 +30,18 @@ The wizard asks you to paste the request headers of a `POST .../youtubei/v1/...`
 from music.youtube.com devtools (Network tab, logged in). It validates the session and
 prints the account name.
 
-Then register the MCP server:
+### 2. Install the plugin (Claude Code)
+
+```
+/plugin marketplace add AlexisLaporte/youtube-music-mcp-unofficial
+/plugin install ytmusic-manager@ytmusic
+```
+
+This registers the MCP server and the `ytmusic` filing skill in one go.
+
+### Alternative: MCP server only
+
+For Claude Desktop or any other MCP client:
 
 ```bash
 claude mcp add ytmusic -- uvx --from git+https://github.com/AlexisLaporte/youtube-music-mcp-unofficial ytmusic-manager
