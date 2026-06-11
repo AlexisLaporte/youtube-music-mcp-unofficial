@@ -1,11 +1,4 @@
-"""YouTube Music access layer (ytmusicapi) shared by the MCP server and the CLI.
-
-Auth lives in a local browser-headers file created by `ytmusic-manager setup`.
-It never leaves the machine.
-"""
-
-import os
-from pathlib import Path
+"""YouTube Music access layer (ytmusicapi) shared by the MCP tools and the CLI."""
 
 LIKED_PLAYLIST = "LM"
 # System playlists excluded from audits (LM = likes, SE = saved episodes)
@@ -13,30 +6,11 @@ SYSTEM_PLAYLISTS = {"LM", "SE"}
 WRITE_THROTTLE_S = 0.5
 
 
-def auth_path() -> Path:
-    override = os.environ.get("YTMUSIC_AUTH_FILE")
-    if override:
-        return Path(override)
-    config_home = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
-    return config_home / "ytmusic" / "browser.json"
-
-
-class AuthMissingError(RuntimeError):
-    def __init__(self):
-        super().__init__(
-            f"No YouTube Music auth at {auth_path()}. "
-            "Run `ytmusic-manager setup` in a terminal (paste the request headers "
-            "of a POST youtubei/v1 request from music.youtube.com devtools)."
-        )
-
-
-def get_client():
+def build_yt(auth_json: str):
+    """ytmusicapi client from a browser-auth JSON string (no disk access)."""
     from ytmusicapi import YTMusic
 
-    path = auth_path()
-    if not path.exists():
-        raise AuthMissingError()
-    return YTMusic(str(path))
+    return YTMusic(auth_json)
 
 
 def slim_track(t: dict) -> dict:

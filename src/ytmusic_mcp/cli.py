@@ -7,9 +7,10 @@
 
 import argparse
 import json
+import os
 import sys
 
-from .client import auth_path
+from .credentials import auth_path
 
 
 def cmd_setup(args):
@@ -40,24 +41,27 @@ def cmd_setup(args):
 
 
 def cmd_whoami(args):
-    from .client import get_client
+    from .credentials import LocalFileProvider
+    from .ytclient import build_yt
 
-    print(json.dumps(get_client().get_account_info(), ensure_ascii=False, indent=1))
+    yt = build_yt(LocalFileProvider().auth_json(None))
+    print(json.dumps(yt.get_account_info(), ensure_ascii=False, indent=1))
 
 
 def cmd_serve(args):
-    import os
+    from .server import build_mcp
 
-    from .server import TRANSPORT, mcp
+    transport = os.environ.get("MCP_TRANSPORT", "stdio")
+    if transport in ("http", "streamable_http"):
+        from .auth import build_auth
 
-    if TRANSPORT in ("http", "streamable_http"):
-        mcp.run(
+        build_mcp(auth=build_auth()).run(
             transport="http",
             host=os.environ.get("HOST", "127.0.0.1"),
             port=int(os.environ.get("PORT", "8095")),
         )
     else:
-        mcp.run()
+        build_mcp().run()
 
 
 def main():
