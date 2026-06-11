@@ -198,6 +198,21 @@ class Repo:
             for t in rows
         }
 
+    def playlists(self, s: Session, user_id: str) -> list[Playlist]:
+        """Owned, non-system playlists, biggest first."""
+        return list(
+            s.scalars(
+                select(Playlist)
+                .where(
+                    Playlist.user_id == user_id,
+                    Playlist.deleted_at.is_(None),
+                    Playlist.owned.is_(True),
+                    Playlist.playlist_id.notin_(SYSTEM_PLAYLISTS),
+                )
+                .order_by(Playlist.track_count.desc())
+            ).all()
+        )
+
     def unfiled_video_ids(self, s: Session, user_id: str) -> list[str]:
         filed = (
             select(PlaylistTrack.video_id)
