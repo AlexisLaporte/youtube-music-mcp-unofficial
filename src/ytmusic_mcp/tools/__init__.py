@@ -21,7 +21,13 @@ class Deps:
     repo: "Repo | None" = None
 
     def get_yt(self):
-        return build_yt(self.provider.auth_json(current_sub()))
+        sub = current_sub()
+        # Hosted providers can return a health-tracking client (flips invalid_since
+        # on auth failures); the local provider just hands back the JSON.
+        yt_for = getattr(self.provider, "yt_for", None)
+        if yt_for is not None:
+            return yt_for(sub)
+        return build_yt(self.provider.auth_json(sub))
 
     def user_id(self) -> str:
         return current_sub() or "local"
