@@ -22,7 +22,24 @@ INSTRUCTIONS = (
 
 def build_mcp(auth=None, provider: CredentialsProvider | None = None, repo=None) -> FastMCP:
     """repo (db.repo.Repo, optional) enables history: sync/recent_likes/
-    library_changes tools, cached reads and write-through event recording."""
+    library_changes tools, cached reads, write-through event recording and
+    the rendered dashboard (library_app, if prefab-ui is installed)."""
     mcp = FastMCP("YouTube Music", auth=auth, instructions=INSTRUCTIONS)
-    register_all(mcp, Deps(provider or LocalFileProvider(), repo=repo))
+    deps = Deps(provider or LocalFileProvider(), repo=repo)
+    register_all(mcp, deps)
+    if repo is not None:
+        _register_mcp_app(mcp, deps)
     return mcp
+
+
+def _register_mcp_app(mcp: FastMCP, deps: Deps) -> None:
+    """Mount the rendered-UI surface if the optional prefab-ui is installed.
+    Graceful: without the [app] extra the JSON tools run alone."""
+    try:
+        from . import mcp_app
+
+        mcp_app.register(mcp, deps)
+    except ImportError as e:
+        import logging
+
+        logging.getLogger(__name__).info("MCP App surface disabled: %s", e)

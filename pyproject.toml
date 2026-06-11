@@ -11,6 +11,7 @@ dependencies = ["fastmcp>=3.4,<4", "ytmusicapi>=1.12,<2"]
 
 [project.optional-dependencies]
 server = ["sqlalchemy>=2.0", "psycopg[binary]>=3.1"]
+app = ["prefab-ui>=0.20"]
 
 [project.urls]
 Homepage = "https://ytmusic.tuls.me"
@@ -27,4 +28,4 @@ build-backend = "hatchling.build"
 packages = ["src/ytmusic_mcp"]
 
 [dependency-groups]
-dev = ["pytest>=8", "sqlalchemy>=2.0"]
+dev = ["pytest>=8", "sqlalchemy>=2.0", "prefab-ui>=0.20"]

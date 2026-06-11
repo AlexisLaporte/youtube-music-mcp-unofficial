@@ -935,6 +935,20 @@ wheels = [
 ]
 
 [[package]]
+name = "prefab-ui"
+version = "0.20.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "cyclopts" },
+    { name = "pydantic" },
+    { name = "rich" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/41/99/4e61eb3d3f8b09bdaa28bda3c99971264555f486a485333cb8e6f56c7d8c/prefab_ui-0.20.2.tar.gz", hash = "sha256:4ac17ebf8ec1c5a918a188625837fc608157907430a59c4feb8adac80e01262b", size = 4118979, upload-time = "2026-06-03T02:13:49.312Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/4a/d0/59b697dd5a44e632fcc4aba42ff5f88224df672ffea1f5e9a5a9e9e50698/prefab_ui-0.20.2-py3-none-any.whl", hash = "sha256:861d4914e4d9120996b4d5c6753788beeca433754d7bb3cfbd13f9dba7ea8e85", size = 1852274, upload-time = "2026-06-03T02:13:47.539Z" },
+]
+
+[[package]]
 name = "psycopg"
 version = "3.3.4"
 source = { registry = "https://pypi.org/simple" }
@@ -2094,6 +2108,9 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
+app = [
+    { name = "prefab-ui" },
+]
 server = [
     { name = "psycopg", extra = ["binary"] },
     { name = "sqlalchemy" },
@@ -2101,6 +2118,7 @@ server = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "prefab-ui" },
     { name = "pytest" },
     { name = "sqlalchemy" },
 ]
@@ -2108,14 +2126,16 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "fastmcp", specifier = ">=3.4,<4" },
+    { name = "prefab-ui", marker = "extra == 'app'", specifier = ">=0.20" },
     { name = "psycopg", extras = ["binary"], marker = "extra == 'server'", specifier = ">=3.1" },
     { name = "sqlalchemy", marker = "extra == 'server'", specifier = ">=2.0" },
     { name = "ytmusicapi", specifier = ">=1.12,<2" },
 ]
-provides-extras = ["server"]
+provides-extras = ["server", "app"]
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "prefab-ui", specifier = ">=0.20" },
     { name = "pytest", specifier = ">=8" },
     { name = "sqlalchemy", specifier = ">=2.0" },
 ]
