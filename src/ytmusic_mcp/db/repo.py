@@ -15,12 +15,26 @@ class NoSyncError(RuntimeError):
         super().__init__("no successful sync yet for this user — run the `sync` tool first")
 
 
+# On Postgres everything lives in a dedicated schema: on Supabase, tables in
+# `public` are exposed by PostgREST to the anon key — `ytm` is not. The DSN
+# `options=search_path` route is unreliable through poolers, so the schema is
+# mapped at the SQLAlchemy level (SQLite ignores it).
+DB_SCHEMA = "ytm"
+
+
 class Repo:
     def __init__(self, database_url: str):
-        self.engine = create_engine(database_url, pool_pre_ping=True)
+        engine = create_engine(database_url, pool_pre_ping=True)
+        if engine.dialect.name == "postgresql":
+            engine = engine.execution_options(schema_translate_map={None: DB_SCHEMA})
+        self.engine = engine
         self._session = sessionmaker(self.engine, expire_on_commit=False)
 
     def create_all(self) -> None:
+        if self.engine.dialect.name == "postgresql":
+            with self.engine.connect() as conn:
+                conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS {DB_SCHEMA}"))
+                conn.commit()
         Base.metadata.create_all(self.engine)
 
     def session(self) -> Session:
