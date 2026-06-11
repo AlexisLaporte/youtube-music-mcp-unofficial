@@ -20,7 +20,9 @@ INSTRUCTIONS = (
 )
 
 
-def build_mcp(auth=None, provider: CredentialsProvider | None = None) -> FastMCP:
+def build_mcp(auth=None, provider: CredentialsProvider | None = None, repo=None) -> FastMCP:
+    """repo (db.repo.Repo, optional) enables history: sync/recent_likes/
+    library_changes tools, cached reads and write-through event recording."""
     mcp = FastMCP("YouTube Music", auth=auth, instructions=INSTRUCTIONS)
-    register_all(mcp, Deps(provider or LocalFileProvider()))
+    register_all(mcp, Deps(provider or LocalFileProvider(), repo=repo))
     return mcp

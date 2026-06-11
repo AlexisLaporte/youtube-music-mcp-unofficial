@@ -1,4 +1,7 @@
-"""Read tools: account, playlists, likes, search, unfiled audit."""
+"""Read tools: account, playlists, likes, search, unfiled audit.
+
+When storage is configured, reads accept cached=true: instant answers from the
+last synced snapshot (errors explicitly when there is no successful sync)."""
 
 from typing import Literal
 
@@ -6,14 +9,42 @@ from ..ytclient import LIKED_PLAYLIST, SYSTEM_PLAYLISTS, get_playlist, slim_play
 
 
 def register(mcp, deps) -> None:
+    def _synced(s):
+        """Guard for cached reads: storage configured + at least one ok sync."""
+        if deps.repo is None:
+            raise RuntimeError("cached=true requires storage; this server has none")
+        from ..db.repo import NoSyncError
+
+        last = deps.repo.last_ok_sync(s, deps.user_id())
+        if last is None:
+            raise NoSyncError()
+        return last
+
     @mcp.tool
     def whoami() -> dict:
         """Check the authenticated YouTube Music account (name, handle)."""
         return deps.get_yt().get_account_info()
 
     @mcp.tool
-    def list_playlists(limit: int = 0) -> list[dict]:
-        """List the playlists in the user's library. limit=0 returns all."""
+    def list_playlists(limit: int = 0, cached: bool = False) -> list[dict]:
+        """List the playlists in the user's library. limit=0 returns all.
+        cached=true reads the last synced snapshot (fast, owned playlists only)."""
+        if cached:
+            from sqlalchemy import select
+
+            from ..db.models import Playlist
+
+            with deps.repo.session() as s:
+                _synced(s)
+                rows = s.scalars(
+                    select(Playlist)
+                    .where(Playlist.user_id == deps.user_id(), Playlist.deleted_at.is_(None))
+                    .limit(limit or None)
+                ).all()
+            return [
+                {"playlistId": p.playlist_id, "title": p.title, "count": p.track_count}
+                for p in rows
+            ]
         playlists = deps.get_yt().get_library_playlists(limit=limit or None)
         return [slim_playlist(p) for p in playlists]
 
@@ -25,8 +56,29 @@ def register(mcp, deps) -> None:
         return pl
 
     @mcp.tool
-    def liked_songs(limit: int = 0) -> dict:
-        """Get the user's liked songs, most recently liked first. limit=0 returns all."""
+    def liked_songs(limit: int = 0, cached: bool = False) -> dict:
+        """Get the user's liked songs, most recently liked first. limit=0 returns all.
+        cached=true reads the last synced snapshot (fast)."""
+        if cached:
+            from sqlalchemy import select
+
+            from ..db.models import LikedSong
+
+            with deps.repo.session() as s:
+                last = _synced(s)
+                rows = s.scalars(
+                    select(LikedSong)
+                    .where(LikedSong.user_id == deps.user_id())
+                    .order_by(LikedSong.rank)
+                    .limit(limit or None)
+                ).all()
+                meta = deps.repo.tracks_meta(s, [r.video_id for r in rows])
+            return {
+                "playlistId": LIKED_PLAYLIST,
+                "trackCount": len(rows),
+                "syncedAt": last.finished_at.isoformat(),
+                "tracks": [meta.get(r.video_id, {"videoId": r.video_id}) for r in rows],
+            }
         pl = get_playlist(deps.get_yt(), LIKED_PLAYLIST, limit or None)
         pl.pop("_raw_tracks")
         return pl
@@ -56,11 +108,30 @@ def register(mcp, deps) -> None:
         return slim
 
     @mcp.tool
-    def unfiled_liked_songs(include_followed: bool = False) -> dict:
+    def unfiled_liked_songs(include_followed: bool = False, cached: bool = False) -> dict:
         """Find liked songs that are not in any playlist of the library.
 
-        Slow on large libraries (scans every playlist) — call once and reuse the result.
+        Live mode is slow on large libraries (scans every playlist) — call once and
+        reuse the result. cached=true answers instantly from the last synced
+        snapshot (owned playlists only).
         """
+        if cached:
+            if include_followed:
+                raise ValueError("cached snapshot only covers owned playlists")
+            with deps.repo.session() as s:
+                last = _synced(s)
+                vids = deps.repo.unfiled_video_ids(s, deps.user_id())
+                meta = deps.repo.tracks_meta(s, vids)
+                summary = deps.repo.summary(s, deps.user_id())
+            return {
+                "stats": {
+                    "liked": summary["liked"],
+                    "filed": summary["liked"] - len(vids),
+                    "unfiled": len(vids),
+                    "syncedAt": last.finished_at.isoformat(),
+                },
+                "tracks": [meta.get(v, {"videoId": v}) for v in vids],
+            }
         yt = deps.get_yt()
         liked = get_playlist(yt, LIKED_PLAYLIST, None)["tracks"]
         liked_by_id = {t["videoId"]: t for t in liked if t.get("videoId")}

@@ -9,6 +9,9 @@ authors = [{ name = "Alexis Laporte" }]
 keywords = ["mcp", "youtube-music", "playlists", "model-context-protocol"]
 dependencies = ["fastmcp>=3.4,<4", "ytmusicapi>=1.12,<2"]
 
+[project.optional-dependencies]
+server = ["sqlalchemy>=2.0", "psycopg[binary]>=3.1"]
+
 [project.urls]
 Homepage = "https://ytmusic.tuls.me"
 Repository = "https://github.com/AlexisLaporte/youtube-music-mcp-unofficial"
@@ -24,4 +27,4 @@ build-backend = "hatchling.build"
 packages = ["src/ytmusic_mcp"]
 
 [dependency-groups]
-dev = ["pytest>=8"]
+dev = ["pytest>=8", "sqlalchemy>=2.0"]

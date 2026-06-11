@@ -48,6 +48,28 @@ def cmd_whoami(args):
     print(json.dumps(yt.get_account_info(), ensure_ascii=False, indent=1))
 
 
+def _repo_from_env():
+    """Storage is optional: enabled by DATABASE_URL (postgres) or a sqlite URL."""
+    url = os.environ.get("DATABASE_URL")
+    if not url:
+        return None
+    from .db.repo import Repo
+
+    repo = Repo(url)
+    repo.create_all()
+    return repo
+
+
+def cmd_db_init(args):
+    url = os.environ.get("DATABASE_URL")
+    if not url:
+        raise SystemExit("ERROR: DATABASE_URL is required for db-init")
+    from .db.repo import Repo
+
+    Repo(url).create_all()
+    print("schema created/up-to-date")
+
+
 def cmd_serve(args):
     from .server import build_mcp
 
@@ -55,13 +77,13 @@ def cmd_serve(args):
     if transport in ("http", "streamable_http"):
         from .auth import build_auth
 
-        build_mcp(auth=build_auth()).run(
+        build_mcp(auth=build_auth(), repo=_repo_from_env()).run(
             transport="http",
             host=os.environ.get("HOST", "127.0.0.1"),
             port=int(os.environ.get("PORT", "8095")),
         )
     else:
-        build_mcp().run()
+        build_mcp(repo=_repo_from_env()).run()
 
 
 def main():
@@ -77,6 +99,9 @@ def main():
 
     s = sub.add_parser("serve", help="run the MCP server on stdio (default)")
     s.set_defaults(func=cmd_serve)
+
+    s = sub.add_parser("db-init", help="create the storage schema (DATABASE_URL)")
+    s.set_defaults(func=cmd_db_init)
 
     args = p.parse_args()
     if args.cmd is None:
