@@ -6,8 +6,7 @@ from datetime import datetime
 from sqlalchemy import select
 
 from ..db.models import LikedSong, Sync
-from ..db.repo import NoSyncError
-from ..sync.engine import run_sync
+from ..sync.engine import FRESH_TTL_RECENT, run_sync
 
 
 def register(mcp, deps) -> None:
@@ -18,21 +17,23 @@ def register(mcp, deps) -> None:
         """Refresh the library snapshot from YouTube Music and record what changed
         since the last sync as history events. First sync is a silent baseline.
 
-        Refuses to run twice within 5 minutes unless force=true."""
+        Normally you don't need this — the snapshot is kept fresh automatically.
+        Use it for an explicit 'show me the state right now'. Refuses to run twice
+        within 5 minutes unless force=true."""
         return run_sync(repo, deps.get_yt(), deps.user_id(), force=force)
 
     @mcp.tool
     def recent_likes(since_sync_id: int | None = None, limit: int = 100) -> dict:
-        """Liked songs that are NEW since the previous sync (or since the given
-        sync_id) — the answer to "sort my latest likes".
+        """Liked songs that are NEW since the previous sync — the answer to
+        "sort my latest likes". The snapshot is refreshed automatically first
+        (short TTL), so this reflects what's freshly liked; no manual sync needed.
 
         Granularity is the sync cadence: YouTube does not expose like dates, so a
-        track counts as "new" from the sync that first saw it. Run `sync` first."""
+        track counts as "new" from the sync that first saw it."""
         user_id = deps.user_id()
+        deps.ensure_fresh(FRESH_TTL_RECENT)  # baseline on 1st contact, fresh snapshot
         with repo.session() as s:
             latest = repo.last_ok_sync(s, user_id)
-            if latest is None:
-                raise NoSyncError()
             if since_sync_id is not None:
                 boundary_sync = s.get(Sync, since_sync_id)
                 if boundary_sync is None or boundary_sync.user_id != user_id:

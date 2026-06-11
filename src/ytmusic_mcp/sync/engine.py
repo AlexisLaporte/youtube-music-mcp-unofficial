@@ -16,6 +16,12 @@ from ..ytclient import LIKED_PLAYLIST, SYSTEM_PLAYLISTS, get_playlist
 MIN_SYNC_INTERVAL = timedelta(minutes=5)
 PLAYLIST_FETCH_PAUSE_S = 0.3
 
+# Lazy-refresh TTLs: the snapshot is kept fresh on demand (sync-then-serve),
+# never on a cron. Short for "what changed just now" reads, long for the
+# library audit which barely moves.
+FRESH_TTL_RECENT = timedelta(minutes=10)
+FRESH_TTL_LIBRARY = timedelta(hours=12)
+
 
 class SyncTooSoonError(RuntimeError):
     def __init__(self, last_at):
@@ -23,6 +29,22 @@ class SyncTooSoonError(RuntimeError):
             f"last successful sync at {last_at.isoformat()} — "
             "less than 5 minutes ago; pass force=true to sync anyway"
         )
+
+
+def ensure_fresh(repo: Repo, yt, user_id: str, max_age: timedelta) -> dict | None:
+    """Hybrid lazy refresh: baseline the snapshot on first contact, re-sync it
+    when older than max_age, otherwise serve the cache as-is. Returns the sync
+    stats when a sync ran, else None. Never raises on a too-soon sync (the
+    snapshot is fresh enough by definition then)."""
+    with repo.session() as s:
+        last = repo.last_ok_sync(s, user_id)
+        last_at = as_utc(last.finished_at) if last and last.finished_at else None
+    if last_at is not None and utcnow() - last_at <= max_age:
+        return None
+    try:
+        return run_sync(repo, yt, user_id)
+    except SyncTooSoonError:
+        return None
 
 
 def fetch_live(yt) -> tuple[LibraryState, list[dict]]:

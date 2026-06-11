@@ -32,10 +32,20 @@ class Deps:
     def user_id(self) -> str:
         return current_sub() or "local"
 
+    def ensure_fresh(self, max_age):
+        """Lazy refresh of the snapshot before a cached read (baseline on first
+        contact, re-sync if older than max_age). No-op if storage is disabled."""
+        if self.repo is None:
+            return None
+        from ..sync.engine import ensure_fresh
+
+        return ensure_fresh(self.repo, self.get_yt(), self.user_id(), max_age)
+
 
 def register_all(mcp, deps: Deps) -> None:
-    from . import library, mutate
+    from . import doctrine, library, mutate
 
+    doctrine.register(mcp, deps)
     library.register(mcp, deps)
     mutate.register(mcp, deps)
     if deps.repo is not None:

@@ -11,12 +11,12 @@ from .credentials import CredentialsProvider, LocalFileProvider
 from .tools import Deps, register_all
 
 INSTRUCTIONS = (
-    "Manage the user's YouTube Music library. "
-    "Main workflow: `unfiled_liked_songs` to find liked songs missing from every "
-    "playlist, then propose a filing plan and ALWAYS get the user's approval before "
-    "any write (add/create). Batch writes: one `add_tracks` call with many videoIds. "
-    "Destructive tools (delete_playlist, remove_tracks, unlike) require explicit "
-    "user confirmation, listing what will be removed."
+    "Manage the user's YouTube Music library. **Call `get_claude_md` first** — it is "
+    "the orchestration doctrine (mental model, workflows, guardrails). In short: the "
+    "library snapshot is kept fresh automatically (don't micro-manage `sync`); prefer "
+    "cached reads; ALWAYS get user approval before any write; destructive tools "
+    "(delete_playlist, remove_tracks, unlike) need explicit confirmation listing what "
+    "will be removed; batch `add_tracks` (one call, many videoIds)."
 )
 
 

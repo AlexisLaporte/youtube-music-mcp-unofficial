@@ -1,7 +1,8 @@
 """Read tools: account, playlists, likes, search, unfiled audit.
 
-When storage is configured, reads accept cached=true: instant answers from the
-last synced snapshot (errors explicitly when there is no successful sync)."""
+When storage is configured, reads accept cached=true: they answer from a
+snapshot kept fresh automatically (baseline on first contact, lazy refresh
+past a TTL — sync-then-serve), so they never error on a missing sync."""
 
 from typing import Literal
 
@@ -9,16 +10,15 @@ from ..ytclient import LIKED_PLAYLIST, SYSTEM_PLAYLISTS, get_playlist, slim_play
 
 
 def register(mcp, deps) -> None:
-    def _synced(s):
-        """Guard for cached reads: storage configured + at least one ok sync."""
+    def _prime():
+        """Before a cached read: guarantee a fresh-enough snapshot (baseline /
+        lazy refresh). Done outside the read session (it may run a sync).
+        Lazy import: sync.engine pulls SQLAlchemy, absent in the stdio build."""
         if deps.repo is None:
             raise RuntimeError("cached=true requires storage; this server has none")
-        from ..db.repo import NoSyncError
+        from ..sync.engine import FRESH_TTL_LIBRARY
 
-        last = deps.repo.last_ok_sync(s, deps.user_id())
-        if last is None:
-            raise NoSyncError()
-        return last
+        deps.ensure_fresh(FRESH_TTL_LIBRARY)
 
     @mcp.tool
     def whoami() -> dict:
@@ -34,8 +34,8 @@ def register(mcp, deps) -> None:
 
             from ..db.models import Playlist
 
+            _prime()
             with deps.repo.session() as s:
-                _synced(s)
                 rows = s.scalars(
                     select(Playlist)
                     .where(Playlist.user_id == deps.user_id(), Playlist.deleted_at.is_(None))
@@ -64,8 +64,9 @@ def register(mcp, deps) -> None:
 
             from ..db.models import LikedSong
 
+            _prime()
             with deps.repo.session() as s:
-                last = _synced(s)
+                last = deps.repo.last_ok_sync(s, deps.user_id())
                 rows = s.scalars(
                     select(LikedSong)
                     .where(LikedSong.user_id == deps.user_id())
@@ -118,8 +119,9 @@ def register(mcp, deps) -> None:
         if cached:
             if include_followed:
                 raise ValueError("cached snapshot only covers owned playlists")
+            _prime()
             with deps.repo.session() as s:
-                last = _synced(s)
+                last = deps.repo.last_ok_sync(s, deps.user_id())
                 vids = deps.repo.unfiled_video_ids(s, deps.user_id())
                 meta = deps.repo.tracks_meta(s, vids)
                 summary = deps.repo.summary(s, deps.user_id())

@@ -104,3 +104,34 @@ def test_tool_write_through_converges(repo, yt):
     run_sync(repo, yt, USER, force=True)
     likes = events_of(repo, ["like"])
     assert len(likes) == 1 and likes[0].source == "tool"  # no duplicate 'sync' event
+
+
+def test_ensure_fresh_baseline_then_skip(repo, yt):
+    from datetime import timedelta
+    from ytmusic_mcp.sync.engine import ensure_fresh
+
+    # 1st contact: no snapshot → baseline runs
+    stats = ensure_fresh(repo, yt, USER, timedelta(hours=12))
+    assert stats and stats["baseline"] is True
+    with repo.session() as s:
+        assert repo.last_ok_sync(s, USER) is not None
+
+    # fresh enough → no sync
+    assert ensure_fresh(repo, yt, USER, timedelta(hours=12)) is None
+
+
+def test_ensure_fresh_refreshes_when_stale(repo, yt):
+    from datetime import timedelta
+    from sqlalchemy import update
+    from ytmusic_mcp.sync.engine import ensure_fresh
+    from ytmusic_mcp.db.models import Sync, utcnow
+
+    ensure_fresh(repo, yt, USER, timedelta(hours=12))  # baseline
+    # age the sync artificially (20 min ago) and shorten TTL to 10 min
+    with repo.session() as s, s.begin():
+        s.execute(update(Sync).values(finished_at=utcnow() - timedelta(minutes=20)))
+    yt.add_like("vNEW")
+    stats = ensure_fresh(repo, yt, USER, timedelta(minutes=10))
+    assert stats is not None and stats["baseline"] is False
+    ev = events_of(repo, ["like"])
+    assert ev and ev[-1].video_ids == ["vNEW"]

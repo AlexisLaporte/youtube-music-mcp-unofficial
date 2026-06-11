@@ -9,6 +9,7 @@ from fastmcp.exceptions import ToolError
 from ytmusic_mcp.server import build_mcp
 
 EXPECTED_TOOLS = {
+    "get_claude_md",
     "whoami",
     "list_playlists",
     "playlist_tracks",
