@@ -1,8 +1,11 @@
 # ytmusic-manager
 
-MCP server YouTube Music open source (modèle "B") : le serveur tourne **chez l'utilisateur**
-(stdio), l'auth ytmusicapi reste sur sa machine. Pas de version hébergée multi-comptes
-(stockage de sessions Google de tiers = non).
+MCP server YouTube Music open source. Deux modes, **même package** :
+- **stdio local-first** (plugin Claude Code) : le serveur tourne chez l'utilisateur,
+  l'auth ytmusicapi reste sur sa machine (`browser.json`). Mode recommandé "zero trust".
+- **hébergé multi-tenant** : un service distant (code dans le repo privé `ytmusic-site`,
+  `server/`) injecte un `CredentialsProvider` DB par utilisateur (JWT sub) et un `Repo`
+  (historique). Sessions YT stockées chiffrées côté serveur — compromis assumé, mode opt-in.
 
 ## Structure
 
@@ -13,10 +16,20 @@ MCP server YouTube Music open source (modèle "B") : le serveur tourne **chez l'
 - `skills/ytmusic/SKILL.md` — skill public (méthodo de rangement sur les tools MCP,
   générique). Version perso avec IDs/règles d'Alexis : `~/.claude/skills/ytmusic/`
   (ytm.py CLI, hors repo) — porter manuellement les leçons généralisables de l'un à l'autre.
-- `src/ytmusic_mcp/` — package Python (FastMCP v2 + ytmusicapi)
-  - `client.py` — accès YT Music, auth `~/.config/ytmusic/browser.json`
-  - `server.py` — tools MCP (instructions de garde-fous dans le constructeur FastMCP)
-  - `cli.py` — entrée `ytmusic-manager` : sans arg = serveur stdio ; `setup` = wizard auth ; `whoami`
+- `src/ytmusic_mcp/` — package Python (FastMCP v3 + ytmusicapi)
+  - `server.py` — **factory `build_mcp(auth, provider, repo)`** (le transport est choisi
+    par l'appelant, plus de switch à l'import) + instructions de garde-fous.
+  - `ytclient.py` — helpers ytmusicapi (`build_yt(auth_json_str)`, slim_*), zéro accès disque.
+  - `credentials.py` — `CredentialsProvider` (Protocol) + `LocalFileProvider` (browser.json) ;
+    erreurs typées (`NotConnectedError`, `CredentialsInvalidError`).
+  - `usercontext.py` — `current_sub()` (JWT sub via `get_access_token`, None en stdio).
+  - `tools/` — `library.py` (lectures, param `cached=`), `mutate.py` (écritures + write-through
+    quand DB), `history.py` (`sync`, `recent_likes`, `library_changes`, si DB).
+  - `db/` (models SQLAlchemy 2, repo — schéma `ytm` sur Postgres) + `sync/` (`diff.py` pur +
+    `engine.py`) : extra optionnel `[server]`. SQLite (local) ou Postgres (hébergé), même code.
+  - `mcp_app.py` — MCP App `library_app` (dashboard rendu prefab-ui) : extra `[app]`, gracieux.
+  - `cli.py` — `ytmusic-manager` : sans arg = stdio ; `setup` = wizard auth ; `whoami` ;
+    `db-init`. `DATABASE_URL` active l'historique sur `serve`.
 
 Le site vitrine (`ytmusic.tuls.me`), sa CI de deploy et l'infra perso (instance MCP distante)
 sont **hors de ce repo** : repo privé `AlexisLaporte/ytmusic-site`, local `/data/projects/ytmusic-site`.
