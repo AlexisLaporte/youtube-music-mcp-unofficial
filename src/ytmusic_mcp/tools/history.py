@@ -62,6 +62,63 @@ def register(mcp, deps) -> None:
         }
 
     @mcp.tool
+    def mark_unfileable(video_ids: list[str], reason: str = "") -> dict:
+        """Flag liked songs as "not fileable" (DJ set, jingle, ambience…): they
+        disappear from unfiled_liked_songs and the dashboard without being
+        unliked. Reversible with unmark_unfileable. Batch: pass all videoIds
+        in one call."""
+        from ..sync.diff import EventDraft
+
+        user_id = deps.user_id()
+        with repo.session() as s, s.begin():
+            added = repo.add_filing_skips(s, user_id, video_ids, reason=reason or None)
+            if added:
+                repo.add_event(
+                    s,
+                    user_id,
+                    EventDraft(
+                        type="filing_skip",
+                        video_ids=added,
+                        payload={"reason": reason} if reason else None,
+                    ),
+                    source="tool",
+                )
+        return {"marked": added, "alreadyMarked": [v for v in video_ids if v not in added]}
+
+    @mcp.tool
+    def unmark_unfileable(video_ids: list[str]) -> dict:
+        """Remove the "not fileable" flag: the tracks reappear in the unfiled list."""
+        from ..sync.diff import EventDraft
+
+        user_id = deps.user_id()
+        with repo.session() as s, s.begin():
+            removed = repo.remove_filing_skips(s, user_id, video_ids)
+            if removed:
+                repo.add_event(
+                    s,
+                    user_id,
+                    EventDraft(type="filing_unskip", video_ids=video_ids),
+                    source="tool",
+                )
+        return {"unmarked": removed}
+
+    @mcp.tool
+    def list_unfileable() -> dict:
+        """List the tracks flagged "not fileable" (with metadata and reason)."""
+        user_id = deps.user_id()
+        with repo.session() as s:
+            skips = repo.filing_skips(s, user_id)
+            meta = repo.tracks_meta(s, [r.video_id for r in skips])
+        return {
+            "count": len(skips),
+            "tracks": [
+                meta.get(r.video_id, {"videoId": r.video_id})
+                | {"reason": r.reason, "markedAt": r.created_at.isoformat()}
+                for r in skips
+            ],
+        }
+
+    @mcp.tool
     def library_changes(
         since: datetime | None = None,
         types: list[str] | None = None,

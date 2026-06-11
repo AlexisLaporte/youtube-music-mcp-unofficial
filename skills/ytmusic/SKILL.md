@@ -17,6 +17,9 @@ the conversation).
 3. **Validate the plan with the user before any write.**
 4. Execute: `create_playlist` for missing playlists, then **one `add_tracks` call with
    many video ids per playlist** — never one call per track.
+5. Leftovers that belong in NO playlist (DJ sets, jingles, one-off ambience): propose
+   `mark_unfileable(video_ids, reason)` — they stay liked but stop resurfacing in the
+   audit. `list_unfileable` / `unmark_unfileable` to review or undo.
 
 ## Filing criteria
 

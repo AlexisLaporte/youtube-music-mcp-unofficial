@@ -24,7 +24,8 @@ MCP server YouTube Music open source. Deux modes, **même package** :
     erreurs typées (`NotConnectedError`, `CredentialsInvalidError`).
   - `usercontext.py` — `current_sub()` (JWT sub via `get_access_token`, None en stdio).
   - `tools/` — `library.py` (lectures, param `cached=`), `mutate.py` (écritures + write-through
-    quand DB), `history.py` (`sync`, `recent_likes`, `library_changes`, si DB).
+    quand DB), `history.py` (`sync`, `recent_likes`, `library_changes`,
+    `mark_unfileable`/`unmark_unfileable`/`list_unfileable` — flags `filing_skips`, si DB).
   - `db/` (models SQLAlchemy 2, repo — schéma `ytm` sur Postgres) + `sync/` (`diff.py` pur +
     `engine.py`) : extra optionnel `[server]`. SQLite (local) ou Postgres (hébergé), même code.
   - `mcp_app.py` — MCP App `library_app` (dashboard rendu prefab-ui) : extra `[app]`, gracieux.

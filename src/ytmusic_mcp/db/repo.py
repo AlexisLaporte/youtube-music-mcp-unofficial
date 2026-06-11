@@ -7,7 +7,17 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from ..sync.diff import EventDraft, LibraryState, PlaylistState
 from ..ytclient import SYSTEM_PLAYLISTS
-from .models import Base, Event, LikedSong, Playlist, PlaylistTrack, Sync, Track, utcnow
+from .models import (
+    Base,
+    Event,
+    FilingSkip,
+    LikedSong,
+    Playlist,
+    PlaylistTrack,
+    Sync,
+    Track,
+    utcnow,
+)
 
 
 class NoSyncError(RuntimeError):
@@ -213,7 +223,9 @@ class Repo:
             ).all()
         )
 
-    def unfiled_video_ids(self, s: Session, user_id: str) -> list[str]:
+    def unfiled_video_ids(
+        self, s: Session, user_id: str, include_skipped: bool = False
+    ) -> list[str]:
         filed = (
             select(PlaylistTrack.video_id)
             .join(
@@ -228,11 +240,41 @@ class Repo:
                 Playlist.playlist_id.notin_(SYSTEM_PLAYLISTS),
             )
         )
+        q = select(LikedSong.video_id).where(
+            LikedSong.user_id == user_id, LikedSong.video_id.notin_(filed)
+        )
+        if not include_skipped:
+            skipped = select(FilingSkip.video_id).where(FilingSkip.user_id == user_id)
+            q = q.where(LikedSong.video_id.notin_(skipped))
+        return list(s.scalars(q.order_by(LikedSong.rank)).all())
+
+    # -- filing skips ("not fileable" flags) -----------------------------------
+
+    def add_filing_skips(
+        self, s: Session, user_id: str, video_ids: list[str], reason: str | None = None
+    ) -> list[str]:
+        """Flag tracks as not fileable. Returns the ids actually added (idempotent)."""
+        added = []
+        for vid in video_ids:
+            if s.get(FilingSkip, (user_id, vid)) is None:
+                s.add(FilingSkip(user_id=user_id, video_id=vid, reason=reason))
+                added.append(vid)
+        return added
+
+    def remove_filing_skips(self, s: Session, user_id: str, video_ids: list[str]) -> int:
+        result = s.execute(
+            delete(FilingSkip).where(
+                FilingSkip.user_id == user_id, FilingSkip.video_id.in_(video_ids)
+            )
+        )
+        return result.rowcount
+
+    def filing_skips(self, s: Session, user_id: str) -> list[FilingSkip]:
         return list(
             s.scalars(
-                select(LikedSong.video_id)
-                .where(LikedSong.user_id == user_id, LikedSong.video_id.notin_(filed))
-                .order_by(LikedSong.rank)
+                select(FilingSkip)
+                .where(FilingSkip.user_id == user_id)
+                .order_by(FilingSkip.created_at.desc())
             ).all()
         )
 
@@ -245,10 +287,13 @@ class Repo:
             .select_from(Playlist)
             .where(Playlist.user_id == user_id, Playlist.deleted_at.is_(None))
         )
+        unfiled = self.unfiled_video_ids(s, user_id)
+        unfiled_all = self.unfiled_video_ids(s, user_id, include_skipped=True)
         last = self.last_ok_sync(s, user_id)
         return {
             "liked": liked,
             "playlists": playlists,
-            "unfiled": len(self.unfiled_video_ids(s, user_id)),
+            "unfiled": len(unfiled),
+            "skipped": len(unfiled_all) - len(unfiled),
             "last_sync_at": last.finished_at.isoformat() if last and last.finished_at else None,
         }

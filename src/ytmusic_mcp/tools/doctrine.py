@@ -26,6 +26,9 @@ You manage the user's YouTube Music library on their behalf. Read this first.
 2. Cluster them by genre/artist/mood; map to existing owned playlists or propose new ones.
 3. Propose the plan, **get explicit approval**, then `add_tracks` (ONE call per playlist,
    many videoIds — batch).
+4. Tracks that don't belong in any playlist (DJ sets, jingles, one-off ambience):
+   propose `mark_unfileable(video_ids, reason)` — they stay liked but stop resurfacing
+   in the unfiled audit. Reversible (`unmark_unfileable`, `list_unfileable`).
 
 **Sort my latest likes**
 1. `recent_likes()` → only what's been liked since last time, with `since`/`until` bounds

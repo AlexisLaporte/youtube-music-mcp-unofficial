@@ -128,8 +128,9 @@ def register(mcp, deps) -> None:
             return {
                 "stats": {
                     "liked": summary["liked"],
-                    "filed": summary["liked"] - len(vids),
+                    "filed": summary["liked"] - len(vids) - summary["skipped"],
                     "unfiled": len(vids),
+                    "skipped": summary["skipped"],
                     "syncedAt": last.finished_at.isoformat(),
                 },
                 "tracks": [meta.get(v, {"videoId": v}) for v in vids],
@@ -150,12 +151,20 @@ def register(mcp, deps) -> None:
             filed |= {t["videoId"] for t in pl["tracks"] if t.get("videoId")}
             scanned.append(pid)
 
-        unfiled = [t for vid, t in liked_by_id.items() if vid not in filed]
+        skipped: set[str] = set()
+        if deps.repo is not None:  # honor "not fileable" flags in live mode too
+            with deps.repo.session() as s:
+                skipped = {r.video_id for r in deps.repo.filing_skips(s, deps.user_id())}
+
+        unfiled = [
+            t for vid, t in liked_by_id.items() if vid not in filed and vid not in skipped
+        ]
         return {
             "stats": {
                 "liked": len(liked_by_id),
-                "filed": len(liked_by_id) - len(unfiled),
+                "filed": len(filed & set(liked_by_id)),
                 "unfiled": len(unfiled),
+                "skipped": len([v for v in liked_by_id if v in skipped and v not in filed]),
                 "playlists_scanned": len(scanned),
             },
             "tracks": unfiled,

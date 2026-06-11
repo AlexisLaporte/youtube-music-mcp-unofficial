@@ -66,6 +66,19 @@ class LikedSong(Base):
     liked_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
+class FilingSkip(Base):
+    """Liked songs flagged "not fileable" (DJ sets, jingles, ambience…): excluded
+    from the unfiled audit so they stop resurfacing. Lives outside liked_songs on
+    purpose — survives sync rewrites and unlike/re-like cycles."""
+
+    __tablename__ = "filing_skips"
+
+    user_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    video_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    reason: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
 class Event(Base):
     """Append-only journal — the source of truth for "what changed since X"."""
 
@@ -76,7 +89,8 @@ class Event(Base):
     )
     user_id: Mapped[str] = mapped_column(Text, index=True)
     at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)
-    source: Mapped[str] = mapped_column(Text)  # 'tool' (MCP mutation) | 'sync' (detected diff)
+    source: Mapped[str] = mapped_column(Text)
+    # 'tool' (MCP mutation) | 'sync' (detected diff) | 'site' (dashboard action)
     type: Mapped[str] = mapped_column(Text)
     # like | unlike | playlist_create | playlist_edit | playlist_delete | tracks_add | tracks_remove
     playlist_id: Mapped[str | None] = mapped_column(Text)
