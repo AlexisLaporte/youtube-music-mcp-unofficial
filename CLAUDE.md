@@ -37,6 +37,10 @@ sont **hors de ce repo** : repo privé `AlexisLaporte/ytmusic-site`, local `/dat
 
 ## Conventions
 
+- **Sync hybride** (mode hébergé) : l'agent ne micro-gère pas `sync`. Le snapshot est
+  maintenu frais tout seul — `ensure_fresh` (baseline au 1er contact + refresh paresseux
+  past un TTL, sync-then-serve) ; TTL court (`recent_likes`) / long (lectures `cached=`).
+  Doctrine d'orchestration exposée par le tool `get_claude_md` (les `INSTRUCTIONS` y renvoient).
 - L'auth (headers browser) ne transite JAMAIS par une conversation LLM : capture via
   `ytmusic-manager setup` en terminal.
 - Tools destructifs : garde `confirm` + instructions serveur (confirmation utilisateur).
