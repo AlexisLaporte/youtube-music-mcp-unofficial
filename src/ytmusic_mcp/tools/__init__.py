@@ -4,7 +4,8 @@ so the same tools serve stdio (local file) and hosted (per-user) deployments.
 Deps.repo (optional) enables history: sync/recent_likes/library_changes tools,
 cached reads and write-through event recording on mutations."""
 
-from dataclasses import dataclass
+import os
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 from ..credentials import CredentialsProvider
@@ -13,12 +14,23 @@ from ..ytclient import build_yt
 
 if TYPE_CHECKING:
     from ..db.repo import Repo
+    from ..enrichment.lastfm import LastFmClient
 
 
 @dataclass
 class Deps:
     provider: CredentialsProvider
     repo: "Repo | None" = None
+    _lastfm: "LastFmClient | None" = field(default=None, init=False, repr=False)
+
+    def get_lastfm(self) -> "LastFmClient":
+        """Lazy, memoized Last.fm client (shared across calls). Reads
+        LASTFM_API_KEY from the environment; raises if unset."""
+        if self._lastfm is None:
+            from ..enrichment.lastfm import LastFmClient
+
+            self._lastfm = LastFmClient()
+        return self._lastfm
 
     def get_yt(self):
         sub = current_sub()
@@ -52,3 +64,7 @@ def register_all(mcp, deps: Deps) -> None:
         from . import history
 
         history.register(mcp, deps)
+        if os.environ.get("LASTFM_API_KEY"):
+            from . import recommend
+
+            recommend.register(mcp, deps)

@@ -85,6 +85,21 @@ def register(mcp, deps) -> None:
         return pl
 
     @mcp.tool
+    def play_history(limit: int = 50) -> dict:
+        """Recently played tracks, most recent first — the user's YouTube Music
+        listening history (distinct from liked songs and from library_changes).
+
+        Live read, no sync needed. Each track carries 'played' (a relative label
+        like 'Today' / 'Yesterday', as YouTube exposes it). limit=0 returns all."""
+        items = deps.get_yt().get_history()
+        if limit:
+            items = items[:limit]
+        return {
+            "count": len(items),
+            "tracks": [slim_track(t) | {"played": t.get("played")} for t in items],
+        }
+
+    @mcp.tool
     def search(
         query: str,
         filter: Literal["songs", "videos", "albums", "artists", "playlists"] = "songs",

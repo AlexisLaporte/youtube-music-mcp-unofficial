@@ -28,6 +28,10 @@ MCP server YouTube Music open source. Deux modes, **même package** :
     `mark_unfileable`/`unmark_unfileable`/`list_unfileable` — flags `filing_skips`, si DB).
   - `db/` (models SQLAlchemy 2, repo — schéma `ytm` sur Postgres) + `sync/` (`diff.py` pur +
     `engine.py`) : extra optionnel `[server]`. SQLite (local) ou Postgres (hébergé), même code.
+  - `enrichment/` (`lastfm.py` client + `service.py` logique pure) + `tools/recommend.py`
+    (`track_tags`, `similar_tracks`, `recommend_for_playlist`) : tags de genre Last.fm pour le
+    clustering, similarité intra-biblio (Jaccard) et découverte externe. Registrés seulement si
+    DB **et** `LASTFM_API_KEY` ; enrichment lazy borné au lot, jamais dans `run_sync`.
   - `mcp_app.py` — MCP App `library_app` (dashboard rendu prefab-ui) : extra `[app]`, gracieux.
   - `cli.py` — `ytmusic-manager` : sans arg = stdio ; `setup` = wizard auth ; `whoami` ;
     `db-init`. `DATABASE_URL` active l'historique sur `serve`.
@@ -44,6 +48,10 @@ sont **hors de ce repo** : repo privé `AlexisLaporte/ytmusic-site`, local `/dat
 - L'auth (headers browser) ne transite JAMAIS par une conversation LLM : capture via
   `ytmusic-manager setup` en terminal.
 - Tools destructifs : garde `confirm` + instructions serveur (confirmation utilisateur).
+- Enrichment Last.fm (`LASTFM_API_KEY`, clé applicative globale configurée côté `ytmusic-site`,
+  jamais ici) : tags par morceau **partagés** (cache global, pas par user), couverture
+  progressive (seuls les morceaux `done` servent la reco). Découverte/reco = propose, ne
+  like/n'ajoute jamais sans approbation.
 - Écritures batchées (un `add_tracks` multi-ids), throttle 0,5 s sur like/unlike.
 - Le skill local `~/.claude/skills/ytmusic/` (ytm.py) reste l'outil d'Alexis au quotidien ;
   ce repo est le produit public. Même fichier d'auth partagé.

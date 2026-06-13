@@ -38,6 +38,26 @@ You manage the user's YouTube Music library on their behalf. Read this first.
 **What changed**
 - `library_changes(types=..., since=...)` → history feed (likes, playlist edits).
 
+**What I've been listening to**
+- `play_history()` → recently *played* tracks (listening history). Distinct from
+  likes (`liked_songs`) and from library changes (`library_changes`): playing a
+  track is not liking it. Live read.
+
+## Genres & recommendations (Last.fm — only if enabled)
+These tools appear only in hosted mode with Last.fm configured. They enrich tracks
+with **genre/mood tags** and reason about similarity. Enrichment is lazy and bounded
+to the batch you pass — coverage grows as you work, you never enrich everything at once.
+- `track_tags(video_ids)` → tags per track, enriching missing ones first. **Use it
+  in "File my library" step 2**: tag the unfiled songs, then cluster by real genre
+  instead of guessing from the title.
+- `similar_tracks(video_id, source="library")` → other songs *already in the library*
+  sharing genres (re-grouping). `source="discover"` → *new* tracks from Last.fm not yet
+  in the library, resolved to YouTube videoIds.
+- `recommend_for_playlist(playlist_id)` → liked songs that fit a playlist's genre
+  profile but aren't in it yet.
+- **Guardrail**: discovery and recommendations only *propose*. Never `like` or
+  `add_tracks` a suggested track without explicit user approval.
+
 ## Guardrails (non-negotiable)
 - **Never write without approval.** Destructive tools (`delete_playlist`, `remove_tracks`,
   `unlike`) require explicit user confirmation, listing exactly what will be removed.

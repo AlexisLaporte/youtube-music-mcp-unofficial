@@ -9,6 +9,7 @@ class FakeYT:
     def __init__(self):
         self.liked: list[dict] = []  # newest first, like the real LM playlist
         self.playlists: dict[str, dict] = {}
+        self.search_results: dict[str, list[dict]] = {}  # query -> hits
 
     # --- helpers for tests -------------------------------------------------
     def add_like(self, vid: str):
@@ -31,3 +32,6 @@ class FakeYT:
 
     def get_library_playlists(self, limit=None):
         return [{"playlistId": pid, "title": p["title"]} for pid, p in self.playlists.items()]
+
+    def search(self, query, filter=None, limit=20):
+        return self.search_results.get(query, [])

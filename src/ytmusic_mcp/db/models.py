@@ -34,6 +34,21 @@ class Track(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
+class TrackTags(Base):
+    """Last.fm genre/mood tags per track — a shared cache like `tracks` (no
+    per-user data: a track's tags are global). Enrichment is lazy and bounded;
+    `status` lets us skip already-resolved tracks and retry failures."""
+
+    __tablename__ = "track_tags"
+
+    video_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    tags: Mapped[list | None] = mapped_column(JSON)  # ["rock", "2000s", …]
+    status: Mapped[str] = mapped_column(Text, default="pending")  # pending|done|skipped|failed
+    source: Mapped[str | None] = mapped_column(Text)  # "track" | "artist" (where tags came from)
+    error: Mapped[str | None] = mapped_column(Text)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
 class Playlist(Base):
     __tablename__ = "playlists"
 

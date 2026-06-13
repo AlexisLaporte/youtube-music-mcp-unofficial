@@ -16,6 +16,7 @@ from .models import (
     PlaylistTrack,
     Sync,
     Track,
+    TrackTags,
     utcnow,
 )
 
@@ -207,6 +208,57 @@ class Repo:
             }
             for t in rows
         }
+
+    # -- Last.fm tag enrichment ------------------------------------------------
+
+    def upsert_track_tags(self, s: Session, results: list[dict]) -> None:
+        """Cache Last.fm enrichment results (shared, no user_id). Each result:
+        {video_id, tags, status, source, error}."""
+        for r in results:
+            vid = r["video_id"]
+            row = s.get(TrackTags, vid) or TrackTags(video_id=vid)
+            row.tags = r.get("tags")
+            row.status = r.get("status", "done")
+            row.source = r.get("source")
+            row.error = r.get("error")
+            row.updated_at = utcnow()
+            s.add(row)
+
+    def track_tags(self, s: Session, video_ids: list[str]) -> dict[str, dict]:
+        rows = s.scalars(select(TrackTags).where(TrackTags.video_id.in_(video_ids))).all()
+        return {
+            t.video_id: {"tags": t.tags or [], "status": t.status, "source": t.source}
+            for t in rows
+        }
+
+    def pending_tag_ids(self, s: Session, video_ids: list[str]) -> list[str]:
+        """Subset of video_ids not yet enriched (status != 'done') — drives the
+        idempotent, bounded enrichment loop. Failures/skips are retried."""
+        done = set(
+            s.scalars(
+                select(TrackTags.video_id).where(
+                    TrackTags.video_id.in_(video_ids), TrackTags.status == "done"
+                )
+            ).all()
+        )
+        return [v for v in video_ids if v not in done]
+
+    def user_enriched_tags(self, s: Session, user_id: str) -> dict[str, list[str]]:
+        """Tags of the user's library tracks (liked ∪ in owned playlists) that are
+        enriched — the candidate pool for intra-library similarity."""
+        user_vids = (
+            select(LikedSong.video_id)
+            .where(LikedSong.user_id == user_id)
+            .union(select(PlaylistTrack.video_id).where(PlaylistTrack.user_id == user_id))
+        )
+        rows = s.execute(
+            select(TrackTags.video_id, TrackTags.tags).where(
+                TrackTags.status == "done",
+                TrackTags.tags.is_not(None),
+                TrackTags.video_id.in_(user_vids),
+            )
+        ).all()
+        return {vid: tags for vid, tags in rows if tags}
 
     def playlists(self, s: Session, user_id: str) -> list[Playlist]:
         """Owned, non-system playlists, biggest first."""
