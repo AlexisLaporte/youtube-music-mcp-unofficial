@@ -7,11 +7,13 @@ without either, the server runs with JSON tools only (see server.build_mcp).
 """
 
 from fastmcp import FastMCPApp
+from prefab_ui.actions import SetState
 from prefab_ui.app import PrefabApp
 from prefab_ui.components import (
     Alert,
     AlertDescription,
     AlertTitle,
+    Button,
     Card,
     CardContent,
     CardDescription,
@@ -20,9 +22,12 @@ from prefab_ui.components import (
     Column,
     DataTable,
     DataTableColumn,
+    Embed,
     Grid,
+    If,
     Metric,
 )
+from prefab_ui.rx import Rx
 from prefab_ui.themes import Theme
 
 from .db.models import as_utc, utcnow
@@ -78,8 +83,14 @@ def _describe(e) -> str:
     return " ".join(parts)
 
 
-def _wrap(view, title: str) -> PrefabApp:
-    return PrefabApp(view=view, title=title, theme=YTM_THEME, css_class="max-w-3xl mx-auto")
+def _wrap(view, title: str, state: dict | None = None) -> PrefabApp:
+    return PrefabApp(
+        view=view,
+        title=title,
+        theme=YTM_THEME,
+        css_class="max-w-3xl mx-auto",
+        state=state,
+    )
 
 
 def register(mcp, deps) -> None:
@@ -119,6 +130,16 @@ def register(mcp, deps) -> None:
         ]
         unfiled_rows = [
             {
+                "play": Button(
+                    "",
+                    icon="play",
+                    variant="ghost",
+                    size="icon-sm",
+                    on_click=[
+                        SetState("now_playing", v),
+                        SetState("now_title", (meta.get(v) or {}).get("title") or v),
+                    ],
+                ),
                 "title": (meta.get(v) or {}).get("title") or v,
                 "artists": ", ".join((meta.get(v) or {}).get("artists") or []),
                 "album": (meta.get(v) or {}).get("album") or "—",
@@ -132,6 +153,19 @@ def register(mcp, deps) -> None:
                 Metric(label="Playlists", value=str(summary["playlists"]))
                 Metric(label="Unfiled", value=str(summary["unfiled"]))
                 Metric(label="Last sync", value=_age(last.finished_at))
+
+            with If("now_playing"):
+                with Card():
+                    with CardHeader():
+                        CardTitle("Now playing")
+                        CardDescription(Rx("now_title"))
+                    with CardContent():
+                        Embed(
+                            url=f"https://www.youtube.com/embed/{Rx('now_playing')}?autoplay=1",
+                            allow="autoplay; encrypted-media",
+                            width="100%",
+                            height="240",
+                        )
 
             with Card():
                 with CardHeader():
@@ -165,6 +199,7 @@ def register(mcp, deps) -> None:
                     if unfiled_rows:
                         DataTable(
                             columns=[
+                                DataTableColumn(key="play", header="", width="44px"),
                                 DataTableColumn(key="title", header="Title", sortable=True),
                                 DataTableColumn(key="artists", header="Artists"),
                                 DataTableColumn(key="album", header="Album"),
@@ -174,6 +209,10 @@ def register(mcp, deps) -> None:
                             paginated=True,
                         )
 
-        return _wrap(view, "YouTube Music — library")
+        return _wrap(
+            view,
+            "YouTube Music — library",
+            state={"now_playing": "", "now_title": ""},
+        )
 
     mcp.add_provider(app)
