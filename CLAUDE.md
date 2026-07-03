@@ -13,9 +13,6 @@ MCP server YouTube Music open source. Deux modes, **même package** :
   via uvx git+ ; marketplace.json = le repo est sa propre marketplace `ytmusic`).
   Install : `/plugin marketplace add AlexisLaporte/youtube-music-mcp-unofficial` puis
   `/plugin install ytmusic-manager@ytmusic`.
-- `skills/ytmusic/SKILL.md` — skill public (méthodo de rangement sur les tools MCP,
-  générique). Version perso avec IDs/règles d'Alexis : `~/.claude/skills/ytmusic/`
-  (ytm.py CLI, hors repo) — porter manuellement les leçons généralisables de l'un à l'autre.
 - `src/ytmusic_mcp/` — package Python (FastMCP v3 + ytmusicapi)
   - `server.py` — **factory `build_mcp(auth, provider, repo)`** (le transport est choisi
     par l'appelant, plus de switch à l'import) + instructions de garde-fous.
@@ -33,6 +30,8 @@ MCP server YouTube Music open source. Deux modes, **même package** :
     clustering, similarité intra-biblio (Jaccard) et découverte externe. Registrés seulement si
     DB **et** `LASTFM_API_KEY` ; enrichment lazy borné au lot, jamais dans `run_sync`.
   - `mcp_app.py` — MCP App `library_app` (dashboard rendu prefab-ui) : extra `[app]`, gracieux.
+    Lecture d'une piste = bouton ▶ → `OpenLink` vers music.youtube.com (**pas d'`Embed`
+    iframe** : la CSP du sandbox claude.ai bloque les iframes tierces → l'embed ne rend jamais).
   - `cli.py` — `ytmusic-manager` : sans arg = stdio ; `setup` = wizard auth ; `whoami` ;
     `db-init`. `DATABASE_URL` active l'historique sur `serve`.
 
@@ -53,14 +52,14 @@ sont **hors de ce repo** : repo privé `AlexisLaporte/ytmusic-site`, local `/dat
   progressive (seuls les morceaux `done` servent la reco). Découverte/reco = propose, ne
   like/n'ajoute jamais sans approbation.
 - Écritures batchées (un `add_tracks` multi-ids), throttle 0,5 s sur like/unlike.
-- Le skill local `~/.claude/skills/ytmusic/` (ytm.py) reste l'outil d'Alexis au quotidien ;
-  ce repo est le produit public. Même fichier d'auth partagé.
 - Repo **public** : aucune info d'infra perso ici (IP origin, ports, chemins serveur) —
   tout ça vit dans `ytmusic-site` (privé).
 
 ## Dev
 
 - `uv run ytmusic-manager whoami` (depuis la racine) pour smoke-tester.
+- Tests : `uv run python -m pytest` (PAS `uv run pytest` — résout le python système sans
+  fastmcp). Les tests des extras (`enrichment/`, `db/`) tournent via le dev dependency-group.
 - Historique git réécrit le 2026-06-09 par précaution avant l'open source ; l'audit a
   ensuite montré qu'aucun secret réel n'avait jamais été commité (seul `.env.local.example`).
   Archive : `/data/projects/.archive/ytmusic-manager-nextjs-2026-06-09.bundle`.

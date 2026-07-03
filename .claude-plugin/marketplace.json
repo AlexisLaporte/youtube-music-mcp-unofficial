@@ -7,7 +7,7 @@
     {
       "name": "ytmusic-manager",
       "source": "./",
-      "description": "Sort and clean up your YouTube Music library by talking to Claude (MCP server + skill)."
+      "description": "Sort and clean up your YouTube Music library by talking to Claude (MCP server)."
     }
   ]
 }

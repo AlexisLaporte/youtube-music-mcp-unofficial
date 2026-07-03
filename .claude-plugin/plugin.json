@@ -1,7 +1,7 @@
 {
   "name": "ytmusic-manager",
   "displayName": "YouTube Music Manager",
-  "description": "Sort and clean up your YouTube Music library by talking to Claude — MCP server + filing methodology skill. Local-first: your credentials never leave your machine.",
+  "description": "Sort and clean up your YouTube Music library by talking to Claude — MCP server with filing methodology built in. Local-first: your credentials never leave your machine.",
   "author": {
     "name": "Alexis Laporte"
   },

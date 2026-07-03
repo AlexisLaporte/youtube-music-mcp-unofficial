@@ -7,8 +7,8 @@ account, from your own machine.
 The killer workflow: `unfiled_liked_songs` finds every liked song that sits in no playlist,
 so your assistant can propose a filing plan and execute it in batches once you approve.
 
-The plugin bundles the MCP server (auto-registered) and a `ytmusic` skill carrying the
-filing methodology (batching, duration checks for DJ sets, owned-playlists-only, guardrails).
+The plugin bundles the MCP server (auto-registered) with guardrails baked into the server
+(batching, duration checks for DJ sets, owned-playlists-only, confirmation on destructive ops).
 
 ## How it works
 
@@ -37,7 +37,7 @@ prints the account name.
 /plugin install ytmusic-manager@ytmusic
 ```
 
-This registers the MCP server and the `ytmusic` filing skill in one go.
+This registers the MCP server.
 
 ### Alternative: MCP server only
 
